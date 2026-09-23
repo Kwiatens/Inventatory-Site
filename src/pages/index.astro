@@ -15,14 +15,12 @@ if (!scannerFeature) throw new Error('Missing Scan R1 feature data.');
 <BaseLayout title="Electronic component inventory">
   <div class="wrap">
     <section class="intro" aria-label="Introducing Inventatory">
-      <p class="eyebrow">Electronic component inventory · Windows desktop + Scan R1</p>
       <AsciiLogo />
       <div class="intro-bottom">
         <p class="lead">A local inventory system for organizing, tracking, and locating electronic components, with an integrated handheld scanner.</p>
         <div class="intro-resources">
           <a class="button" href={url('/download/')}>Download for Windows <span aria-hidden="true">&nbsp;↓</span></a>
           <div class="resource-links"><a href={url('/docs/')}>Read the documentation</a><a href={site.repository}>Source code ↗</a></div>
-          <p class="meta">Public beta · Windows x64 · GPL-3.0-only</p>
         </div>
       </div>
     </section>
@@ -73,7 +71,6 @@ if (!scannerFeature) throw new Error('Missing Scan R1 feature data.');
     </section>
     <section id="scanner" class="section scanner" aria-labelledby="scanner-heading">
       <div class="scanner-copy">
-        <p class="eyebrow">Scan R1</p>
         <h2 id="scanner-heading">Bring the handheld into your workflow.</h2>
         <p class="lead">Connect the component in your hand to the inventory on your PC.</p>
         <p>Pair over Bluetooth LE, then send supported lookup, inventory, and label requests to the desktop service across your local network.</p>
@@ -102,11 +99,6 @@ if (!scannerFeature) throw new Error('Missing Scan R1 feature data.');
           <source src={url(scannerFeature.media.video)} type="video/webm" />
         </video>
       </div>
-    </section>
-    <section class="section" aria-labelledby="features-heading">
-      <div class="section-heading"><div><p class="eyebrow">From incoming parts to your next board</p><h2 id="features-heading">A connected workflow</h2></div><p>Receive components, give them a place, compare a project against stock, and keep track of what changed. The same inventory connects each step.</p></div>
-      <div class="feature-list">{features.slice(0, 5).map(feature => <a class="feature-row" href={url(feature.href)}><span class="feature-label">{feature.label}</span><span>{feature.text}</span><span aria-hidden="true">↗</span></a>)}</div>
-      <a class="all-features" href={url('/features/')}>See all features and limitations →</a>
     </section>
     <section class="section resources" aria-labelledby="resources-heading">
       <div><p class="eyebrow">Start with the desktop application</p><h2 id="resources-heading">Set up your first inventory</h2><p>The scanner is optional. Install Inventatory, choose your data folder, and add a component or import an order.</p></div>
@@ -296,11 +288,6 @@ if (!scannerFeature) throw new Error('Missing Scan R1 feature data.');
   .scanner-model { width: 100%; aspect-ratio: 16 / 10; display: grid; place-items: center; overflow: hidden; }
   .scanner-model > img, .scanner-model > video { grid-area: 1 / 1; width: 100%; height: 100%; object-fit: contain; }
   .scanner-still { display: none; }
-  .feature-row { display: grid; grid-template-columns: 9rem 1fr auto; gap: var(--space-6); padding: var(--space-6) var(--space-3); border-top: var(--border) solid var(--divider); text-decoration: none; color: var(--secondary); }
-  .feature-row:hover { background: var(--surface); }
-  .feature-label { font: 500 var(--text-sm)/1.7 var(--font-mono); color: var(--focus); }
-  .feature-row > span:last-child { color: var(--accent); }
-  .all-features { display: inline-block; margin-top: var(--space-4); }
   .resources { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-16); }
   .resources h2 { margin-bottom: var(--space-4); } .resources ol { margin: 0; padding-left: var(--space-6); color: var(--muted); font-family: var(--font-mono); }
   .resources li { padding: var(--space-3) 0 var(--space-3) var(--space-3); border-bottom: var(--border) solid var(--divider); }
@@ -311,9 +298,6 @@ if (!scannerFeature) throw new Error('Missing Scan R1 feature data.');
     .intro { padding-top: var(--space-8); }
     .feature-copy { max-width: 38rem; }
     .feature-copy h3 { max-width: 20ch; font-size: clamp(1.8rem, 8vw, 2.6rem); }
-    .feature-row { grid-template-columns: 1fr auto; gap: var(--space-3); }
-    .feature-row span:nth-child(2) { grid-column: 1; }
-    .feature-row span:last-child { grid-column: 2; grid-row: 1; }
     .feature-visual, .scanner-model { aspect-ratio: 16 / 11; }
     .scanner { padding-block: var(--space-12); gap: var(--space-6); }
   }
