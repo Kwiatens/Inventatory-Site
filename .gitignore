@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.astro/
+.env*
+*.log
+.validation/
+
+# Local coding-agent instructions and metadata
+AGENTS.md
+.agents/
+.codex/
+.claude/
+
+# Agent-generated repository review notes
+docs/asset-provenance.md
+docs/content-audit.md
+docs/validation.md

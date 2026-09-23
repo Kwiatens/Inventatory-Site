@@ -1,0 +1,5 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { url } from '../lib/url';
+---
+<BaseLayout title="Page not found"><div class="wrap page-intro"><p class="eyebrow">404</p><h1>Page not found</h1><p>The address may have changed. Start with the overview or browse the documentation.</p><div class="actions"><a href={url('/')}>Back to overview</a><a href={url('/docs/')}>Open documentation</a></div></div></BaseLayout>

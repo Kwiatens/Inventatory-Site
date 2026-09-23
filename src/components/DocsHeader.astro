@@ -1,0 +1,10 @@
+---
+import Search from '@astrojs/starlight/components/Search.astro';
+import { nav } from '../data/site';
+import { url, isCurrent } from '../lib/url';
+---
+<div class="docs-header">
+  <a class="docs-wordmark" href={url('/')} aria-label="Inventatory home">inventatory<span aria-hidden="true"> /</span></a>
+  <nav class="docs-primary" aria-label="Primary navigation">{nav.map(item => <a href={url(item.href)} aria-current={isCurrent(Astro.url.pathname, item.href) ? 'page' : undefined}>{item.label}</a>)}</nav>
+  <Search />
+</div>
