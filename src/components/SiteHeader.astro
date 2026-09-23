@@ -1,0 +1,24 @@
+---
+/** Shared primary navigation; it stays visible on narrow screens without JavaScript. */
+import { nav } from '../data/site';
+import { url, isCurrent } from '../lib/url';
+---
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="wordmark" href={url('/')} aria-label="Inventatory home">inventatory<span aria-hidden="true"> /</span></a>
+    <nav aria-label="Primary navigation">
+      {nav.map(item => <a href={url(item.href)} aria-current={isCurrent(Astro.url.pathname, item.href) ? 'page' : undefined}>{item.label}{item.label === 'GitHub' && <span aria-hidden="true"> ↗</span>}</a>)}
+    </nav>
+  </div>
+</header>
+<style>
+  .site-header { position: sticky; top: 0; z-index: 20; border-bottom: var(--border) solid var(--divider); background: var(--canvas); }
+  .header-inner { min-height: var(--header-height); display: flex; align-items: center; justify-content: space-between; gap: var(--space-8); }
+  .wordmark { font: 500 var(--text-base)/1.5 var(--font-mono); color: var(--text); text-decoration: none; }
+  .wordmark span { color: var(--accent); }
+  nav { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-6); }
+  nav a { color: var(--secondary); text-decoration: none; font: var(--text-sm)/1.5 var(--font-mono); padding-block: var(--space-3); border-bottom: var(--focus-width) solid transparent; }
+  nav a:hover { color: var(--focus); }
+  nav a[aria-current] { color: var(--focus); border-color: var(--accent); }
+  @media (max-width: 48rem) { .header-inner { align-items: flex-start; flex-direction: column; gap: var(--space-2); padding-block: var(--space-3); } nav { gap: var(--space-1) var(--space-4); } nav a { padding-block: var(--space-2); font-size: var(--text-xs); } .site-header { position: static; } }
+</style>

@@ -1,0 +1,21 @@
+---
+/** Real screenshot fallback. Optional real recording uses native controls, never autoplay. */
+import { media } from '../data/site';
+import { url } from '../lib/url';
+---
+<figure class="product-media">
+  {media.video ? <video controls playsinline preload="none" poster={url(media.screenshot)} width={media.screenshotWidth} height={media.screenshotHeight} aria-describedby="showcase-description">
+    <source src={url(media.video)} type="video/mp4" />
+    {media.videoCaptions && <track kind="captions" src={url(media.videoCaptions)} srclang="en" label="English" default />}
+    <p><a href={url(media.screenshot)}>View the Stock workspace screenshot</a></p>
+  </video> : <a class="image-link" href={url(media.screenshot)} aria-label="Open the full-resolution Stock workspace screenshot">
+    <img src={url(media.screenshot)} width={media.screenshotWidth} height={media.screenshotHeight} alt="Inventatory Stock workspace: component categories and quantities on the left, with a selected capacitor's rack location, electrical parameters, links, and editing actions on the right." fetchpriority="high" />
+  </a>}
+  <figcaption><span>Stock workspace · Actual application screenshot</span><a href={url(media.screenshot)}>View full resolution <span aria-hidden="true">↗</span></a></figcaption>
+  {media.video && <p id="showcase-description">{media.videoDescription}</p>}
+</figure>
+<style>
+  .product-media img, .product-media video { border: var(--border) solid var(--divider); width: 100%; background: var(--canvas); }
+  .image-link { display: block; }
+  figcaption { display: flex; justify-content: space-between; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); color: var(--muted); font: var(--text-xs)/1.6 var(--font-mono); }
+</style>

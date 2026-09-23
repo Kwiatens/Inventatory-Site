@@ -1,0 +1,46 @@
+/* Exact default palette: Inventatory src/app/settings/AppSettings.h. */
+:root {
+  color-scheme: dark;
+  --canvas: #0d1010;
+  --surface: #141918;
+  --raised: #1d2422;
+  --hover: #27312f;
+  --selection: #2c4440;
+  --divider: #384543;
+  --text: #f1eee5;
+  --secondary: #cad0ca;
+  --muted: #8c9690;
+  --focus: #b9e7dd;
+  --accent: #58b9b0;
+  --success: #a5c9a5;
+  --link: #8fcbc5;
+  --warning: #d8b56b;
+  --danger: #e08c83;
+  --active: #315a55;
+  --active-soft: #243a37;
+  --warning-bg: #3a3327;
+  --danger-bg: #3e2a29;
+  --font-body: 'Inter Variable', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+  --text-xs: .75rem;
+  --text-sm: .875rem;
+  --text-base: 1rem;
+  --text-lead: clamp(1.0625rem, 1.6vw, 1.25rem);
+  --text-h2: clamp(1.5rem, 2.5vw, 2rem);
+  --text-h1: clamp(2rem, 4vw, 2.75rem);
+  --space-1: .25rem;
+  --space-2: .5rem;
+  --space-3: .75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --gutter: clamp(1.125rem, 4vw, 3rem);
+  --width: 76rem;
+  --measure: 66ch;
+  --border: 1px;
+  --focus-width: 2px;
+  --header-height: 4.5rem;
+}

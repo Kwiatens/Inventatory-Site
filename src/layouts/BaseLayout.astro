@@ -1,0 +1,33 @@
+---
+import '../styles/global.css';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import { site, media } from '../data/site';
+import { url } from '../lib/url';
+interface Props { title: string; description?: string; }
+const { title, description = site.description } = Astro.props;
+const canonical = new URL(Astro.url.pathname.replace(/\/404\/?$/, '/404.html'), Astro.site);
+---
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title} · Inventatory</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href={url('/favicon.svg')} />
+    <meta property="og:title" content={title + ' · Inventatory'} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={new URL(url(media.screenshot), Astro.site)} />
+    <meta name="color-scheme" content="dark" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <SiteHeader />
+    <main id="main" tabindex="-1"><slot /></main>
+    <SiteFooter />
+  </body>
+</html>

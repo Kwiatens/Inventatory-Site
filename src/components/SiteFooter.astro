@@ -1,0 +1,13 @@
+---
+import { site } from '../data/site';
+import { url } from '../lib/url';
+---
+<footer class="wrap site-footer">
+  <p>Inventatory <span>· Local electronic component inventory</span></p>
+  <div><a href={url('/docs/resources/')}>Contribute</a><a href={site.repository + '/issues'}>Report an issue</a><a href={site.repository + '/blob/main/LICENSE.md'}>GPL-3.0-only</a></div>
+</footer>
+<style>
+  .site-footer { display: flex; justify-content: space-between; gap: var(--space-6); padding-block: var(--space-8); border-top: var(--border) solid var(--divider); font: var(--text-xs)/1.7 var(--font-mono); }
+  p, p span { color: var(--muted); } div { display: flex; flex-wrap: wrap; gap: var(--space-4); }
+  @media (max-width: 48rem) { .site-footer { flex-direction: column; } p span { display: block; } }
+</style>
