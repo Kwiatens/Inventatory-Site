@@ -5,7 +5,7 @@ import { url } from '../lib/url';
 ---
 <BaseLayout title="Download" description="Download the verified Windows x64 Inventatory prerelease from GitHub and read installation instructions.">
   <div class="wrap">
-    <header class="page-intro"><p class="eyebrow">Official project releases</p><h1>Download Inventatory</h1><p class="lead">The Windows desktop application is available as a public beta. A scanner is not required to manage your inventory.</p></header>
+    <header class="page-intro"><h1>Download Inventatory</h1><p class="lead">The Windows desktop application is available as a public beta. A scanner is not required to manage your inventory.</p></header>
     <section class="release-section" aria-labelledby="release-title">
       <div><p class="eyebrow">Windows x64</p><h2 id="release-title">Inventatory {release.version}</h2><p class="release-status">{release.status} · Release candidate</p><p>This is a testing release. Read the release notes before updating an existing installation and make a backup of your inventory.</p><div class="actions"><a class="button" href={release.package}>Download Windows x64 ZIP ↓</a><a href={release.url}>Release notes ↗</a></div><p class="meta checked">Release and package checked {release.checked}. <a href={site.releases}>Check GitHub for newer releases.</a></p></div>
       <aside><h3>Before you start</h3><ul><li>A Windows x64 PC.</li><li>A terminal with at least 100 × 30 cells.</li><li>A writable folder for inventory data.</li><li>A backup before replacing an existing installation.</li></ul><a href={url('/docs/getting-started/installation/')}>Installation and first-run guide →</a></aside>
