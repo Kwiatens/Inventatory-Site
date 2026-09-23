@@ -62,6 +62,17 @@ if (!homepage) {
     if (slide.find('img[data-feature-image]').length !== 1) errors.push('Homepage feature slide ' + (index + 1) + ' must have one image.');
     if (!slide.find('a[data-feature-link]').attr('href')) errors.push('Homepage feature slide ' + (index + 1) + ' must keep its guide link available.');
   });
+  const homepageText = homepage.text();
+  for (const removedText of [
+    'Electronic component inventory · Windows desktop + Scan R1',
+    'Public beta · Windows x64 · GPL-3.0-only',
+    'From incoming parts to your next board',
+    'A connected workflow',
+  ]) {
+    if (homepageText.includes(removedText)) errors.push('Homepage must not contain removed copy: ' + removedText);
+  }
+  if (homepage('section[aria-labelledby="features-heading"]').length) errors.push('Homepage must not include the connected workflow section.');
+  if (homepage('.scanner-copy > .eyebrow').text().trim() === 'Scan R1') errors.push('Scanner section must not include its eyebrow label.');
   const scannerVideo = homepage('video[data-scanner-preview]');
   if (scannerVideo.length !== 1) errors.push('Homepage must include one scanner preview video.');
   else {
