@@ -52,7 +52,34 @@ for (const file of walk(root).filter(file => file.endsWith('.css'))) {
   }
 }
 const homepage = documents.get(base + '/')?.$;
-if (!homepage || homepage('script[src]').length) errors.push('Homepage must not ship a client framework or unnecessary JavaScript.');
+if (!homepage) {
+  errors.push('Homepage missing from production output.');
+} else {
+  const slides = homepage('[data-feature-slide]');
+  if (slides.length !== 6) errors.push('Homepage must contain six feature slides in its no-JavaScript HTML.');
+  slides.each((index, element) => {
+    const slide = homepage(element);
+    if (slide.find('img[data-feature-image]').length !== 1) errors.push('Homepage feature slide ' + (index + 1) + ' must have one image.');
+    if (!slide.find('a[data-feature-link]').attr('href')) errors.push('Homepage feature slide ' + (index + 1) + ' must keep its guide link available.');
+  });
+  const scannerVideo = homepage('video[data-scanner-preview]');
+  if (scannerVideo.length !== 1) errors.push('Homepage must include one scanner preview video.');
+  else {
+    for (const attribute of ['autoplay', 'muted', 'loop', 'playsinline', 'poster']) {
+      if (!scannerVideo.is('[' + attribute + ']')) errors.push('Scanner preview must include ' + attribute + '.');
+    }
+    if (scannerVideo.is('[controls]')) errors.push('Scanner preview must not expose controls.');
+    if (scannerVideo.find('source[src$=".webm"]').length !== 1) errors.push('Scanner preview must use one local WebM source.');
+  }
+  const scripts = homepage('script');
+  if (scripts.length !== 1) errors.push('Homepage must ship one local carousel script.');
+  scripts.each((_, element) => {
+    const src = homepage(element).attr('src');
+    if (src && new URL(src, origin + base + '/').origin !== new URL(origin).origin) {
+      errors.push('Homepage carousel script must be local.');
+    }
+  });
+}
 if (!existsSync(join(root, 'pagefind/pagefind.js'))) errors.push('Documentation search index missing.');
 if (errors.length) { console.error(errors.join('\n')); process.exit(1); }
-console.log('Verified ' + documents.size + ' HTML pages and ' + links + ' internal links/assets/fragments under ' + (base || '/') + '. CSS assets and search index present; homepage has no external scripts.');
+console.log('Verified ' + documents.size + ' HTML pages and ' + links + ' internal links/assets/fragments under ' + (base || '/') + '. CSS assets, search index, local carousel bundle, and scanner media present.');
