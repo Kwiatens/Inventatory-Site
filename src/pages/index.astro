@@ -1,86 +1,275 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import AsciiLogo from '../components/AsciiLogo.astro';
-import ProductMedia from '../components/ProductMedia.astro';
+import FeaturesCarousel from '../components/FeaturesCarousel.astro';
+import ScannerViewer from '../components/ScannerViewer.astro';
 import { features, site, media } from '../data/site';
 import { url } from '../lib/url';
 ---
 <BaseLayout title="Electronic component inventory">
-  <div class="wrap">
-    <section class="intro" aria-label="Introducing Inventatory">
-      <p class="eyebrow">Electronic component inventory · Windows desktop + Scan R1</p>
+  <!-- ── Hero: full-viewport, video background ── -->
+  <section class="hero" aria-label="Introducing Inventatory">
+    {media.heroVideo && (
+      <video class="hero-video" autoplay muted loop playsinline preload="auto" poster={media.heroPoster ? url(media.heroPoster) : undefined}>
+        <source src={url(media.heroVideo)} type="video/mp4" />
+      </video>
+    )}
+    <div class="hero-overlay" aria-hidden="true"></div>
+    <div class="wrap hero-content">
       <AsciiLogo />
-      <div class="intro-bottom">
+      <div class="hero-bottom">
         <p class="lead">A local inventory system for organizing, tracking, and locating electronic components, with an integrated handheld scanner.</p>
-        <div class="intro-resources">
+        <div class="hero-resources">
           <a class="button" href={url('/download/')}>Download for Windows <span aria-hidden="true">&nbsp;↓</span></a>
           <div class="resource-links"><a href={url('/docs/')}>Read the documentation</a><a href={site.repository}>Source code ↗</a></div>
           <p class="meta">Public beta · Windows x64 · GPL-3.0-only</p>
         </div>
       </div>
-    </section>
-    <section id="desktop" class="desktop" aria-labelledby="desktop-heading">
-      <div class="showcase-heading"><h2 id="desktop-heading">Your inventory, in view.</h2><a href={url('/docs/desktop/stock/')}>Desktop guide <span aria-hidden="true">→</span></a></div>
-      <ProductMedia />
-      <div class="desktop-summary"><p>Component records, quantities, and physical locations in one workspace. Select a part to inspect its parameters, follow its datasheet, or update its stock.</p><p>Work with the keyboard or mouse. Your inventory lives in a local SQLite database, with a recorded history of changes.</p></div>
-    </section>
-    <section id="scanner" class="section scanner" aria-labelledby="scanner-heading">
+    </div>
+  </section>
+
+  <!-- ── Blur transition ── -->
+  <div class="hero-blur" aria-hidden="true"></div>
+
+  <!-- ── Features carousel ── -->
+  <FeaturesCarousel />
+
+  <!-- ── Scanner section (redesigned) ── -->
+  <section id="scanner" class="scanner-section" aria-labelledby="scanner-heading">
+    <div class="wrap scanner-grid">
+      <div class="scanner-model">
+        <ScannerViewer />
+      </div>
       <div class="scanner-copy">
-        <p class="eyebrow">The handheld side of Inventatory</p>
         <h2 id="scanner-heading">Inventatory Scan R1</h2>
         <p class="lead">Connect the component in your hand to the inventory on your PC.</p>
-        <p>Scan R1 is the dedicated handheld companion to the desktop application. The desktop service receives events from the paired device and supports component lookup, inventory operations, and label requests.</p>
-        <a href={url('/docs/scanner/')}>Explore the scanner documentation <span aria-hidden="true">→</span></a>
+
+        <div class="scanner-cards">
+          <div class="scanner-card">
+            <h3>Open source</h3>
+            <ul class="oss-list">
+              <li><span class="oss-check" aria-hidden="true">✓</span> Firmware — GPL-3.0</li>
+              <li><span class="oss-check" aria-hidden="true">✓</span> Schematics — open</li>
+              <li><span class="oss-check" aria-hidden="true">✓</span> Documentation — open</li>
+            </ul>
+            <p>Build your own from source, modify the firmware, or contribute improvements.</p>
+          </div>
+
+          <div class="scanner-card card-enclosure">
+            <h3>3D-printable enclosure</h3>
+            <p>The official enclosure and charging dock 3D files are available for a small amount if you'd like to support the project.</p>
+            <a class="button button--secondary" href={url('/docs/scanner/')}>Learn more <span aria-hidden="true">→</span></a>
+          </div>
+        </div>
+
+        <div class="scanner-links">
+          <a href={url('/docs/scanner/')}>Scanner documentation <span aria-hidden="true">→</span></a>
+          <a href={site.repository}>Source code <span aria-hidden="true">↗</span></a>
+        </div>
       </div>
-      <div class="scanner-details">
-        {media.scannerPhoto && <img src={url(media.scannerPhoto)} alt={media.scannerPhotoAlt} loading="lazy" />}
-        <dl class="connection-list">
-          <div><dt>Pair once</dt><dd>Verify the device over Bluetooth LE using the code shown on the scanner.</dd></div>
-          <div><dt>Connect locally</dt><dd>Use the paired PC’s authenticated device service over your local network.</dd></div>
-          <div><dt>Work together</dt><dd>Keep inventory on the desktop and send supported scanner requests to the PC.</dd></div>
-        </dl>
-        <aside class="availability"><p><strong>Hardware availability</strong></p><p>The desktop integration is implemented. Public hardware, firmware downloads, and assembly instructions have not been verified. This is not an order or build-ready hardware listing.</p><a href={url('/docs/scanner/status/')}>Read the current status →</a></aside>
-      </div>
-    </section>
+    </div>
+  </section>
+
+  <!-- ── Connected workflow ── -->
+  <div class="wrap">
     <section class="section" aria-labelledby="features-heading">
-      <div class="section-heading"><div><p class="eyebrow">From incoming parts to your next board</p><h2 id="features-heading">A connected workflow</h2></div><p>Receive components, give them a place, compare a project against stock, and keep track of what changed. The same inventory connects each step.</p></div>
+      <div class="section-heading"><div><h2 id="features-heading">A connected workflow</h2></div><p>Receive components, give them a place, compare a project against stock, and keep track of what changed. The same inventory connects each step.</p></div>
       <div class="feature-list">{features.slice(0, 5).map(feature => <a class="feature-row" href={url(feature.href)}><span class="feature-label">{feature.label}</span><span>{feature.text}</span><span aria-hidden="true">↗</span></a>)}</div>
       <a class="all-features" href={url('/features/')}>See all features and limitations →</a>
     </section>
+
+    <!-- ── Getting started ── -->
     <section class="section resources" aria-labelledby="resources-heading">
-      <div><p class="eyebrow">Start with the desktop application</p><h2 id="resources-heading">Set up your first inventory</h2><p>The scanner is optional. Install Inventatory, choose your data folder, and add a component or import an order.</p></div>
+      <div><h2 id="resources-heading">Set up your first inventory</h2><p>The scanner is optional. Install Inventatory, choose your data folder, and add a component or import an order.</p></div>
       <ol><li><a href={url('/docs/getting-started/installation/')}>Install on Windows <span aria-hidden="true">→</span></a></li><li><a href={url('/docs/getting-started/first-inventory/')}>Add your first components <span aria-hidden="true">→</span></a></li><li><a href={url('/docs/desktop/racks/')}>Organize physical storage <span aria-hidden="true">→</span></a></li></ol>
     </section>
   </div>
 </BaseLayout>
+
+<script>
+  // Pause hero video when user prefers reduced motion
+  const heroVideo = document.querySelector('.hero-video') as HTMLVideoElement | null;
+  if (heroVideo && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    heroVideo.pause();
+  }
+</script>
+
 <style>
-  .intro { padding-block: var(--space-16) var(--space-12); }
-  .intro-bottom { display: grid; grid-template-columns: 1.25fr 1fr; gap: var(--space-12); align-items: start; margin-top: var(--space-8); }
-  .intro-resources { justify-self: end; }
-  .resource-links { display: flex; flex-wrap: wrap; gap: var(--space-4); margin-block: var(--space-3); font-size: var(--text-sm); }
-  .desktop { padding-bottom: var(--space-12); }
-  .showcase-heading { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-6); margin-bottom: var(--space-4); }
-  .showcase-heading h2 { font-size: var(--text-lead); }
-  .showcase-heading a { font: var(--text-sm)/1.5 var(--font-mono); }
-  .desktop-summary { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-12); margin-top: var(--space-6); }
-  .desktop-summary p + p { margin-top: 0; }
-  .scanner { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-16); }
-  .scanner-copy h2 { margin-bottom: var(--space-6); }
-  .scanner-copy .lead { color: var(--text); }
-  .scanner-copy > a { display: inline-block; margin-top: var(--space-6); }
-  .connection-list { margin: 0; }
-  .connection-list > div { display: grid; grid-template-columns: 9rem 1fr; gap: var(--space-4); padding-block: var(--space-4); border-bottom: var(--border) solid var(--divider); }
-  .connection-list > div:first-child { padding-top: 0; }
-  dt { color: var(--focus); font: var(--text-sm)/1.6 var(--font-mono); } dd { margin: 0; color: var(--secondary); font-size: var(--text-sm); }
-  .availability { margin-top: var(--space-6); border-left: var(--focus-width) solid var(--warning); padding-left: var(--space-4); font-size: var(--text-sm); }
-  .availability strong { font-weight: 500; color: var(--warning); } .availability p + p { margin-top: var(--space-2); } .availability a { display: inline-block; margin-top: var(--space-3); }
-  .feature-row { display: grid; grid-template-columns: 9rem 1fr auto; gap: var(--space-6); padding: var(--space-6) var(--space-3); border-top: var(--border) solid var(--divider); text-decoration: none; color: var(--secondary); }
-  .feature-row:hover { background: var(--surface); } .feature-label { font: 500 var(--text-sm)/1.7 var(--font-mono); color: var(--focus); }
-  .feature-row > span:last-child { color: var(--accent); } .all-features { display: inline-block; margin-top: var(--space-4); }
+  /* ── Hero ── */
+  .hero {
+    position: relative;
+    min-height: 100svh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .hero-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+  }
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: radial-gradient(ellipse at center, rgba(13,16,16,0.45) 0%, rgba(13,16,16,0.75) 100%);
+    pointer-events: none;
+  }
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    padding-block: var(--space-16);
+  }
+  .hero-bottom {
+    display: grid;
+    grid-template-columns: 1.25fr 1fr;
+    gap: var(--space-12);
+    align-items: start;
+    margin-top: var(--space-8);
+  }
+  .hero-resources { justify-self: end; }
+  .resource-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    margin-block: var(--space-3);
+    font-size: var(--text-sm);
+  }
+
+  /* ── Blur transition ── */
+  .hero-blur {
+    position: relative;
+    z-index: 3;
+    height: 6rem;
+    margin-top: -6rem;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    mask-image: linear-gradient(to bottom, transparent 0%, black 100%);
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 100%);
+    pointer-events: none;
+  }
+
+  /* ── Scanner section ── */
+  .scanner-section {
+    background: var(--surface);
+    border-top: var(--border) solid var(--divider);
+    border-bottom: var(--border) solid var(--divider);
+    padding-block: var(--space-20);
+  }
+  .scanner-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: var(--space-16);
+    align-items: center;
+  }
+  .scanner-copy h2 { margin-bottom: var(--space-4); }
+  .scanner-copy .lead { color: var(--text); margin-bottom: var(--space-8); }
+
+  .scanner-cards {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
+  }
+  .scanner-card {
+    padding: var(--space-6);
+    border: var(--border) solid var(--divider);
+    border-radius: 8px;
+    background: var(--canvas);
+  }
+  .scanner-card h3 {
+    font: 500 var(--text-sm)/1.5 var(--font-mono);
+    color: var(--focus);
+    margin-bottom: var(--space-3);
+  }
+  .scanner-card p {
+    font-size: var(--text-sm);
+    margin-top: var(--space-3);
+  }
+  .card-enclosure {
+    border-color: var(--accent);
+    background: linear-gradient(135deg, var(--canvas) 0%, var(--active-soft) 100%);
+  }
+
+  .oss-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--secondary);
+  }
+  .oss-list li { display: flex; align-items: center; gap: var(--space-3); margin: 0; }
+  .oss-check { color: var(--success); font-weight: 600; }
+
+  .button--secondary {
+    display: inline-flex;
+    margin-top: var(--space-4);
+    min-height: 2.5rem;
+    padding: var(--space-2) var(--space-6);
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    color: var(--accent);
+    font: 500 var(--text-sm)/1.5 var(--font-mono);
+    text-decoration: none;
+    border: var(--border) solid var(--accent);
+    border-radius: 4px;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .button--secondary:hover {
+    background: var(--accent);
+    color: var(--canvas);
+  }
+
+  .scanner-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-6);
+    font-size: var(--text-sm);
+  }
+
+  /* ── Connected workflow / Features ── */
+  .feature-row {
+    display: grid;
+    grid-template-columns: 9rem 1fr auto;
+    gap: var(--space-6);
+    padding: var(--space-6) var(--space-3);
+    border-top: var(--border) solid var(--divider);
+    text-decoration: none;
+    color: var(--secondary);
+  }
+  .feature-row:hover { background: var(--surface); }
+  .feature-label { font: 500 var(--text-sm)/1.7 var(--font-mono); color: var(--focus); }
+  .feature-row > span:last-child { color: var(--accent); }
+  .all-features { display: inline-block; margin-top: var(--space-4); }
+
+  /* ── Getting started ── */
   .resources { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-16); }
-  .resources h2 { margin-bottom: var(--space-4); } .resources ol { margin: 0; padding-left: var(--space-6); color: var(--muted); font-family: var(--font-mono); }
+  .resources h2 { margin-bottom: var(--space-4); }
+  .resources ol { margin: 0; padding-left: var(--space-6); color: var(--muted); font-family: var(--font-mono); }
   .resources li { padding: var(--space-3) 0 var(--space-3) var(--space-3); border-bottom: var(--border) solid var(--divider); }
   .resources li a { display: flex; justify-content: space-between; gap: var(--space-4); text-decoration: none; }
-  @media (max-width: 48rem) { .intro-bottom, .desktop-summary, .scanner, .resources { grid-template-columns: 1fr; gap: var(--space-8); } .intro-resources { justify-self: start; } .intro { padding-top: var(--space-8); } .feature-row { grid-template-columns: 1fr auto; gap: var(--space-3); } .feature-row span:nth-child(2) { grid-column: 1; } .feature-row span:last-child { grid-column: 2; grid-row: 1; } .showcase-heading { flex-wrap: wrap; gap: var(--space-2); } }
-  @media (max-width: 26rem) { .connection-list > div { grid-template-columns: 1fr; gap: var(--space-2); } }
+
+  /* ── Responsive ── */
+  @media (max-width: 48rem) {
+    .hero { min-height: 85svh; }
+    .hero-bottom { grid-template-columns: 1fr; gap: var(--space-8); }
+    .hero-resources { justify-self: start; }
+    .scanner-grid { grid-template-columns: 1fr; gap: var(--space-8); }
+    .scanner-model { order: -1; }
+    .resources { grid-template-columns: 1fr; gap: var(--space-8); }
+    .feature-row { grid-template-columns: 1fr auto; gap: var(--space-3); }
+    .feature-row span:nth-child(2) { grid-column: 1; }
+    .feature-row span:last-child { grid-column: 2; grid-row: 1; }
+  }
+  @media (max-width: 26rem) {
+    .scanner-cards { gap: var(--space-3); }
+  }
 </style>

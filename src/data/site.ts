@@ -28,7 +28,24 @@ export const media = {
   videoDescription: 'The Stock workspace shows component categories, quantities, rack locations, electrical parameters, and the actions for the selected part.',
   scannerPhoto: '',
   scannerPhotoAlt: '',
+  /** Looping background video for the hero section. */
+  heroVideo: '',
+  /** Poster image shown while the hero video loads (or as fallback). */
+  heroPoster: '',
+  /** 3D model of Scan R1 in glTF Binary format for the interactive viewer. */
+  scannerModel: '',
+  /** Poster image shown while the 3D model loads. */
+  scannerModelPoster: '',
 };
+/** Slides for the features carousel on the landing page. */
+export const carouselSlides = [
+  { title: 'Stock Management', caption: 'Search, filter, and inspect every component in your inventory.', image: '/media/stock.png', href: '/docs/desktop/stock/' },
+  { title: 'Racks & Storage', caption: 'Assign physical locations. Print labels. Find parts fast.', image: '', href: '/docs/desktop/racks/' },
+  { title: 'Project BOMs', caption: 'Compare a BOM against stock. Spot shortages instantly.', image: '', href: '/docs/desktop/projects/' },
+  { title: 'Order Import', caption: 'Import DigiKey CSVs. Review before accepting.', image: '', href: '/docs/desktop/import/' },
+  { title: 'Scan R1', caption: 'A handheld scanner that talks directly to your inventory.', image: '', href: '/docs/scanner/' },
+  { title: 'History & Recovery', caption: 'Every change tracked. Named checkpoints. One-click restore.', image: '', href: '/docs/desktop/history/' },
+];
 export const features = [
   { title: 'Stock management', label: 'Stock', href: '/docs/desktop/stock/', text: 'Keep component records, quantities, electrical parameters, links, and notes together. Search, filter, and count your stock.', details: ['Search by part, category, parameter, location, SKU, or quantity.', 'Review selected component details alongside the inventory list.', 'Use per-part reorder thresholds and a guided stocktake.'] },
   { title: 'Physical storage', label: 'Racks', href: '/docs/desktop/racks/', text: 'Assign components to a rack and slot, move them between locations, and print labels for stored parts.', details: ['Work with a 5 × 5 rack grid.', 'Place, move, automatically assign, or unassign components.', 'Find project components one rack at a time.'] },
