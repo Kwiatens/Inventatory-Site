@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import AsciiLogo from '../components/AsciiLogo.astro';
-import { features, homepageFeatureOrder, site } from '../data/site';
+import { features, homepageFeatureOrder, media } from '../data/site';
 import { url } from '../lib/url';
 
 const carouselFeatures = homepageFeatureOrder.map(label => {
@@ -9,21 +9,50 @@ const carouselFeatures = homepageFeatureOrder.map(label => {
   if (!feature) throw new Error('Missing homepage feature: ' + label);
   return feature;
 });
+const stockFeature = features.find(item => item.label === 'Stock');
+if (!stockFeature) throw new Error('Missing Stock feature data.');
 const scannerFeature = features.find(item => item.label === 'Scan R1');
 if (!scannerFeature) throw new Error('Missing Scan R1 feature data.');
 ---
-<BaseLayout title="Electronic component inventory">
-  <div class="wrap">
-    <section class="intro" aria-label="Introducing Inventatory">
-      <AsciiLogo />
-      <div class="intro-bottom">
-        <p class="lead">A local inventory system for organizing, tracking, and locating electronic components, with an integrated handheld scanner.</p>
-        <div class="intro-resources">
+<BaseLayout title="Every component, accounted for">
+  <section class="hero" aria-label="Introducing Inventatory" data-homepage-hero>
+    <div class="hero-backdrop" aria-hidden="true">
+      <img
+        src={url(stockFeature.media.src)}
+        alt=""
+        width={stockFeature.media.width}
+        height={stockFeature.media.height}
+        fetchpriority="high"
+        decoding="async"
+      />
+      {media.heroVideo && <video
+        data-homepage-video
+        muted
+        loop
+        playsinline
+        preload="none"
+        poster={url(stockFeature.media.src)}
+        width={stockFeature.media.width}
+        height={stockFeature.media.height}
+      >
+        <source src={url(media.heroVideo)} type="video/mp4" />
+      </video>}
+    </div>
+    <div class="hero-content wrap">
+      <div class="hero-copy">
+        <p class="eyebrow">LOCAL INVENTORY / REAL WORKFLOW</p>
+        <div class="hero-mark"><AsciiLogo /></div>
+        <h1 class="hero-title">Every component,<br />accounted for.</h1>
+        <p class="hero-summary">Track parts, storage and projects from one local workspace.</p>
+        <div class="hero-actions">
           <a class="button" href={url('/download/')}>Download for Windows <span aria-hidden="true">&nbsp;↓</span></a>
-          <div class="resource-links"><a href={url('/docs/')}>Read the documentation</a><a href={site.repository}>Source code ↗</a></div>
+          <a class="hero-secondary" href={url('/features/')}>Explore features <span aria-hidden="true">→</span></a>
         </div>
       </div>
-    </section>
+    </div>
+    <p class="hero-caption">{media.heroVideo ? 'SYSTEM IN ACTION · VIDEO' : 'STOCK WORKSPACE · ACTUAL SCREENSHOT'}</p>
+  </section>
+  <div class="wrap">
     <section id="desktop" class="desktop feature-carousel" aria-labelledby="desktop-heading" data-feature-carousel>
       <h2 id="desktop-heading" class="sr-only">Explore Inventatory features</h2>
       <div class="feature-stage" data-feature-stage aria-live="off">
@@ -111,6 +140,32 @@ if (!scannerFeature) throw new Error('Missing Scan R1 feature data.');
   const scannerModel = document.querySelector<HTMLElement>('[data-scanner-model]');
   const scannerVideo = scannerModel?.querySelector<HTMLVideoElement>('[data-scanner-preview]');
   const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  const hero = document.querySelector<HTMLElement>('[data-homepage-hero]');
+  const heroVideo = hero?.querySelector<HTMLVideoElement>('[data-homepage-video]');
+  if (hero && heroVideo) {
+    const updateHeroVideo = () => {
+      if (motionPreference.matches || document.hidden) {
+        heroVideo.pause();
+        hero.dataset.videoPlaying = 'false';
+        return;
+      }
+      const playback = heroVideo.play();
+      if (playback) {
+        playback.then(() => {
+          if (motionPreference.matches || document.hidden) {
+            heroVideo.pause();
+            hero.dataset.videoPlaying = 'false';
+            return;
+          }
+          hero.dataset.videoPlaying = 'true';
+        }).catch(() => { hero.dataset.videoPlaying = 'false'; });
+      }
+    };
+    updateHeroVideo();
+    document.addEventListener('visibilitychange', updateHeroVideo);
+    motionPreference.addEventListener('change', updateHeroVideo);
+  }
 
   if (scannerModel && scannerVideo) {
     const updateScannerMotion = () => {
@@ -247,10 +302,32 @@ if (!scannerFeature) throw new Error('Missing Scan R1 feature data.');
   }
 </script>
 <style>
-  .intro { padding-block: var(--space-16) var(--space-12); }
-  .intro-bottom { display: grid; grid-template-columns: 1.25fr 1fr; gap: var(--space-12); align-items: start; margin-top: var(--space-8); }
-  .intro-resources { justify-self: end; }
-  .resource-links { display: flex; flex-wrap: wrap; gap: var(--space-4); margin-block: var(--space-3); font-size: var(--text-sm); }
+  .hero {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    min-height: calc(100vh - var(--header-height));
+    min-height: calc(100svh - var(--header-height));
+    overflow: hidden;
+    background: var(--canvas);
+  }
+  .hero-backdrop { position: absolute; z-index: 0; inset: 0; overflow: hidden; background: var(--canvas); }
+  .hero-backdrop > img, .hero-backdrop > video { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: 64% center; }
+  .hero-backdrop > img { opacity: .52; filter: saturate(.72) contrast(1.05); }
+  .hero-backdrop > video { opacity: 0; }
+  .hero[data-video-playing="true"] .hero-backdrop > img { opacity: 0; }
+  .hero[data-video-playing="true"] .hero-backdrop > video { opacity: .52; }
+  .hero-backdrop::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(13,16,16,.96) 0%, rgba(13,16,16,.88) 43%, rgba(13,16,16,.3) 100%), linear-gradient(0deg, rgba(13,16,16,.7), transparent 38%); }
+  .hero-content { position: relative; z-index: 1; display: flex; align-items: center; min-height: inherit; padding-block: var(--space-12); }
+  .hero-copy { width: min(58%, 44rem); }
+  .hero .eyebrow { margin-bottom: var(--space-4); letter-spacing: .04em; }
+  .hero-mark { margin-bottom: var(--space-8); }
+  .hero-title { max-width: 14ch; margin-bottom: var(--space-4); font-size: clamp(2.5rem, 5.2vw, 4.5rem); line-height: 1.04; letter-spacing: -.04em; font-weight: 550; }
+  .hero-summary { max-width: 34ch; font-size: var(--text-lead); line-height: 1.6; }
+  .hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-6); margin-top: var(--space-8); }
+  .hero-secondary { font: var(--text-sm)/1.5 var(--font-mono); color: var(--focus); text-decoration: none; }
+  .hero-secondary span { color: var(--accent); }
+  .hero-caption { position: absolute; z-index: 1; right: var(--gutter); bottom: var(--space-4); color: var(--secondary); font: 500 var(--text-xs)/1.4 var(--font-mono); letter-spacing: .04em; text-shadow: 0 1px 6px var(--canvas); }
   .desktop { padding-bottom: var(--space-12); }
   .feature-stage { display: grid; gap: var(--space-12); }
   .feature-slide { display: grid; grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr); align-items: center; gap: var(--space-12); }
@@ -293,9 +370,13 @@ if (!scannerFeature) throw new Error('Missing Scan R1 feature data.');
   .resources li { padding: var(--space-3) 0 var(--space-3) var(--space-3); border-bottom: var(--border) solid var(--divider); }
   .resources li a { display: flex; justify-content: space-between; gap: var(--space-4); text-decoration: none; }
   @media (max-width: 48rem) {
-    .intro-bottom, .feature-slide, .scanner, .resources { grid-template-columns: 1fr; gap: var(--space-8); }
-    .intro-resources { justify-self: start; }
-    .intro { padding-top: var(--space-8); }
+    .hero-content { padding-block: var(--space-8); }
+    .hero-copy { width: min(100%, 38rem); }
+    .hero-title { font-size: clamp(2.2rem, 8vw, 3.5rem); }
+    .hero-backdrop > img, .hero-backdrop > video { object-position: 68% center; }
+    .hero-backdrop::after { background: linear-gradient(90deg, rgba(13,16,16,.96) 0%, rgba(13,16,16,.84) 60%, rgba(13,16,16,.54) 100%), linear-gradient(0deg, rgba(13,16,16,.65), transparent 48%); }
+    .hero-caption { right: var(--gutter); bottom: var(--space-3); max-width: calc(100% - var(--gutter) * 2); font-size: .65rem; }
+    .feature-slide, .scanner, .resources { grid-template-columns: 1fr; gap: var(--space-8); }
     .feature-copy { max-width: 38rem; }
     .feature-copy h3 { max-width: 20ch; font-size: clamp(1.8rem, 8vw, 2.6rem); }
     .feature-visual, .scanner-model { aspect-ratio: 16 / 11; }
@@ -306,6 +387,7 @@ if (!scannerFeature) throw new Error('Missing Scan R1 feature data.');
     .feature-controls svg, .carousel-dot span { transition: none; }
     .feature-stage[data-enhanced="true"] .feature-slide { transition: none; }
     .scanner-model > video { display: none; }
+    .hero-backdrop > video { display: none; }
     .scanner-model > .scanner-still { display: block; }
   }
 </style>

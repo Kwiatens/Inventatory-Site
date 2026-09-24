@@ -43,6 +43,8 @@ Guides are concise user-facing adaptations, not synchronized copies of developer
 
 The supplied Stock screenshot is the showcase fallback. It is cropped only to remove OS/window chrome. Set media.video to a real MP4 path when supplied and media.videoCaptions to its caption track if speech or meaningful audio is present. Update media.videoDescription with an accurate text alternative. The component uses a poster, native controls, preload=none, and no autoplay, so reduced-motion users are never forced into playback.
 
+For the homepage hero, leave media.heroVideo empty until an authentic whole-system recording exists. It uses the same Stock screenshot as a static fallback; when configured, the muted decorative clip plays only when motion is allowed and the page is visible.
+
 For a scanner photo, set media.scannerPhoto and media.scannerPhotoAlt. Add explicit dimensions matching the real image before publication to reserve its space. Do not create a fictional substitute.
 
 ## Publish with GitHub Pages
