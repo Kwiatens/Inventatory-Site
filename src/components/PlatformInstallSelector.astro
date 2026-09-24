@@ -1,0 +1,116 @@
+---
+import { release, site } from '../data/site';
+
+interface Props {
+  id: string;
+}
+
+const { id } = Astro.props;
+const releaseBase = site.releases + '/download/' + release.version;
+const windowsCommand = 'curl.exe -fL "' + releaseBase + '/Install-Inventatory.ps1" -o "%TEMP%\\Install-Inventatory.ps1" && powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%TEMP%\\Install-Inventatory.ps1" -ReleaseTag ' + release.version + ' && del /q "%TEMP%\\Install-Inventatory.ps1"';
+const linuxCommand = [
+  'mkdir -p "$HOME/.cache/inventatory-installer"',
+  'cd "$HOME/.cache/inventatory-installer"',
+  'curl -fL -O "' + releaseBase + '/Inventatory-linux-x64.tar.gz"',
+  'curl -fL -O "' + releaseBase + '/SHA256SUMS-linux.txt"',
+  'curl -fL -O "' + releaseBase + '/Install-Inventatory.sh"',
+  'chmod +x Install-Inventatory.sh',
+  './Install-Inventatory.sh',
+].join(' && ');
+---
+<section id={id} class="install-section" aria-labelledby={id + '-title'}>
+  <div class="install-heading">
+    <div>
+      <p class="eyebrow">Downloads</p>
+      <h2 id={id + '-title'}>Install Inventatory</h2>
+      <p class="install-lead">Choose your system for the current {release.status.toLowerCase()}.</p>
+    </div>
+    <a class="release-link" href={release.url}>Release notes <span aria-hidden="true">↗</span></a>
+  </div>
+
+  <fieldset class="platform-selector">
+    <legend class="sr-only">Choose your operating system</legend>
+    <div class="platform-tabs">
+      <input class="platform-radio" type="radio" name={id + '-platform'} id={id + '-windows'} value="windows" checked />
+      <label for={id + '-windows'}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 4.1 10.8 2.9v8.3H2V4.1Zm10.2-1.4L22 1.3v9.9h-9.8V2.7ZM2 12.5h8.8v8.4L2 19.7v-7.2Zm10.2 0H22v10.2l-9.8-1.4v-8.8Z" /></svg>
+        <span>Windows</span><small>x64</small>
+      </label>
+      <input class="platform-radio" type="radio" name={id + '-platform'} id={id + '-linux'} value="linux" />
+      <label for={id + '-linux'}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.2c-3.1 0-4.3 2.8-4.1 5.7-1.1 1.2-1.7 2.8-1.9 4.6-.2 1.9-1.9 3.5-1.9 5.2 0 1.7 1.5 2.7 3.5 2.7 1.6 0 2.7-.4 4.4-.4s2.8.4 4.4.4c2 0 3.5-1 3.5-2.7 0-1.7-1.7-3.3-1.9-5.2-.2-1.8-.8-3.4-1.9-4.6.2-2.9-1-5.7-4.1-5.7Z" /><ellipse cx="9.5" cy="9.3" rx=".7" ry="1.1" fill="var(--canvas)" /><ellipse cx="14.5" cy="9.3" rx=".7" ry="1.1" fill="var(--canvas)" /><path d="m10.2 11.3 1.8 1.4 1.8-1.4z" fill="var(--canvas)" /></svg>
+        <span>Linux</span><small>Ubuntu 24.04</small>
+      </label>
+    </div>
+
+    <div class="platform-panels">
+      <section class="platform-panel" data-platform-panel="windows" aria-labelledby={id + '-windows-title'}>
+        <div class="platform-copy">
+          <h3 id={id + '-windows-title'}>Windows · x64</h3>
+          <p>Open Command Prompt, paste this command, then follow the installer and first-run setup.</p>
+          <p class="platform-note">The installer checks the release package before it is installed.</p>
+        </div>
+        <pre><code>{windowsCommand}</code></pre>
+      </section>
+      <section class="platform-panel" data-platform-panel="linux" aria-labelledby={id + '-linux-title'}>
+        <div class="platform-copy">
+          <h3 id={id + '-linux-title'}>Ubuntu 24.04 LTS · x86-64</h3>
+          <p>Run this in a terminal. The verified installer places Inventatory in <code>~/.local/bin/inventatory</code>.</p>
+          <details>
+            <summary>Install runtime libraries if needed</summary>
+            <p><code>sudo apt update &amp;&amp; sudo apt install -y libsecret-1-0 libcurl4 libssl3 libglib2.0-0</code></p>
+          </details>
+        </div>
+        <pre><code>{linuxCommand}</code></pre>
+        <p class="platform-note">Start the installed app with <code>~/.local/bin/inventatory</code>, or use <code>inventatory</code> if <code>~/.local/bin</code> is in your PATH.</p>
+      </section>
+    </div>
+  </fieldset>
+
+  <p class="release-meta">{release.version} · {release.status} · Package details checked {release.checked}. <a href={site.releases}>Check for a newer release ↗</a></p>
+</section>
+
+<style>
+  .install-section { margin-block: var(--space-12) var(--space-20); padding-top: var(--space-8); border-top: var(--border) solid var(--divider); }
+  .install-heading { display: flex; align-items: end; justify-content: space-between; gap: var(--space-8); margin-bottom: var(--space-8); }
+  .install-heading .eyebrow { margin-bottom: var(--space-2); color: var(--muted); font: var(--text-xs)/1.5 var(--font-mono); }
+  .install-heading h2 { margin-bottom: var(--space-3); font-size: var(--text-h2); }
+  .install-lead { margin: 0; color: var(--secondary); }
+  .release-link { flex: 0 0 auto; font: var(--text-sm)/1.5 var(--font-mono); }
+  .platform-selector { min-width: 0; margin: 0; padding: 0; border: var(--border) solid var(--divider); }
+  .platform-tabs { display: flex; width: max-content; max-width: 100%; border-bottom: var(--border) solid var(--divider); }
+  .platform-radio { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .platform-tabs label { display: flex; min-height: 3.25rem; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-4); border-right: var(--border) solid var(--divider); color: var(--muted); cursor: pointer; font: var(--text-sm)/1.4 var(--font-mono); }
+  .platform-tabs label:last-child { border-right: 0; }
+  .platform-tabs svg { width: 1rem; height: 1rem; color: var(--text); fill: currentColor; }
+  .platform-tabs small { color: var(--muted); font-size: var(--text-xs); }
+  .platform-radio:checked + label { background: var(--surface); color: var(--text); box-shadow: inset 0 -2px var(--accent); }
+  .platform-radio:focus-visible + label { outline: var(--focus-width) solid var(--focus); outline-offset: -3px; }
+  .platform-panels { padding: var(--space-6); }
+  .platform-panel { display: grid; grid-template-columns: minmax(14rem, .8fr) minmax(0, 1.2fr); gap: var(--space-4) var(--space-8); align-items: start; }
+  .platform-panel h3 { margin-bottom: var(--space-3); font: 500 var(--text-base)/1.5 var(--font-mono); }
+  .platform-copy > p { margin-bottom: var(--space-3); color: var(--secondary); font-size: var(--text-sm); line-height: 1.6; }
+  .platform-copy details { margin-top: var(--space-4); color: var(--muted); font-size: var(--text-sm); }
+  .platform-copy summary { width: fit-content; cursor: pointer; }
+  .platform-copy details p { margin-top: var(--space-3); line-height: 1.6; }
+  pre { min-width: 0; margin: 0; padding: var(--space-4); overflow: auto; border: var(--border) solid var(--divider); background: var(--canvas); color: var(--focus); font: var(--text-xs)/1.7 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+  pre code { color: inherit; }
+  .platform-note { grid-column: 2; margin: calc(-1 * var(--space-2)) 0 0; color: var(--muted); font-size: var(--text-xs); line-height: 1.6; }
+  .release-meta { margin: var(--space-4) 0 0; color: var(--muted); font: var(--text-xs)/1.7 var(--font-mono); }
+  .release-meta a { white-space: nowrap; }
+  @supports selector(.platform-selector:has(input:checked)) {
+    .platform-selector:has(.platform-radio[value="windows"]:checked) [data-platform-panel="linux"],
+    .platform-selector:has(.platform-radio[value="linux"]:checked) [data-platform-panel="windows"] { display: none; }
+  }
+  @media (max-width: 48rem) {
+    .install-heading { align-items: start; flex-direction: column; gap: var(--space-4); }
+    .platform-panel { grid-template-columns: 1fr; gap: var(--space-4); }
+    .platform-note { grid-column: 1; margin-top: calc(-1 * var(--space-2)); }
+  }
+  @media (max-width: 30rem) {
+    .platform-tabs { width: 100%; }
+    .platform-tabs label { flex: 1; justify-content: center; padding-inline: var(--space-2); font-size: var(--text-xs); }
+    .platform-tabs small { display: none; }
+    .platform-panels { padding: var(--space-4); }
+  }
+</style>

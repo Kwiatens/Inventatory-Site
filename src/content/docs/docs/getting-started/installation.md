@@ -1,24 +1,23 @@
 ---
-title: "Install on Windows"
-description: "Download the Windows x64 package, extract it, and complete the initial workspace setup."
+title: "Install on Windows and Linux"
+description: "Install the Windows x64 or Ubuntu Linux x86-64 public beta and complete first-run setup."
 ---
 
 ## Requirements
 
-- A Windows x64 PC and a writable folder for the application and its inventory data.
+- Windows x64, or Ubuntu 24.04 LTS on x86-64, with a writable folder for application data.
 - A terminal window at least **100 columns × 30 rows**. A smaller window shows a resize notice.
 - Internet access to download the release. Core inventory data is stored locally.
 
-A minimum Windows version is not specified in the audited public documentation. Do not assume support for other operating systems.
+Ubuntu needs the runtime libraries `libsecret-1-0`, `libcurl4`, `libssl3`, and `libglib2.0-0`. Secret storage also requires a running Secret Service provider such as GNOME Keyring. The supported Linux target is Ubuntu 24.04 LTS x86-64.
 
 ## Download and launch
 
-1. Open the [official release page](https://github.com/Kwiatens/Inventatory-Software/releases/tag/v0.2.0-rc.2).
-2. Read the notes. **v0.2.0-rc.2 is a prerelease**, intended for testing.
-3. Download **Inventatory-win-x64.zip** from the release assets and extract the archive to a writable folder.
-4. Open the extracted Inventatory folder and run **inventatory.exe**.
+1. Open the [download page](../../../download/#download-platforms) and select Windows or Linux.
+2. Read the notes for the current prerelease before updating an existing installation, and make a backup of your inventory.
+3. Follow the displayed platform command. The Windows installer verifies the package before activation. On Ubuntu, the installer checks the downloaded archive and installer against the published SHA-256 manifest and places the executable at `~/.local/bin/inventatory`.
 
-Keep the extracted package together. The first-run wizard creates a desktop shortcut after setup is complete.
+Launch Inventatory and complete the first-run wizard. On Windows, setup can create a desktop shortcut. On Linux, run `~/.local/bin/inventatory` from a terminal; add `~/.local/bin` to your `PATH` if you want to use the shorter `inventatory` command.
 
 :::note[About the README install command]
 The application README uses GitHub's `releases/latest` URL, which selects a stable release. The public release verified for this website is a prerelease. Use the explicit release above rather than assuming the stable-download command will retrieve it.
@@ -27,7 +26,7 @@ The application README uses GitHub's `releases/latest` URL, which selects a stab
 ## Complete first-run setup
 
 1. Continue from the welcome screen.
-2. Accept the inventory data folder or choose another one. The documented default is **Documents\Inventatory**.
+2. Accept the inventory data folder or choose another one. Windows defaults to **Documents\Inventatory**; Linux uses the XDG data directory, normally **~/.local/share/Inventatory**.
 3. Choose whether to enable background operation. You can skip it and change this later in Settings.
 4. If you have a compatible Scan R1, start its setup. Otherwise choose **Skip**.
 5. Finish setup to open Stock.

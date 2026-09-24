@@ -24,7 +24,7 @@ export default defineConfig({
     sidebar: [
       { label: 'Getting started', items: [
         { label: 'Introduction', slug: 'docs' },
-        { label: 'Install on Windows', slug: 'docs/getting-started/installation' },
+        { label: 'Installation', slug: 'docs/getting-started/installation' },
         { label: 'Your first inventory', slug: 'docs/getting-started/first-inventory' },
         { label: 'Navigation and controls', slug: 'docs/getting-started/basic-usage' },
       ]},

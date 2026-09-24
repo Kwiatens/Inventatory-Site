@@ -1,15 +1,15 @@
 export const site = {
   name: 'Inventatory',
-  description: 'A local inventory system for electronic components, with a Windows desktop application and integrated handheld scanner.',
+  description: 'Open-source, terminal based hardware inventory management system for Windows and Linux.',
   repository: 'https://github.com/Kwiatens/Inventatory-Software',
   releases: 'https://github.com/Kwiatens/Inventatory-Software/releases',
 };
 export const release = {
-  version: 'v0.2.0-rc.2',
+  version: 'v0.2.0-rc.4',
   status: 'Prerelease',
-  checked: '2026-09-22',
-  url: site.releases + '/tag/v0.2.0-rc.2',
-  package: site.releases + '/download/v0.2.0-rc.2/Inventatory-win-x64.zip',
+  checked: '2026-09-24',
+  url: site.releases + '/tag/v0.2.0-rc.4',
+  package: site.releases + '/download/v0.2.0-rc.4/Inventatory-win-x64.zip',
 };
 export const nav = [
   { label: 'Overview', href: '/' },

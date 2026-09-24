@@ -1,15 +1,13 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { release, site } from '../data/site';
+import PlatformInstallSelector from '../components/PlatformInstallSelector.astro';
+import { site } from '../data/site';
 import { url } from '../lib/url';
 ---
-<BaseLayout title="Download" description="Download the verified Windows x64 Inventatory prerelease from GitHub and read installation instructions.">
+<BaseLayout title="Download" description="Install the Inventatory public beta on Windows x64 or Ubuntu Linux x86-64 with verified release packages.">
   <div class="wrap">
-    <header class="page-intro"><h1>Download Inventatory</h1><p class="lead">The Windows desktop application is available as a public beta. A scanner is not required to manage your inventory.</p></header>
-    <section class="release-section" aria-labelledby="release-title">
-      <div><p class="eyebrow">Windows x64</p><h2 id="release-title">Inventatory {release.version}</h2><p class="release-status">{release.status} · Release candidate</p><p>This is a testing release. Read the release notes before updating an existing installation and make a backup of your inventory.</p><div class="actions"><a class="button" href={release.package}>Download Windows x64 ZIP ↓</a><a href={release.url}>Release notes ↗</a></div><p class="meta checked">Release and package checked {release.checked}. <a href={site.releases}>Check GitHub for newer releases.</a></p></div>
-      <aside><h3>Before you start</h3><ul><li>A Windows x64 PC.</li><li>A terminal with at least 100 × 30 cells.</li><li>A writable folder for inventory data.</li><li>A backup before replacing an existing installation.</li></ul><a href={url('/docs/getting-started/installation/')}>Installation and first-run guide →</a></aside>
-    </section>
+    <header class="page-intro"><h1>Download Inventatory</h1><p class="lead">Choose Windows or Ubuntu Linux to see the matching installer. Inventatory keeps your inventory on your own computer, and a scanner is optional.</p></header>
+    <PlatformInstallSelector id="download-platforms" />
     <div class="download-notes section">
       <section><h2>Already installed?</h2><p>Use <strong>Settings → Updates</strong> in Inventatory. The updater shows release notes, downloads the package, verifies its published hashes, and hands off to the installer.</p><a href={url('/docs/desktop/settings/#software-updates')}>Read about application updates →</a></section>
       <section><h2>Scanner resources</h2><p>A public Scan R1 firmware release and assembly package have not been verified. Use the scanner documentation to understand the existing desktop integration and its setup requirements.</p><a href={url('/docs/scanner/status/')}>Hardware and firmware status →</a></section>
@@ -18,10 +16,8 @@ import { url } from '../lib/url';
   </div>
 </BaseLayout>
 <style>
-  .release-section { display: grid; grid-template-columns: 1.5fr 1fr; gap: var(--space-16); border-top: var(--border) solid var(--divider); padding-block: var(--space-8) var(--space-12); }
-  .release-status { color: var(--warning); font: var(--text-sm)/1.5 var(--font-mono); margin-block: var(--space-3) var(--space-6); }
-  .checked { margin-top: var(--space-6); } aside { padding-left: var(--space-8); border-left: var(--border) solid var(--divider); } aside ul { color: var(--secondary); }
-  .download-notes { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-8); }
-  .download-notes h2 { font-size: var(--text-lead); margin-bottom: var(--space-4); } .download-notes a { display: inline-block; margin-top: var(--space-4); }
-  @media (max-width: 48rem) { .release-section, .download-notes { grid-template-columns: 1fr; gap: var(--space-8); } aside { padding-left: 0; border-left: 0; border-top: var(--border) solid var(--divider); padding-top: var(--space-6); } }
+  .download-notes { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-8); padding-top: var(--space-8); border-top: var(--border) solid var(--divider); }
+  .download-notes h2 { font-size: var(--text-lead); margin-bottom: var(--space-4); }
+  .download-notes a { display: inline-block; margin-top: var(--space-4); }
+  @media (max-width: 48rem) { .download-notes { grid-template-columns: 1fr; gap: var(--space-8); } }
 </style>
