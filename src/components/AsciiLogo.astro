@@ -6,13 +6,13 @@ const colors = logoRows.map((_, row) => {
   return 'rgb(' + a.map((value, i) => value + Math.trunc((b[i] - value) * row / 5)).join(',') + ')';
 });
 ---
-<h1 class="brand" aria-label="Inventatory">
+<div class="brand" role="img" aria-label="Inventatory">
   <span class="ascii" aria-hidden="true">{logoRows.map((row, i) => <span style={{ color: colors[i] }}>{row}</span>)}</span>
   <span class="compact" aria-hidden="true">Inventatory</span>
-</h1>
+</div>
 <style>
   .brand { margin: 0; font-weight: 400; }
-  .ascii { display: block; font-family: Consolas, 'Cascadia Mono', 'DejaVu Sans Mono', monospace; font-size: clamp(.625rem, 1.15vw, 1rem); line-height: 1.06; letter-spacing: 0; font-variant-ligatures: none; }
+  .ascii { display: block; font-family: Consolas, 'Cascadia Mono', 'DejaVu Sans Mono', monospace; font-size: clamp(.48rem, .7vw, .72rem); line-height: 1.06; letter-spacing: 0; font-variant-ligatures: none; }
   .ascii > span { white-space: pre; display: block; }
   .compact { display: none; color: var(--accent); font-family: var(--font-mono); font-size: var(--text-h1); }
   @media (max-width: 40rem) { .ascii { display: none; } .compact { display: block; } }

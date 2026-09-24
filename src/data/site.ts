@@ -23,6 +23,7 @@ export const media = {
   screenshot: '/media/stock.png',
   screenshotWidth: 1881,
   screenshotHeight: 970,
+  heroVideo: '',
   video: '',
   videoCaptions: '',
   videoDescription: 'The Stock workspace shows component categories, quantities, rack locations, electrical parameters, and the actions for the selected part.',
