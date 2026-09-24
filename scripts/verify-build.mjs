@@ -55,15 +55,21 @@ const homepage = documents.get(base + '/')?.$;
 if (!homepage) {
   errors.push('Homepage missing from production output.');
 } else {
-  const slides = homepage('[data-feature-slide]');
-  if (slides.length !== 6) errors.push('Homepage must contain six feature slides in its no-JavaScript HTML.');
-  slides.each((index, element) => {
-    const slide = homepage(element);
-    if (slide.find('img[data-feature-image]').length !== 1) errors.push('Homepage feature slide ' + (index + 1) + ' must have one image.');
-    if (!slide.find('a[data-feature-link]').attr('href')) errors.push('Homepage feature slide ' + (index + 1) + ' must keep its guide link available.');
+  const featureItems = homepage('.feature-list > .feature-item');
+  if (featureItems.length !== 6) errors.push('Homepage must show all six features together in its static feature list.');
+  featureItems.each((index, element) => {
+    const item = homepage(element);
+    if (!item.find('h3').text().trim() || !item.find('.feature-copy > p').text().trim()) errors.push('Homepage feature ' + (index + 1) + ' must include its title and summary.');
+    if (!item.find('a.feature-link').attr('href')) errors.push('Homepage feature ' + (index + 1) + ' must keep its guide link available.');
   });
+  if (homepage('[data-feature-carousel], [data-feature-slide], [data-carousel-controls], [data-slide-to]').length) errors.push('Homepage feature list must not contain carousel markup.');
+  if (homepage('.hero .eyebrow, .hero-caption').length) errors.push('Homepage hero must not contain the removed eyebrow or screenshot caption.');
   const homepageText = homepage.text();
+  if (!homepageText.includes('Open-source, terminal based hardware inventory management system.')) errors.push('Homepage must show the approved hero summary.');
   for (const removedText of [
+    'LOCAL INVENTORY / REAL WORKFLOW',
+    'STOCK WORKSPACE · ACTUAL SCREENSHOT',
+    'Track parts, storage and projects from one local workspace.',
     'Electronic component inventory · Windows desktop + Scan R1',
     'Public beta · Windows x64 · GPL-3.0-only',
     'From incoming parts to your next board',
@@ -73,6 +79,7 @@ if (!homepage) {
   }
   if (homepage('section[aria-labelledby="features-heading"]').length) errors.push('Homepage must not include the connected workflow section.');
   if (homepage('.scanner-copy > .eyebrow').text().trim() === 'Scan R1') errors.push('Scanner section must not include its eyebrow label.');
+  verifyInstallSelector(homepage, '#homepage-download', 'Homepage');
   const scannerVideo = homepage('video[data-scanner-preview]');
   if (scannerVideo.length !== 1) errors.push('Homepage must include one scanner preview video.');
   else {
@@ -83,14 +90,34 @@ if (!homepage) {
     if (scannerVideo.find('source[src$=".webm"]').length !== 1) errors.push('Scanner preview must use one local WebM source.');
   }
   const scripts = homepage('script');
-  if (scripts.length !== 1) errors.push('Homepage must ship one local carousel script.');
+  if (scripts.length !== 1) errors.push('Homepage must ship one local media playback script.');
   scripts.each((_, element) => {
     const src = homepage(element).attr('src');
     if (src && new URL(src, origin + base + '/').origin !== new URL(origin).origin) {
-      errors.push('Homepage carousel script must be local.');
+      errors.push('Homepage media playback script must be local.');
     }
   });
 }
+const download = documents.get(base + '/download/')?.$;
+if (!download) errors.push('Download page missing from production output.');
+else verifyInstallSelector(download, '#download-platforms', 'Download page');
 if (!existsSync(join(root, 'pagefind/pagefind.js'))) errors.push('Documentation search index missing.');
 if (errors.length) { console.error(errors.join('\n')); process.exit(1); }
-console.log('Verified ' + documents.size + ' HTML pages and ' + links + ' internal links/assets/fragments under ' + (base || '/') + '. CSS assets, search index, local carousel bundle, and scanner media present.');
+console.log('Verified ' + documents.size + ' HTML pages and ' + links + ' internal links/assets/fragments under ' + (base || '/') + '. CSS assets, search index, static feature list, platform installers, and scanner media present.');
+
+function verifyInstallSelector($, selector, pageName) {
+  const section = $(selector);
+  if (section.length !== 1) {
+    errors.push(pageName + ' must include one platform install selector.');
+    return;
+  }
+  for (const platform of ['windows', 'linux']) {
+    if (section.find('input[type="radio"][value="' + platform + '"]').length !== 1) errors.push(pageName + ' must include a ' + platform + ' platform option.');
+    if (section.find('[data-platform-panel="' + platform + '"]').length !== 1) errors.push(pageName + ' must include one ' + platform + ' install guide.');
+  }
+  if (!section.find('[data-platform-panel="windows"] pre code').text().includes('Install-Inventatory.ps1')) errors.push(pageName + ' Windows command must use the published installer.');
+  const linuxCommand = section.find('[data-platform-panel="linux"] pre code').text();
+  for (const asset of ['Inventatory-linux-x64.tar.gz', 'SHA256SUMS-linux.txt', 'Install-Inventatory.sh']) {
+    if (!linuxCommand.includes(asset)) errors.push(pageName + ' Linux command must download ' + asset + '.');
+  }
+}

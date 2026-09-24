@@ -3,8 +3,9 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import AsciiLogo from '../components/AsciiLogo.astro';
 import { features, homepageFeatureOrder, media } from '../data/site';
 import { url } from '../lib/url';
+import PlatformInstallSelector from '../components/PlatformInstallSelector.astro';
 
-const carouselFeatures = homepageFeatureOrder.map(label => {
+const homepageFeatures = homepageFeatureOrder.map(label => {
   const feature = features.find(item => item.label === label);
   if (!feature) throw new Error('Missing homepage feature: ' + label);
   return feature;
@@ -42,58 +43,31 @@ if (!scannerFeature) throw new Error('Missing Scan R1 feature data.');
       <div class="hero-copy">
         <div class="hero-mark"><AsciiLogo /></div>
         <h1 class="hero-title">Every component,<br />accounted for.</h1>
-        <p class="hero-summary">Track parts, storage and projects from one local workspace.</p>
+        <p class="hero-summary">Open-source, terminal based hardware inventory management system.</p>
         <div class="hero-actions">
-          <a class="button" href={url('/download/')}>Download for Windows <span aria-hidden="true">&nbsp;↓</span></a>
+          <a class="button" href="#homepage-download">Choose your system <span aria-hidden="true">&nbsp;↓</span></a>
           <a class="hero-secondary" href={url('/features/')}>Explore features <span aria-hidden="true">→</span></a>
         </div>
       </div>
     </div>
   </section>
   <div class="wrap">
-    <section id="desktop" class="desktop feature-carousel" aria-labelledby="desktop-heading" data-feature-carousel>
-      <h2 id="desktop-heading" class="sr-only">Explore Inventatory features</h2>
-      <div class="feature-stage" data-feature-stage aria-live="off">
-        {carouselFeatures.map((feature, index) => (
-          <article class="feature-slide" data-feature-slide data-feature-label={feature.label} role="group" aria-roledescription="slide" aria-label={feature.title}>
+    <section id="desktop" class="section feature-overview" aria-labelledby="desktop-heading">
+      <div class="section-heading">
+        <h2 id="desktop-heading">Explore Inventatory</h2>
+        <p>Stock, storage, projects, imports, scanning, and history in one local workspace.</p>
+      </div>
+      <div class="feature-list">
+        {homepageFeatures.map((feature, index) => (
+          <article class="feature-item">
+            <span class="feature-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
             <div class="feature-copy">
               <h3>{feature.title}</h3>
               <p>{feature.text}</p>
-              <a class="feature-link" data-feature-link href={url(feature.href)}>Explore {feature.label} <span aria-hidden="true">→</span></a>
             </div>
-            <div class="feature-visual" data-kind={feature.media.kind} data-position={feature.media.position}>
-              <img
-                data-feature-image
-                src={url(feature.media.src)}
-                alt={feature.media.alt}
-                width={feature.media.width}
-                height={feature.media.height}
-                loading={index === 0 ? 'eager' : 'lazy'}
-                fetchpriority={index === 0 ? 'high' : 'auto'}
-                decoding="async"
-              />
-            </div>
+            <a class="feature-link" href={url(feature.href)}>Read the guide <span aria-hidden="true">→</span></a>
           </article>
         ))}
-      </div>
-      <div class="feature-controls" data-carousel-controls role="group" aria-label="Feature presentation controls" hidden>
-        <button class="carousel-arrow" type="button" data-previous aria-label="Previous feature">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14.5 5-7 7 7 7" /></svg>
-        </button>
-        <div class="carousel-progress" role="group" aria-label="Choose a feature">
-          {carouselFeatures.map((feature, index) => (
-            <button class="carousel-dot" type="button" data-slide-to={index} aria-label={'Show ' + feature.label + ' feature'} aria-pressed={index === 0 ? 'true' : 'false'}>
-              <span aria-hidden="true"></span>
-            </button>
-          ))}
-        </div>
-        <button class="carousel-rotation" type="button" data-rotation aria-label="Pause automatic feature rotation">
-          <svg class="rotation-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14" /></svg>
-          <svg class="rotation-play" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7z" /></svg>
-        </button>
-        <button class="carousel-arrow" type="button" data-next aria-label="Next feature">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9.5 5 7 7-7 7" /></svg>
-        </button>
       </div>
     </section>
     <section id="scanner" class="section scanner" aria-labelledby="scanner-heading">
@@ -129,12 +103,12 @@ if (!scannerFeature) throw new Error('Missing Scan R1 feature data.');
     </section>
     <section class="section resources" aria-labelledby="resources-heading">
       <div><p class="eyebrow">Start with the desktop application</p><h2 id="resources-heading">Set up your first inventory</h2><p>The scanner is optional. Install Inventatory, choose your data folder, and add a component or import an order.</p></div>
-      <ol><li><a href={url('/docs/getting-started/installation/')}>Install on Windows <span aria-hidden="true">→</span></a></li><li><a href={url('/docs/getting-started/first-inventory/')}>Add your first components <span aria-hidden="true">→</span></a></li><li><a href={url('/docs/desktop/racks/')}>Organize physical storage <span aria-hidden="true">→</span></a></li></ol>
+      <ol><li><a href={url('/docs/getting-started/installation/')}>Installation instructions <span aria-hidden="true">→</span></a></li><li><a href={url('/docs/getting-started/first-inventory/')}>Add your first components <span aria-hidden="true">→</span></a></li><li><a href={url('/docs/desktop/racks/')}>Organize physical storage <span aria-hidden="true">→</span></a></li></ol>
     </section>
+    <PlatformInstallSelector id="homepage-download" />
   </div>
 </BaseLayout>
 <script>
-  const carousel = document.querySelector<HTMLElement>('[data-feature-carousel]');
   const scannerModel = document.querySelector<HTMLElement>('[data-scanner-model]');
   const scannerVideo = scannerModel?.querySelector<HTMLVideoElement>('[data-scanner-preview]');
   const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -179,125 +153,6 @@ if (!scannerFeature) throw new Error('Missing Scan R1 feature data.');
     motionPreference.addEventListener('change', updateScannerMotion);
   }
 
-  if (carousel) {
-    const stage = carousel.querySelector<HTMLElement>('[data-feature-stage]');
-    const controls = carousel.querySelector<HTMLElement>('[data-carousel-controls]');
-    const slides = Array.from(carousel.querySelectorAll<HTMLElement>('[data-feature-slide]'));
-    const dots = Array.from(carousel.querySelectorAll<HTMLButtonElement>('[data-slide-to]'));
-    const previous = carousel.querySelector<HTMLButtonElement>('[data-previous]');
-    const next = carousel.querySelector<HTMLButtonElement>('[data-next]');
-    const rotation = carousel.querySelector<HTMLButtonElement>('[data-rotation]');
-
-    if (stage && controls && slides.length && previous && next && rotation) {
-      let activeIndex = 0;
-      let userPaused = false;
-      let pointerInside = false;
-      let focusInside = false;
-      let resumeWhileFocused = false;
-      let timer = 0;
-
-      const isPaused = () =>
-        userPaused ||
-        pointerInside ||
-        document.hidden ||
-        motionPreference.matches ||
-        (focusInside && !resumeWhileFocused);
-
-      const scheduleRotation = () => {
-        window.clearTimeout(timer);
-        const paused = isPaused();
-        rotation.dataset.playing = String(!paused);
-        rotation.disabled = motionPreference.matches;
-        rotation.setAttribute(
-          'aria-label',
-          motionPreference.matches
-            ? 'Automatic feature rotation disabled by reduced-motion preference'
-            : paused
-              ? 'Resume automatic feature rotation'
-              : 'Pause automatic feature rotation',
-        );
-        if (!paused) {
-          timer = window.setTimeout(() => {
-            setActiveSlide(activeIndex + 1, false);
-            scheduleRotation();
-          }, 8000);
-        }
-      };
-
-      const setActiveSlide = (index: number, manual: boolean) => {
-        activeIndex = (index + slides.length) % slides.length;
-        slides.forEach((slide, slideIndex) => {
-          const active = slideIndex === activeIndex;
-          slide.classList.toggle('is-active', active);
-          slide.setAttribute('aria-hidden', String(!active));
-          slide.inert = !active;
-        });
-        dots.forEach((dot, dotIndex) => {
-          const active = dotIndex === activeIndex;
-          dot.setAttribute('aria-pressed', String(active));
-          dot.classList.toggle('is-active', active);
-        });
-        if (manual) {
-          userPaused = true;
-          resumeWhileFocused = false;
-        }
-        scheduleRotation();
-      };
-
-      stage.dataset.enhanced = 'true';
-      controls.hidden = false;
-      setActiveSlide(0, false);
-
-      previous.addEventListener('click', () => setActiveSlide(activeIndex - 1, true));
-      next.addEventListener('click', () => setActiveSlide(activeIndex + 1, true));
-      dots.forEach((dot, dotIndex) => dot.addEventListener('click', () => setActiveSlide(dotIndex, true)));
-      rotation.addEventListener('click', () => {
-        if (isPaused()) {
-          userPaused = false;
-          resumeWhileFocused = focusInside;
-        } else {
-          userPaused = true;
-          resumeWhileFocused = false;
-        }
-        scheduleRotation();
-      });
-
-      carousel.addEventListener('pointerenter', () => {
-        pointerInside = true;
-        scheduleRotation();
-      });
-      carousel.addEventListener('pointerleave', () => {
-        pointerInside = false;
-        scheduleRotation();
-      });
-      carousel.addEventListener('focusin', () => {
-        if (!focusInside) {
-          focusInside = true;
-          resumeWhileFocused = false;
-          scheduleRotation();
-        }
-      });
-      carousel.addEventListener('focusout', event => {
-        if (!carousel.contains(event.relatedTarget as Node | null)) {
-          focusInside = false;
-          resumeWhileFocused = false;
-          scheduleRotation();
-        }
-      });
-      carousel.addEventListener('keydown', event => {
-        if (event.altKey || event.ctrlKey || event.metaKey) return;
-        if (event.key === 'ArrowLeft') {
-          event.preventDefault();
-          setActiveSlide(activeIndex - 1, true);
-        } else if (event.key === 'ArrowRight') {
-          event.preventDefault();
-          setActiveSlide(activeIndex + 1, true);
-        }
-      });
-      document.addEventListener('visibilitychange', scheduleRotation);
-      motionPreference.addEventListener('change', scheduleRotation);
-    }
-  }
 </script>
 <style>
   .hero {
@@ -324,34 +179,17 @@ if (!scannerFeature) throw new Error('Missing Scan R1 feature data.');
   .hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-6); margin-top: var(--space-8); }
   .hero-secondary { font: var(--text-sm)/1.5 var(--font-mono); color: var(--focus); text-decoration: none; }
   .hero-secondary span { color: var(--accent); }
-  .desktop { padding-bottom: var(--space-12); }
-  .feature-stage { display: grid; gap: var(--space-12); }
-  .feature-slide { display: grid; grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr); align-items: center; gap: var(--space-12); }
-  .feature-copy { max-width: 32rem; }
-  .feature-copy h3 { max-width: 17ch; margin-bottom: var(--space-6); font-size: clamp(2rem, 3.4vw, 3rem); line-height: 1.12; font-weight: 550; }
-  .feature-copy p { max-width: 36ch; font-size: var(--text-lead); line-height: 1.65; }
-  .feature-link { display: inline-block; margin-top: var(--space-6); font: var(--text-sm)/1.5 var(--font-mono); }
-  .feature-visual { width: 100%; aspect-ratio: 16 / 10; display: grid; place-items: center; overflow: hidden; }
-  .feature-visual img { grid-area: 1 / 1; width: 100%; height: 100%; object-fit: contain; }
-  .feature-visual[data-kind="screenshot"][data-position="right"] img { object-fit: cover; object-position: right center; }
-
-  .feature-visual[data-kind="illustration"] img { object-fit: contain; }
-  .feature-controls { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-3); margin-top: var(--space-4); }
-  .feature-controls[hidden] { display: none; }
-  .carousel-arrow, .carousel-rotation { width: 2.5rem; height: 2.5rem; display: grid; place-items: center; padding: 0; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
-  .carousel-arrow:hover, .carousel-rotation:hover { color: var(--focus); }
-  .carousel-arrow svg, .carousel-rotation svg { width: 1.15rem; height: 1.15rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-  .rotation-play { display: none; }
-  .carousel-rotation[data-playing="false"] .rotation-pause { display: none; }
-  .carousel-rotation[data-playing="false"] .rotation-play { display: block; fill: currentColor; stroke-width: 0; }
-  .carousel-rotation:disabled { cursor: default; opacity: .55; }
-  .carousel-progress { display: flex; align-items: center; gap: .35rem; margin-inline: var(--space-2); }
-  .carousel-dot { width: 1.25rem; height: 2rem; display: grid; place-items: center; padding: 0; border: 0; background: transparent; cursor: pointer; }
-  .carousel-dot span { width: .45rem; height: 2px; background: var(--divider); transition: width .35s ease, background-color .35s ease; }
-  .carousel-dot.is-active span { width: 1.1rem; background: var(--accent); }
-  .feature-stage[data-enhanced="true"] { gap: 0; }
-  .feature-stage[data-enhanced="true"] .feature-slide { grid-area: 1 / 1; opacity: 0; visibility: hidden; transform: translateY(.65rem); pointer-events: none; transition: opacity .45s ease, transform .45s ease, visibility 0s linear .45s; }
-  .feature-stage[data-enhanced="true"] .feature-slide.is-active { z-index: 1; opacity: 1; visibility: visible; transform: none; pointer-events: auto; transition-delay: 0s; }
+  .feature-overview { padding-block: var(--space-12); }
+  .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-8); margin-bottom: var(--space-6); }
+  .section-heading h2 { margin: 0; font-size: var(--text-h2); }
+  .section-heading p { max-width: 46ch; margin: 0; color: var(--muted); }
+  .feature-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-12); }
+  .feature-item { display: grid; grid-template-columns: 2.25rem minmax(0, 1fr); align-items: start; gap: var(--space-2) var(--space-4); padding-block: var(--space-6); border-top: var(--border) solid var(--divider); }
+  .feature-index { padding-top: .2rem; color: var(--muted); font: var(--text-xs)/1.5 var(--font-mono); }
+  .feature-copy { min-width: 0; }
+  .feature-copy h3 { margin-bottom: var(--space-2); font-size: var(--text-lead); line-height: 1.35; font-weight: 550; }
+  .feature-copy p { max-width: 48ch; margin-bottom: 0; color: var(--secondary); font-size: var(--text-sm); line-height: 1.65; }
+  .feature-link { grid-column: 2; margin-top: var(--space-2); font: var(--text-xs)/1.5 var(--font-mono); }
   .scanner { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: var(--space-12); align-items: center; padding-block: var(--space-20); }
   .scanner-copy { max-width: 34rem; }
   .scanner-copy h2 { max-width: 17ch; margin-bottom: var(--space-4); font-size: clamp(2rem, 3.4vw, 3rem); line-height: 1.12; }
@@ -371,16 +209,13 @@ if (!scannerFeature) throw new Error('Missing Scan R1 feature data.');
     .hero-title { font-size: clamp(2.2rem, 8vw, 3.5rem); }
     .hero-backdrop > img, .hero-backdrop > video { object-position: 68% center; }
     .hero-backdrop::after { background: linear-gradient(90deg, rgba(13,16,16,.96) 0%, rgba(13,16,16,.84) 60%, rgba(13,16,16,.54) 100%), linear-gradient(0deg, rgba(13,16,16,.65), transparent 48%); }
-    .feature-slide, .scanner, .resources { grid-template-columns: 1fr; gap: var(--space-8); }
-    .feature-copy { max-width: 38rem; }
-    .feature-copy h3 { max-width: 20ch; font-size: clamp(1.8rem, 8vw, 2.6rem); }
-    .feature-visual, .scanner-model { aspect-ratio: 16 / 11; }
+    .section-heading { align-items: flex-start; flex-direction: column; gap: var(--space-2); }
+    .feature-list, .scanner, .resources { grid-template-columns: 1fr; gap: var(--space-8); }
+    .scanner-model { aspect-ratio: 16 / 11; }
     .scanner { padding-block: var(--space-12); gap: var(--space-6); }
   }
   @media (max-width: 26rem) { .resources { gap: var(--space-6); } }
   @media (prefers-reduced-motion: reduce) {
-    .feature-controls svg, .carousel-dot span { transition: none; }
-    .feature-stage[data-enhanced="true"] .feature-slide { transition: none; }
     .scanner-model > video { display: none; }
     .hero-backdrop > video { display: none; }
     .scanner-model > .scanner-still { display: block; }

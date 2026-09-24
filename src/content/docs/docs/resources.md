@@ -13,7 +13,7 @@ The supported build environment uses Visual Studio 2022 with C++ tools and CMake
 
 Open an issue in the [official issue tracker](https://github.com/Kwiatens/Inventatory-Software/issues). Include:
 
-- Your application version and relevant Windows/terminal details.
+- Your application version and relevant operating system, architecture, and terminal details.
 - The page or workflow involved.
 - Steps to reproduce, the expected result, and what actually happened.
 - A redacted screenshot or error message when useful.
