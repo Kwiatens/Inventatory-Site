@@ -55,14 +55,16 @@ const homepage = documents.get(base + '/')?.$;
 if (!homepage) {
   errors.push('Homepage missing from production output.');
 } else {
-  const featureItems = homepage('.feature-list > .feature-item');
-  if (featureItems.length !== 6) errors.push('Homepage must show all six features together in its static feature list.');
-  featureItems.each((index, element) => {
-    const item = homepage(element);
-    if (!item.find('h3').text().trim() || !item.find('.feature-copy > p').text().trim()) errors.push('Homepage feature ' + (index + 1) + ' must include its title and summary.');
-    if (!item.find('a.feature-link').attr('href')) errors.push('Homepage feature ' + (index + 1) + ' must keep its guide link available.');
+  const steps = homepage('#desktop .workflow-step');
+  if (steps.length !== 3) errors.push('Homepage must contain three workflow steps in its no-JavaScript HTML.');
+  steps.each((index, element) => {
+    const step = homepage(element);
+    const heading = step.find('h3');
+    if (!heading.text().trim() || step.attr('aria-labelledby') !== heading.attr('id')) errors.push('Workflow step ' + (index + 1) + ' must have an associated heading.');
+    if (!step.find('.workflow-copy p').text().trim()) errors.push('Workflow step ' + (index + 1) + ' must have explanatory text.');
+    if (step.find('.workflow-media').length !== 1) errors.push('Workflow step ' + (index + 1) + ' must have one media area.');
   });
-  if (homepage('[data-feature-carousel], [data-feature-slide], [data-carousel-controls], [data-slide-to]').length) errors.push('Homepage feature list must not contain carousel markup.');
+  if (homepage('[data-feature-carousel], [data-feature-slide], [data-carousel-controls]').length) errors.push('Homepage must not retain the retired carousel.');
   if (homepage('.hero .eyebrow, .hero-caption').length) errors.push('Homepage hero must not contain the removed eyebrow or screenshot caption.');
   const homepageText = homepage.text();
   if (!homepageText.includes('Open-source, terminal based hardware inventory management system.')) errors.push('Homepage must show the approved hero summary.');
@@ -103,7 +105,7 @@ if (!download) errors.push('Download page missing from production output.');
 else verifyInstallSelector(download, '#download-platforms', 'Download page');
 if (!existsSync(join(root, 'pagefind/pagefind.js'))) errors.push('Documentation search index missing.');
 if (errors.length) { console.error(errors.join('\n')); process.exit(1); }
-console.log('Verified ' + documents.size + ' HTML pages and ' + links + ' internal links/assets/fragments under ' + (base || '/') + '. CSS assets, search index, static feature list, platform installers, and scanner media present.');
+console.log('Verified ' + documents.size + ' HTML pages and ' + links + ' internal links/assets/fragments under ' + (base || '/') + '. CSS assets, search index, static workflow, platform installers, and scanner media present.');
 
 function verifyInstallSelector($, selector, pageName) {
   const section = $(selector);
