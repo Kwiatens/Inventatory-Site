@@ -1,15 +1,16 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import AsciiLogo from '../components/AsciiLogo.astro';
-import { features, homepageFeatureOrder, media } from '../data/site';
+import { features, media } from '../data/site';
 import { url } from '../lib/url';
 import PlatformInstallSelector from '../components/PlatformInstallSelector.astro';
 
-const homepageFeatures = homepageFeatureOrder.map(label => {
-  const feature = features.find(item => item.label === label);
-  if (!feature) throw new Error('Missing homepage feature: ' + label);
-  return feature;
-});
+// Temporary layout copy; final wording and authentic media will be supplied by the owner.
+const workflowSteps = [
+  { title: 'Receive parts', text: 'Scan a supported vendor label to fill in component details, or import your order.' },
+  { title: 'Put them away', text: 'Inventatory assigns eligible parts to rack slots and can print their labels automatically.' },
+  { title: 'Build a board', text: 'Import your KiCad BOM and see exactly which rack slots hold the parts you need.' },
+];
 const stockFeature = features.find(item => item.label === 'Stock');
 if (!stockFeature) throw new Error('Missing Stock feature data.');
 const scannerFeature = features.find(item => item.label === 'Scan R1');
@@ -52,31 +53,27 @@ if (!scannerFeature) throw new Error('Missing Scan R1 feature data.');
     </div>
   </section>
   <div class="wrap">
-    <section id="desktop" class="section feature-overview" aria-labelledby="desktop-heading">
-      <div class="section-heading">
-        <h2 id="desktop-heading">Explore Inventatory</h2>
-        <p>Stock, storage, projects, imports, scanning, and history in one local workspace.</p>
-      </div>
-      <div class="feature-list">
-        {homepageFeatures.map((feature, index) => (
-          <article class="feature-item">
-            <span class="feature-index" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
-            <div class="feature-copy">
-              <h3>{feature.title}</h3>
-              <p>{feature.text}</p>
-            </div>
-            <a class="feature-link" href={url(feature.href)}>Read the guide <span aria-hidden="true">→</span></a>
-          </article>
-        ))}
-      </div>
+    <section id="desktop" class="workflow" aria-labelledby="desktop-heading">
+      <h2 id="desktop-heading" class="sr-only">From receiving parts to building a board</h2>
+      {workflowSteps.map((step, index) => (
+        <article class="workflow-step" aria-labelledby={`workflow-step-${index + 1}`}>
+          <div class="workflow-copy">
+            <span class="workflow-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
+            <h3 id={`workflow-step-${index + 1}`}>{step.title}</h3>
+            <p>{step.text}</p>
+          </div>
+          <div class="workflow-media">
+            <span>Media coming soon</span>
+          </div>
+        </article>
+      ))}
     </section>
-    <section id="scanner" class="section scanner" aria-labelledby="scanner-heading">
+    <section id="scanner" class="scanner" aria-labelledby="scanner-heading">
       <div class="scanner-copy">
-        <h2 id="scanner-heading">Bring the handheld into your workflow.</h2>
-        <p class="lead">Connect the component in your hand to the inventory on your PC.</p>
-        <p>Pair over Bluetooth LE, then send supported lookup, inventory, and label requests to the desktop service across your local network.</p>
-        <p class="scanner-files">The 3D-printable enclosure files are paid. Hardware availability has not been verified.</p>
-        <a class="scanner-link" href={url('/docs/scanner/')}>Read the Scan R1 guide <span aria-hidden="true">→</span></a>
+        <p class="scanner-edition">Official CAD bundle</p>
+        <h2 id="scanner-heading">Inventatory<br />Scan R1</h2>
+        <p class="scanner-summary">Print the scanner enclosure and charging dock from the official CAD files.</p>
+        <a class="scanner-link" href={url('/docs/scanner/')}>Explore the scanner <span aria-hidden="true">→</span></a>
       </div>
       <div class="scanner-model" data-scanner-model>
         <img
@@ -99,6 +96,16 @@ if (!scannerFeature) throw new Error('Missing Scan R1 feature data.');
         >
           <source src={url(scannerFeature.media.video)} type="video/webm" />
         </video>
+      </div>
+      <div class="scanner-details">
+        <div>
+          <h3>A build that supports the project.</h3>
+          <p>The enclosure and charging dock CAD files form an optional paid bundle. Your purchase supports Inventatory.</p>
+        </div>
+        <div>
+          <h3>Build it your own way, too.</h3>
+          <p>The firmware, schematics, and documentation are open source. Design your own enclosure and build the scanner without buying the bundle.</p>
+        </div>
       </div>
     </section>
     <section class="section resources" aria-labelledby="resources-heading">
@@ -179,26 +186,28 @@ if (!scannerFeature) throw new Error('Missing Scan R1 feature data.');
   .hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-6); margin-top: var(--space-8); }
   .hero-secondary { font: var(--text-sm)/1.5 var(--font-mono); color: var(--focus); text-decoration: none; }
   .hero-secondary span { color: var(--accent); }
-  .feature-overview { padding-block: var(--space-12); }
-  .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-8); margin-bottom: var(--space-6); }
-  .section-heading h2 { margin: 0; font-size: var(--text-h2); }
-  .section-heading p { max-width: 46ch; margin: 0; color: var(--muted); }
-  .feature-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-12); }
-  .feature-item { display: grid; grid-template-columns: 2.25rem minmax(0, 1fr); align-items: start; gap: var(--space-2) var(--space-4); padding-block: var(--space-6); border-top: var(--border) solid var(--divider); }
-  .feature-index { padding-top: .2rem; color: var(--muted); font: var(--text-xs)/1.5 var(--font-mono); }
-  .feature-copy { min-width: 0; }
-  .feature-copy h3 { margin-bottom: var(--space-2); font-size: var(--text-lead); line-height: 1.35; font-weight: 550; }
-  .feature-copy p { max-width: 48ch; margin-bottom: 0; color: var(--secondary); font-size: var(--text-sm); line-height: 1.65; }
-  .feature-link { grid-column: 2; margin-top: var(--space-2); font: var(--text-xs)/1.5 var(--font-mono); }
-  .scanner { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: var(--space-12); align-items: center; padding-block: var(--space-20); }
-  .scanner-copy { max-width: 34rem; }
-  .scanner-copy h2 { max-width: 17ch; margin-bottom: var(--space-4); font-size: clamp(2rem, 3.4vw, 3rem); line-height: 1.12; }
-  .scanner-copy .lead { margin-bottom: var(--space-4); color: var(--text); }
-  .scanner-files { margin-top: var(--space-4); color: var(--muted); font-size: var(--text-sm); }
-  .scanner-link { display: inline-block; margin-top: var(--space-6); }
-  .scanner-model { width: 100%; aspect-ratio: 16 / 10; display: grid; place-items: center; overflow: hidden; }
+  .workflow { display: grid; gap: var(--space-16); padding-block: var(--space-16); }
+  .workflow-step { display: grid; grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr); align-items: center; gap: var(--space-12); }
+  .workflow-copy { max-width: 32rem; }
+  .workflow-number { display: block; margin-bottom: var(--space-4); color: var(--accent); font: var(--text-sm)/1.5 var(--font-mono); }
+  .workflow-copy h3 { margin-bottom: var(--space-4); font-size: clamp(2rem, 3.4vw, 3rem); line-height: 1.12; font-weight: 550; }
+  .workflow-copy p { max-width: 36ch; font-size: var(--text-lead); line-height: 1.65; }
+  .workflow-media { width: 100%; aspect-ratio: 16 / 9; display: grid; place-items: center; background: var(--surface); border: var(--border) solid var(--divider); }
+  .workflow-media span { color: var(--muted); font: var(--text-xs)/1.5 var(--font-mono); }
+  .scanner { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: var(--space-12); align-items: center; margin-block: var(--space-4) var(--space-16); padding: clamp(1.5rem, 4vw, 3.5rem); background: var(--focus); color: var(--canvas); }
+  .scanner-copy { max-width: 30rem; }
+  .scanner-edition { margin-bottom: var(--space-8); color: var(--active); font: 500 var(--text-xs)/1.5 var(--font-mono); letter-spacing: .09em; text-transform: uppercase; }
+  .scanner-copy h2 { font-size: clamp(2.8rem, 5.2vw, 4.5rem); line-height: 1.02; letter-spacing: -.045em; font-weight: 550; }
+  .scanner-summary { max-width: 30ch; margin-top: var(--space-6); color: var(--raised); font-size: var(--text-lead); line-height: 1.6; }
+  .scanner-link { display: inline-flex; align-items: center; gap: var(--space-6); margin-top: var(--space-8); padding-bottom: var(--space-2); color: var(--canvas); border-bottom: var(--border) solid var(--active); font: 500 var(--text-sm)/1.5 var(--font-mono); text-decoration: none; }
+  .scanner-link:hover { color: var(--active); }
+  .scanner-link:focus-visible { outline-color: var(--canvas); }
+  .scanner-model { width: 100%; aspect-ratio: 1; display: grid; place-items: center; overflow: hidden; background: var(--canvas); }
   .scanner-model > img, .scanner-model > video { grid-area: 1 / 1; width: 100%; height: 100%; object-fit: contain; }
   .scanner-still { display: none; }
+  .scanner-details { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-12); border-top: var(--border) solid var(--active); padding-top: var(--space-6); }
+  .scanner-details h3 { color: var(--canvas); font-size: var(--text-base); margin-bottom: var(--space-2); }
+  .scanner-details p { max-width: 48ch; color: var(--raised); font-size: var(--text-sm); line-height: 1.7; }
   .resources { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-16); }
   .resources h2 { margin-bottom: var(--space-4); } .resources ol { margin: 0; padding-left: var(--space-6); color: var(--muted); font-family: var(--font-mono); }
   .resources li { padding: var(--space-3) 0 var(--space-3) var(--space-3); border-bottom: var(--border) solid var(--divider); }
@@ -209,10 +218,10 @@ if (!scannerFeature) throw new Error('Missing Scan R1 feature data.');
     .hero-title { font-size: clamp(2.2rem, 8vw, 3.5rem); }
     .hero-backdrop > img, .hero-backdrop > video { object-position: 68% center; }
     .hero-backdrop::after { background: linear-gradient(90deg, rgba(13,16,16,.96) 0%, rgba(13,16,16,.84) 60%, rgba(13,16,16,.54) 100%), linear-gradient(0deg, rgba(13,16,16,.65), transparent 48%); }
-    .section-heading { align-items: flex-start; flex-direction: column; gap: var(--space-2); }
-    .feature-list, .scanner, .resources { grid-template-columns: 1fr; gap: var(--space-8); }
-    .scanner-model { aspect-ratio: 16 / 11; }
-    .scanner { padding-block: var(--space-12); gap: var(--space-6); }
+    .workflow-copy h3 { font-size: clamp(1.8rem, 8vw, 2.6rem); }
+    .workflow-step, .scanner, .scanner-details, .resources { grid-template-columns: 1fr; gap: var(--space-8); }
+    .scanner-model { aspect-ratio: 16 / 10; }
+    .scanner { gap: var(--space-8); }
   }
   @media (max-width: 26rem) { .resources { gap: var(--space-6); } }
   @media (prefers-reduced-motion: reduce) {
