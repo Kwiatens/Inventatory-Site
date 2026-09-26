@@ -14,10 +14,9 @@ import { url } from '../../lib/url';
   </header>
 
   <div class="steps" data-track>
-    {steps.map((step, index) => (
+    {steps.map((step) => (
       <article class="step" id={step.id} data-step aria-labelledby={`step-${step.id}`}>
         <div class="text">
-          <span class="num" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
           <h3 id={`step-${step.id}`}>{step.title}</h3>
           <p>{step.text}</p>
           <a class="more" href={url(step.href)}>{workflow.readGuideText} <span aria-hidden="true">→</span></a>
@@ -48,7 +47,6 @@ import { url } from '../../lib/url';
   .step { position: relative; display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: var(--space-12); align-items: center; }
 
   .text { position: static; }
-  .num { display: block; margin-bottom: var(--space-3); color: var(--accent); font: 500 var(--text-sm)/1.5 var(--font-mono); }
   h3 { margin-bottom: var(--space-4); font-size: clamp(1.75rem, 2.8vw, 2.5rem); line-height: 1.08; letter-spacing: -.03em; }
   .text > p { max-width: 36ch; font-size: var(--text-lead); line-height: 1.6; }
 
