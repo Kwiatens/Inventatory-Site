@@ -5,15 +5,15 @@
       "accounted for."
     ],
     "summary": "Open-source, terminal based hardware inventory management system.",
-    "primary": "Choose your system",
-    "secondary": "Explore features"
+    "primary": "Install Inventatory",
+    "secondary": "Features"
   },
   "workflow": {
     "headingLines": [
-      "From the bag on your desk",
-      "to the board on your bench."
+      "Automate your inventory,",
+      "and focus on building."
     ],
-    "summary": "Placeholder: a short line on what the system does end to end. The owner will write this.",
+    "summary": "",
     "readGuideText": "Read the guide",
     "recordingPendingText": "Recording pending",
     "steps": [
