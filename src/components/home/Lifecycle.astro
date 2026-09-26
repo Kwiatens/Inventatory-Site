@@ -1,12 +1,16 @@
 ---
 /** What the system does, as the life of a part. */
-import { steps } from '../../data/home';
+import { workflow, steps } from '../../data/home';
 import { url } from '../../lib/url';
 ---
 <section class="lifecycle wrap" aria-labelledby="lifecycle-heading">
   <header class="intro">
-    <h2 id="lifecycle-heading">From the bag on your desk<br />to the board on your bench.</h2>
-    <p>Placeholder: a short line on what the system does end to end. The owner will write this.</p>
+    <h2 id="lifecycle-heading">
+      {workflow.headingLines.map((line, i) => (
+        <Fragment key={i}>{line}{i < workflow.headingLines.length - 1 && <br />}</Fragment>
+      ))}
+    </h2>
+    <p>{workflow.summary}</p>
   </header>
 
   <div class="steps" data-track>
@@ -16,15 +20,15 @@ import { url } from '../../lib/url';
           <span class="num" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
           <h3 id={`step-${step.id}`}>{step.title}</h3>
           <p>{step.text}</p>
-          <a class="more" href={url(step.href)}>Read the guide <span aria-hidden="true">→</span></a>
+          <a class="more" href={url(step.href)}>{workflow.readGuideText} <span aria-hidden="true">→</span></a>
         </div>
 
         <div class="visual">
           <figure class="media">
             {step.media
               ? <img src={url(step.media.src)} alt={step.media.alt} width={step.media.width} height={step.media.height} loading="lazy" decoding="async" style={{ objectPosition: step.media.position, '--zoom': step.media.zoom ?? 1 }} />
-              : <div class="pending" role="img" aria-label={`${step.mediaCaption}: recording not yet available`}>
-                  <span>Recording pending</span>
+              : <div class="pending" role="img" aria-label={`${step.mediaCaption}: ${workflow.recordingPendingText}`}>
+                  <span>{workflow.recordingPendingText}</span>
                 </div>}
           </figure>
         </div>

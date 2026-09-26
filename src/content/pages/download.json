@@ -1,0 +1,32 @@
+{
+  "metaTitle": "Download",
+  "metaDescription": "Install the Inventatory public beta on Windows x64 or Ubuntu Linux x86-64 with verified release packages.",
+  "heading": "Download Inventatory",
+  "lead": "Choose Windows or Ubuntu Linux to see the matching installer. Inventatory keeps your inventory on your own computer, and a scanner is optional.",
+  "notes": [
+    {
+      "heading": "Already installed?",
+      "text": "Use Settings → Updates in Inventatory. The updater shows release notes, downloads the package, verifies its published hashes, and hands off to the installer.",
+      "link": {
+        "label": "Read about application updates →",
+        "href": "/docs/desktop/settings/#software-updates"
+      }
+    },
+    {
+      "heading": "Scanner resources",
+      "text": "A public Scan R1 firmware release and assembly package have not been verified. Use the scanner documentation to understand the existing desktop integration and its setup requirements.",
+      "link": {
+        "label": "Hardware and firmware status →",
+        "href": "/docs/scanner/status/"
+      }
+    },
+    {
+      "heading": "Source code and license",
+      "text": "The desktop application is published under GPL-3.0-only. Build instructions and developer documentation live with the source.",
+      "link": {
+        "label": "Open the application repository ↗",
+        "href": "https://github.com/Kwiatens/Inventatory-Software"
+      }
+    }
+  ]
+}

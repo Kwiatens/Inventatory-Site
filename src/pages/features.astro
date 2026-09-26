@@ -1,14 +1,34 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { features } from '../data/site';
+import content from '../content/pages/features.json';
 import { url } from '../lib/url';
 ---
-<BaseLayout title="Features" description="Explore Inventatory's stock, rack, import, project, history, and scanner workflows, with links to practical documentation.">
+<BaseLayout title={content.metaTitle} description={content.metaDescription}>
   <div class="wrap">
-    <header class="page-intro"><h1>What Inventatory does</h1><p class="lead">Manage the parts you own, know where they are, and compare them with what your next project needs.</p></header>
-    <p class="notice">These guides describe the inspected application source. The available release is a prerelease; consult its release notes for version-specific changes.</p>
-    <div class="features">{features.map(feature => <section class="feature-section"><div><h2>{feature.title}</h2><a href={url(feature.href)}>Read the guide →</a></div><div><p>{feature.text}</p><ul>{feature.details.map(detail => <li>{detail}</li>)}</ul></div></section>)}</div>
-    <section class="section prose"><h2>Current boundaries</h2><p>Inventatory is a public beta for Windows and Ubuntu Linux x86-64. Stock and history are stored locally. DigiKey enrichment, release checks, and scanner communication need their respective network connections.</p><p>Scan R1’s desktop integration is implemented, but public hardware and firmware availability has not been verified. Multi-user workflows, MCP integration, and additional vendor and CAD integrations are listed as future work in the application repository.</p><a href={url('/docs/scanner/status/')}>Scanner availability and documentation status →</a></section>
+    <header class="page-intro">
+      <h1>{content.heading}</h1>
+      <p class="lead">{content.lead}</p>
+    </header>
+    <p class="notice">{content.notice}</p>
+    <div class="features">
+      {content.features.map(feature => (
+        <section class="feature-section">
+          <div>
+            <h2>{feature.title}</h2>
+            <a href={url(feature.href)}>{content.readGuideText}</a>
+          </div>
+          <div>
+            <p>{feature.text}</p>
+            <ul>{feature.details.map(detail => <li>{detail}</li>)}</ul>
+          </div>
+        </section>
+      ))}
+    </div>
+    <section class="section prose">
+      <h2>{content.boundaries.heading}</h2>
+      {content.boundaries.paragraphs.map(p => <p>{p}</p>)}
+      <a href={url(content.boundaries.link.href)}>{content.boundaries.link.label}</a>
+    </section>
   </div>
 </BaseLayout>
 <style>
