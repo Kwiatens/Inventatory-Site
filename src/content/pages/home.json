@@ -1,0 +1,99 @@
+{
+  "hero": {
+    "title": [
+      "Every component,",
+      "accounted for."
+    ],
+    "summary": "Open-source, terminal based hardware inventory management system.",
+    "primary": "Choose your system",
+    "secondary": "Explore features"
+  },
+  "workflow": {
+    "headingLines": [
+      "From the bag on your desk",
+      "to the board on your bench."
+    ],
+    "summary": "Placeholder: a short line on what the system does end to end. The owner will write this.",
+    "readGuideText": "Read the guide",
+    "recordingPendingText": "Recording pending",
+    "steps": [
+      {
+        "id": "receive",
+        "title": "Receive parts",
+        "text": "Scan a supported vendor label to fill in component details, or import your order.",
+        "mediaCaption": "Stock workspace, part created from a label scan",
+        "href": "/docs/desktop/import/",
+        "media": {
+          "src": "/media/stock.png",
+          "alt": "Stock workspace with a capacitor created from a DigiKey code scan, showing its parameters, rack location, and links.",
+          "width": 1881,
+          "height": 970,
+          "position": "100% 0%",
+          "zoom": 1.9
+        }
+      },
+      {
+        "id": "store",
+        "title": "Put them away",
+        "text": "Inventatory assigns eligible parts to rack slots and can print their labels automatically.",
+        "mediaCaption": "Racks workspace",
+        "href": "/docs/desktop/racks/",
+        "media": null
+      },
+      {
+        "id": "build",
+        "title": "Build a board",
+        "text": "Import your KiCad BOM and see exactly which rack slots hold the parts you need.",
+        "mediaCaption": "Projects workspace",
+        "href": "/docs/desktop/projects/",
+        "media": null
+      },
+      {
+        "id": "recover",
+        "title": "Undo anything",
+        "text": "Every inventory change is recorded. Name a checkpoint, reverse a mistake, restore a validated backup.",
+        "mediaCaption": "History workspace",
+        "href": "/docs/desktop/history/",
+        "media": null
+      }
+    ]
+  },
+  "scanner": {
+    "title": "Inventatory Scan R1",
+    "summary": "A handheld companion for the bench. Scan a bag, set the quantity on the keypad, and the desktop inventory updates.",
+    "open": {
+      "title": "Build it yourself",
+      "text": "Everything needed to make a scanner is public. Take the firmware and wiring, and house it however you like.",
+      "cost": "Free",
+      "links": [
+        {
+          "label": "Firmware on GitHub",
+          "href": "https://github.com/Kwiatens/Inventatory-Firmware"
+        },
+        {
+          "label": "Scanner documentation",
+          "href": "/docs/scanner/"
+        }
+      ]
+    },
+    "bundle": {
+      "title": "Official CAD bundle",
+      "text": "The enclosure and charging dock designed and tested alongside the firmware. Print it and it fits. Your purchase supports Inventatory.",
+      "revision": "Rev A",
+      "price": "€ —",
+      "cta": "Get the bundle",
+      "href": "#",
+      "contents": [
+        { "qty": "1", "item": "Scanner enclosure", "note": "Tested fit" },
+        { "qty": "1", "item": "Charging dock", "note": "Tested fit" },
+        { "qty": "—", "item": "Print-ready files", "note": "STL / 3MF" },
+        { "qty": "—", "item": "Source CAD", "note": "STEP" }
+      ]
+    }
+  },
+  "nextSteps": [
+    { "label": "Installation", "href": "/docs/getting-started/installation/" },
+    { "label": "Your first inventory", "href": "/docs/getting-started/first-inventory/" },
+    { "label": "Organize physical storage", "href": "/docs/desktop/racks/" }
+  ]
+}

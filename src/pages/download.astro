@@ -1,17 +1,26 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PlatformInstallSelector from '../components/PlatformInstallSelector.astro';
-import { site } from '../data/site';
+import content from '../content/pages/download.json';
 import { url } from '../lib/url';
+
+const resolveHref = (href: string) => href.startsWith('http') ? href : url(href);
 ---
-<BaseLayout title="Download" description="Install the Inventatory public beta on Windows x64 or Ubuntu Linux x86-64 with verified release packages.">
+<BaseLayout title={content.metaTitle} description={content.metaDescription}>
   <div class="wrap">
-    <header class="page-intro"><h1>Download Inventatory</h1><p class="lead">Choose Windows or Ubuntu Linux to see the matching installer. Inventatory keeps your inventory on your own computer, and a scanner is optional.</p></header>
+    <header class="page-intro">
+      <h1>{content.heading}</h1>
+      <p class="lead">{content.lead}</p>
+    </header>
     <PlatformInstallSelector id="download-platforms" />
     <div class="download-notes section">
-      <section><h2>Already installed?</h2><p>Use <strong>Settings → Updates</strong> in Inventatory. The updater shows release notes, downloads the package, verifies its published hashes, and hands off to the installer.</p><a href={url('/docs/desktop/settings/#software-updates')}>Read about application updates →</a></section>
-      <section><h2>Scanner resources</h2><p>A public Scan R1 firmware release and assembly package have not been verified. Use the scanner documentation to understand the existing desktop integration and its setup requirements.</p><a href={url('/docs/scanner/status/')}>Hardware and firmware status →</a></section>
-      <section><h2>Source code and license</h2><p>The desktop application is published under GPL-3.0-only. Build instructions and developer documentation live with the source.</p><a href={site.repository}>Open the application repository ↗</a></section>
+      {content.notes.map(note => (
+        <section>
+          <h2>{note.heading}</h2>
+          <p>{note.text}</p>
+          <a href={resolveHref(note.link.href)}>{note.link.label}</a>
+        </section>
+      ))}
     </div>
   </div>
 </BaseLayout>

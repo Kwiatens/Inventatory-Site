@@ -1,0 +1,87 @@
+{
+  "metaTitle": "Features",
+  "metaDescription": "Explore Inventatory's stock, rack, import, project, history, and scanner workflows, with links to practical documentation.",
+  "heading": "What Inventatory does",
+  "lead": "Manage the parts you own, know where they are, and compare them with what your next project needs.",
+  "notice": "These guides describe the inspected application source. The available release is a prerelease; consult its release notes for version-specific changes.",
+  "readGuideText": "Read the guide →",
+  "features": [
+    {
+      "title": "Stock management",
+      "label": "Stock",
+      "href": "/docs/desktop/stock/",
+      "text": "Keep component records, quantities, electrical parameters, links, and notes together. Search, filter, and count your stock.",
+      "details": [
+        "Search by part, category, parameter, location, SKU, or quantity.",
+        "Review selected component details alongside the inventory list.",
+        "Use per-part reorder thresholds and a guided stocktake."
+      ]
+    },
+    {
+      "title": "Physical storage",
+      "label": "Racks",
+      "href": "/docs/desktop/racks/",
+      "text": "Assign components to a rack and slot, move them between locations, and print labels for stored parts.",
+      "details": [
+        "Work with a 5 × 5 rack grid.",
+        "Place, move, automatically assign, or unassign components.",
+        "Find project components one rack at a time."
+      ]
+    },
+    {
+      "title": "Component import",
+      "label": "Import",
+      "href": "/docs/desktop/import/",
+      "text": "Review DigiKey order CSVs before accepting parts. Import KiCad BOMs into Projects for comparison with current stock.",
+      "details": [
+        "File headers determine the import workflow.",
+        "Accept, correct, or skip DigiKey order rows.",
+        "Optionally enrich accepted parts with DigiKey metadata."
+      ]
+    },
+    {
+      "title": "Projects and BOMs",
+      "label": "Projects",
+      "href": "/docs/desktop/projects/",
+      "text": "Compare the parts needed for a board with the parts you have, inspect shortages, and follow a rack-by-rack picking workflow.",
+      "details": [
+        "Adjust board count and choose between matching components.",
+        "Export shortages to CSV beside the BOM.",
+        "Confirm stock subtraction after picking; projects persist locally."
+      ]
+    },
+    {
+      "title": "History and recovery",
+      "label": "History",
+      "href": "/docs/desktop/history/",
+      "text": "Inspect inventory changes, create named checkpoints, reverse changes, and make validated backups of the workspace.",
+      "details": [
+        "Review before-and-after fields for parts and racks.",
+        "Restore a snapshot without removing earlier history.",
+        "Validate backup contents before activation and re-pair Scan R1 after restore."
+      ]
+    },
+    {
+      "title": "Scanner and printing",
+      "label": "Scan R1",
+      "href": "/docs/scanner/",
+      "text": "Connect a paired handheld scanner to the desktop device service. Use the PC printer for component and quick labels.",
+      "details": [
+        "Physically verified Bluetooth LE pairing, then local-network synchronization.",
+        "Authenticated device traffic with replay protection.",
+        "Optional background service keeps the paired PC available after the terminal closes."
+      ]
+    }
+  ],
+  "boundaries": {
+    "heading": "Current boundaries",
+    "paragraphs": [
+      "Inventatory is a public beta for Windows and Ubuntu Linux x86-64. Stock and history are stored locally. DigiKey enrichment, release checks, and scanner communication need their respective network connections.",
+      "Scan R1’s desktop integration is implemented, but public hardware and firmware availability has not been verified. Multi-user workflows, MCP integration, and additional vendor and CAD integrations are listed as future work in the application repository."
+    ],
+    "link": {
+      "label": "Scanner availability and documentation status →",
+      "href": "/docs/scanner/status/"
+    }
+  }
+}

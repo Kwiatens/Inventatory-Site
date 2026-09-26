@@ -30,12 +30,13 @@ Rebuild afterward for the default project path. Node 24 / npm 11 can report depe
 
 ## Edit the site
 
-- **Main pages:** src/pages/index.astro, features.astro, download.astro.
-- **Documentation:** Markdown in src/content/docs/docs/. Add a matching sidebar entry in astro.config.mjs.
-- **Shared navigation and repeated facts:** src/data/site.ts.
-- **Colors and sizes:** src/styles/tokens.css; documentation overrides in docs.css.
-- **Original logo:** src/data/logo.ts and components/AsciiLogo.astro.
-- **Authentic product media:** public/media/ and components/ProductMedia.astro.
+- **Page text and copy:** Simple JSON files in `src/content/pages/` (`home.json`, `features.json`, `download.json`). Edit text inside quotes without touching code or CSS.
+- **Documentation:** Markdown in `src/content/docs/docs/`. Add a matching sidebar entry in `astro.config.mjs`.
+- **Page layouts and templates:** `src/pages/` and `src/components/`.
+- **Shared navigation and repeated facts:** `src/data/site.ts`.
+- **Colors and sizes:** `src/styles/tokens.css`; documentation overrides in `docs.css`.
+- **Original logo:** `src/data/logo.ts` and `components/AsciiLogo.astro`.
+- **Authentic product media:** `public/media/` and `components/ProductMedia.astro`.
 
 Guides are concise user-facing adaptations, not synchronized copies of developer notes. For each desktop release, review upstream changes, refresh relevant guides, and update verified release metadata. Do not describe current-source behavior as guaranteed in an older release.
 
