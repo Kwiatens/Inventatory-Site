@@ -60,10 +60,10 @@
   },
   "scanner": {
     "title": "Inventatory Scan R1",
-    "summary": "A handheld companion for the bench. Scan a bag, set the quantity on the keypad, and the desktop inventory updates.",
+    "summary": "A custom, DiY-able hardware scanner that's directly integrated with Inventatory. It can read vendor labels, modify you stock and print labels for new parts automatically.",
     "open": {
       "title": "Build it yourself",
-      "text": "Everything needed to make a scanner is public. Take the firmware and wiring, and house it however you like.",
+      "text": "The firmware, schematics and instructions that care needed to build the scanner are available for free. You can design and print your own enclosure.",
       "cost": "Free",
       "links": [
         {
@@ -77,17 +77,17 @@
       ]
     },
     "bundle": {
-      "title": "Official CAD bundle",
-      "text": "The enclosure and charging dock designed and tested alongside the firmware. Print it and it fits. Your purchase supports Inventatory.",
-      "revision": "Rev A",
-      "price": "€ —",
+      "title": "Pre-designed CAD bundle",
+      "text": "The 'just works' solution. It includes ready to use .STEP and .3MF files for the enclosure and charging dock for the scanner. Your purchase supports my projects, thank you!",
+      "revision": "R1",
+      "price": "€ 10.99",
       "cta": "Get the bundle",
       "href": "#",
       "contents": [
-        { "qty": "1", "item": "Scanner enclosure", "note": "Tested fit" },
-        { "qty": "1", "item": "Charging dock", "note": "Tested fit" },
-        { "qty": "—", "item": "Print-ready files", "note": "STL / 3MF" },
-        { "qty": "—", "item": "Source CAD", "note": "STEP" }
+        { "qty": "1", "item": "Scanner enclosure", "note": ".STEP" },
+        { "qty": "1", "item": "Charging dock", "note": ".STEP"},
+        { "qty": "—", "item": "Fine-tuned print-ready files", "note": ".3MF" },
+        { "qty": "—", "item": "Detailed .PDF and video assembly instructions", "note": "" }
       ]
     }
   },
