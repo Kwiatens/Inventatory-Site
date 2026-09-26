@@ -63,7 +63,7 @@
     "summary": "A custom, DiY-able hardware scanner that's directly integrated with Inventatory. It can read vendor labels, modify you stock and print labels for new parts automatically.",
     "open": {
       "title": "Build it yourself",
-      "text": "The firmware, schematics and instructions that care needed to build the scanner are available for free. You can design and print your own enclosure.",
+      "text": "The firmware, schematics and instructions that are needed to build the scanner are open-source and available for free. You can design and print your own enclosure.",
       "cost": "Free",
       "links": [
         {
