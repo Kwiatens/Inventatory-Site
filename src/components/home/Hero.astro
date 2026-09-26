@@ -1,0 +1,165 @@
+---
+/** Homepage hero: full-bleed product backdrop, the original ASCII wordmark, and a drawing title block. */
+import { logoRows } from '../../data/logo';
+import { hero, titleBlock } from '../../data/home';
+import { features, media } from '../../data/site';
+import { url } from '../../lib/url';
+
+const stock = features.find(item => item.label === 'Stock');
+if (!stock) throw new Error('Missing Stock feature data.');
+const colors = logoRows.map((_, row) => {
+  const a = [88, 185, 176], b = [185, 231, 221];
+  return 'rgb(' + a.map((value, i) => value + Math.trunc((b[i] - value) * row / (logoRows.length - 1))).join(',') + ')';
+});
+---
+<section class="hero" aria-label="Introducing Inventatory" data-hero>
+  <div class="backdrop" aria-hidden="true">
+    <img src={url(stock.media.src)} alt="" width={stock.media.width} height={stock.media.height} fetchpriority="high" decoding="async" />
+    {media.heroVideo && <video data-hero-video muted loop playsinline preload="none" poster={url(stock.media.src)} width={stock.media.width} height={stock.media.height}>
+      <source src={url(media.heroVideo)} type="video/mp4" />
+    </video>}
+  </div>
+
+  <div class="frame wrap" aria-hidden="true">
+    <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+  </div>
+
+  <div class="content wrap">
+    <div class="copy">
+      <div class="mark" role="img" aria-label="Inventatory">
+        <span class="ascii" aria-hidden="true">{logoRows.map((row, i) => <span style={{ color: colors[i], '--row': i }}>{row}</span>)}</span>
+        <span class="compact" aria-hidden="true">Inventatory</span>
+      </div>
+      <h1>{hero.title.map((line, i) => <span class="line" style={{ '--i': i }}>{line}</span>)}</h1>
+      <p class="summary">{hero.summary}</p>
+      <div class="actions">
+        <a class="button" href="#homepage-download">{hero.primary}<span aria-hidden="true">&nbsp;↓</span></a>
+        <a class="secondary" href={url('/features/')}>{hero.secondary} <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap block-wrap">
+    <dl class="title-block">
+      {titleBlock.map(cell => (
+        <div>
+          <dt>{cell.label}</dt>
+          <dd>{cell.value}<small>{cell.note}</small></dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+</section>
+
+<script>
+  const hero = document.querySelector<HTMLElement>('[data-hero]');
+  const video = hero?.querySelector<HTMLVideoElement>('[data-hero-video]');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (hero && video) {
+    const update = () => {
+      if (reduced.matches || document.hidden) { video.pause(); hero.dataset.videoPlaying = 'false'; return; }
+      video.play().then(() => { hero.dataset.videoPlaying = String(!reduced.matches && !document.hidden); })
+        .catch(() => { hero.dataset.videoPlaying = 'false'; });
+    };
+    update();
+    document.addEventListener('visibilitychange', update);
+    reduced.addEventListener('change', update);
+  }
+</script>
+
+<style>
+  .hero {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-template-rows: 1fr auto;
+    min-height: calc(100svh - var(--header-height));
+    overflow: hidden;
+    background: var(--canvas);
+  }
+
+  /* Backdrop: the real application, dimmed and pushed right so the wordmark owns the left. */
+  .backdrop { position: absolute; z-index: -1; inset: 0; }
+  .backdrop > img, .backdrop > video { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: 30% 0; }
+  .backdrop > img { opacity: .5; filter: saturate(.8); }
+  .backdrop > video { opacity: 0; }
+  .hero[data-video-playing="true"] .backdrop > img { opacity: 0; }
+  .hero[data-video-playing="true"] .backdrop > video { opacity: .5; }
+  .backdrop::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, var(--canvas) 0%, rgb(13 16 16 / .93) 38%, rgb(13 16 16 / .45) 72%, rgb(13 16 16 / .2) 100%),
+      linear-gradient(0deg, var(--canvas) 0%, rgb(13 16 16 / .6) 22%, transparent 45%);
+  }
+
+  /* Registration marks at the sheet corners. */
+  .frame { position: absolute; inset: var(--space-8) 0 var(--space-8); pointer-events: none; }
+  .corner { position: absolute; width: 14px; height: 14px; border: 0 solid var(--divider); }
+  .tl { top: 0; left: 0; border-top-width: 1px; border-left-width: 1px; }
+  .tr { top: 0; right: 0; border-top-width: 1px; border-right-width: 1px; }
+  .bl { bottom: 0; left: 0; border-bottom-width: 1px; border-left-width: 1px; }
+  .br { bottom: 0; right: 0; border-bottom-width: 1px; border-right-width: 1px; }
+
+  .content { display: flex; align-items: center; padding-block: var(--space-16) var(--space-12); }
+  .copy { width: min(100%, 50rem); }
+
+  .mark { margin-bottom: var(--space-12); }
+  .ascii { display: block; font-family: Consolas, 'Cascadia Mono', 'DejaVu Sans Mono', monospace; font-size: clamp(.5rem, .86vw, .86rem); line-height: 1.06; letter-spacing: 0; font-variant-ligatures: none; }
+  .ascii > span { display: block; white-space: pre; }
+  .compact { display: none; color: var(--accent); font: 500 var(--text-h1)/1 var(--font-mono); }
+
+  h1 { font-size: clamp(2.6rem, 5.6vw, 5rem); line-height: 1; letter-spacing: -.045em; font-weight: 550; }
+  h1 .line { display: block; }
+  h1 .line + .line { color: var(--muted); }
+  .summary { max-width: 36ch; margin-top: var(--space-6); font-size: var(--text-lead); line-height: 1.55; }
+  .actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-8); margin-top: var(--space-8); }
+  .secondary { font: var(--text-sm)/1.5 var(--font-mono); color: var(--focus); text-decoration: none; }
+  .secondary span { display: inline-block; color: var(--accent); transition: transform .2s; }
+  .secondary:hover span { transform: translateX(3px); }
+
+  /* Title block: a real table of facts, set like the corner of an engineering drawing. */
+  .block-wrap { padding-bottom: var(--space-8); }
+  .title-block { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); margin: 0; border: var(--border) solid var(--divider); background: rgb(13 16 16 / .78); backdrop-filter: blur(6px); }
+  .title-block > div { min-width: 0; padding: var(--space-3) var(--space-4); border-left: var(--border) solid var(--divider); }
+  .title-block > div:first-child { border-left: 0; }
+  dt { color: var(--muted); font: var(--text-xs)/1.4 var(--font-mono); text-transform: uppercase; letter-spacing: .08em; }
+  dd { margin: var(--space-1) 0 0; color: var(--text); font: 500 var(--text-sm)/1.4 var(--font-mono); overflow-wrap: anywhere; }
+  dd small { display: block; color: var(--muted); font-weight: 400; font-size: var(--text-xs); }
+
+  /* Entrance: the wordmark draws row by row like terminal output, then the headline settles. */
+  @media (prefers-reduced-motion: no-preference) {
+    .ascii > span { animation: row-in .5s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--row) * 55ms); clip-path: inset(0 100% 0 0); }
+    h1 .line, .summary, .actions { animation: rise .7s cubic-bezier(.2, .7, .2, 1) both; }
+    h1 .line { animation-delay: calc(.35s + var(--i) * 90ms); }
+    .summary { animation-delay: .6s; }
+    .actions { animation-delay: .7s; }
+    .title-block { animation: fade 1s .8s both; }
+  }
+  @keyframes row-in { to { clip-path: inset(0 0 0 0); } }
+  @keyframes rise { from { opacity: 0; transform: translateY(12px); } }
+  @keyframes fade { from { opacity: 0; } }
+
+  @media (max-width: 60rem) {
+    .title-block { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .title-block > div:nth-child(4) { border-left: 0; }
+    .title-block > div:nth-child(n + 4) { border-top: var(--border) solid var(--divider); }
+  }
+  @media (max-width: 48rem) {
+    .content { padding-block: var(--space-12) var(--space-8); }
+    .backdrop > img, .backdrop > video { object-position: 18% 0; }
+    .backdrop::after { background: linear-gradient(90deg, rgb(13 16 16 / .95), rgb(13 16 16 / .78)), linear-gradient(0deg, var(--canvas), transparent 40%); }
+    .frame { display: none; }
+  }
+  @media (max-width: 40rem) {
+    .ascii { display: none; }
+    .compact { display: block; }
+    .mark { margin-bottom: var(--space-8); }
+    .title-block { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .title-block > div:nth-child(n) { border-left: var(--border) solid var(--divider); border-top: var(--border) solid var(--divider); }
+    .title-block > div:nth-child(odd) { border-left: 0; }
+    .title-block > div:nth-child(-n + 2) { border-top: 0; }
+    .title-block > div:last-child { grid-column: 1 / -1; }
+  }
+</style>

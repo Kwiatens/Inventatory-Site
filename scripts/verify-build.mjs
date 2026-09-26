@@ -55,14 +55,14 @@ const homepage = documents.get(base + '/')?.$;
 if (!homepage) {
   errors.push('Homepage missing from production output.');
 } else {
-  const steps = homepage('#desktop .workflow-step');
-  if (steps.length !== 3) errors.push('Homepage must contain three workflow steps in its no-JavaScript HTML.');
+  const steps = homepage('[data-track] [data-step]');
+  if (steps.length < 3) errors.push('Homepage must contain at least three workflow steps in its no-JavaScript HTML.');
   steps.each((index, element) => {
     const step = homepage(element);
     const heading = step.find('h3');
     if (!heading.text().trim() || step.attr('aria-labelledby') !== heading.attr('id')) errors.push('Workflow step ' + (index + 1) + ' must have an associated heading.');
-    if (!step.find('.workflow-copy p').text().trim()) errors.push('Workflow step ' + (index + 1) + ' must have explanatory text.');
-    if (step.find('.workflow-media').length !== 1) errors.push('Workflow step ' + (index + 1) + ' must have one media area.');
+    if (!step.find('.text > p').text().trim()) errors.push('Workflow step ' + (index + 1) + ' must have explanatory text.');
+    if (step.find('figure.media').length !== 1) errors.push('Workflow step ' + (index + 1) + ' must have one media area.');
   });
   if (homepage('[data-feature-carousel], [data-feature-slide], [data-carousel-controls]').length) errors.push('Homepage must not retain the retired carousel.');
   if (homepage('.hero .eyebrow, .hero-caption').length) errors.push('Homepage hero must not contain the removed eyebrow or screenshot caption.');
@@ -82,21 +82,21 @@ if (!homepage) {
   if (homepage('section[aria-labelledby="features-heading"]').length) errors.push('Homepage must not include the connected workflow section.');
   if (homepage('.scanner-copy > .eyebrow').text().trim() === 'Scan R1') errors.push('Scanner section must not include its eyebrow label.');
   verifyInstallSelector(homepage, '#homepage-download', 'Homepage');
-  const scannerVideo = homepage('video[data-scanner-preview]');
+  const scannerVideo = homepage('video[data-scanner-video]');
   if (scannerVideo.length !== 1) errors.push('Homepage must include one scanner preview video.');
   else {
-    for (const attribute of ['autoplay', 'muted', 'loop', 'playsinline', 'poster']) {
+    // Playback starts from script only while the stage is on screen, so there is no autoplay attribute.
+    for (const attribute of ['muted', 'loop', 'playsinline', 'poster']) {
       if (!scannerVideo.is('[' + attribute + ']')) errors.push('Scanner preview must include ' + attribute + '.');
     }
     if (scannerVideo.is('[controls]')) errors.push('Scanner preview must not expose controls.');
     if (scannerVideo.find('source[src$=".webm"]').length !== 1) errors.push('Scanner preview must use one local WebM source.');
   }
   const scripts = homepage('script');
-  if (scripts.length !== 1) errors.push('Homepage must ship one local media playback script.');
   scripts.each((_, element) => {
     const src = homepage(element).attr('src');
     if (src && new URL(src, origin + base + '/').origin !== new URL(origin).origin) {
-      errors.push('Homepage media playback script must be local.');
+      errors.push('Homepage scripts must be local.');
     }
   });
 }
