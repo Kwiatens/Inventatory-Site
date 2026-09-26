@@ -1,5 +1,5 @@
 ---
-/** Scan R1: the model on a lit stage, its specification, and the two equal routes to owning one. */
+/** Scan R1: the model, its description, and the two equal routes to owning one. */
 import { scanner } from '../../data/home';
 import { features } from '../../data/site';
 import { url } from '../../lib/url';
@@ -14,19 +14,13 @@ const external = (href: string) => /^https?:/.test(href);
       <div class="stage-copy">
         <h2 id="scanner-heading">{scanner.title}</h2>
         <p class="summary">{scanner.summary}</p>
-        <table class="spec">
-          <caption class="sr-only">Scan R1 specification</caption>
-          <tbody>{scanner.specs.map(s => <tr><th scope="row">{s.key}</th><td>{s.value}</td></tr>)}</tbody>
-        </table>
       </div>
 
       <div class="model" data-scanner-model>
-        <div class="light" aria-hidden="true"></div>
         <img class="still" src={url(model.media.src)} alt={model.media.alt} width={model.media.width} height={model.media.height} loading="lazy" decoding="async" />
         <video data-scanner-video muted loop playsinline preload="none" poster={url(model.media.src)} aria-hidden="true">
           <source src={url(model.media.video)} type="video/webm" />
         </video>
-        <div class="plate" aria-hidden="true"><span></span></div>
       </div>
     </div>
 
@@ -37,12 +31,6 @@ const external = (href: string) => /^https?:/.test(href);
           <span class="cost">{scanner.open.cost}</span>
         </header>
         <p>{scanner.open.text}</p>
-        <div class="tree" aria-label="Firmware repository contents">
-          <span class="tree-root">Inventatory-Firmware/<small>GPL-3.0-only</small></span>
-          <ul>
-            {scanner.open.tree.map(entry => <li><code>{entry.name}</code><span>{entry.note}</span></li>)}
-          </ul>
-        </div>
         <ul class="links">
           {scanner.open.links.map(link => <li>
             <a href={external(link.href) ? link.href : url(link.href)}>{link.label} <span aria-hidden="true">{external(link.href) ? '↗' : '→'}</span></a>
@@ -87,27 +75,17 @@ const external = (href: string) => /^https?:/.test(href);
 </script>
 
 <style>
-  /* Its own room: a raised band with a single soft key light on the model. */
   .scanner { position: relative; padding-block: var(--space-20); background: var(--surface); border-block: var(--border) solid var(--divider); overflow: hidden; }
 
   .stage { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: var(--space-12); align-items: center; }
   h2 { font-size: clamp(2.75rem, 5.6vw, 5rem); line-height: .98; letter-spacing: -.05em; }
   .summary { max-width: 38ch; margin-top: var(--space-6); font-size: var(--text-lead); line-height: 1.6; }
 
-  .spec { width: 100%; margin-top: var(--space-12); border-collapse: collapse; font: var(--text-xs)/1.5 var(--font-mono); }
-  .spec th, .spec td { padding: var(--space-2) 0; border-top: var(--border) solid var(--divider); text-align: left; vertical-align: top; }
-  .spec tr:last-child th, .spec tr:last-child td { border-bottom: var(--border) solid var(--divider); }
-  .spec th { width: 8.5rem; color: var(--muted); font-weight: 400; text-transform: uppercase; letter-spacing: .06em; }
-  .spec td { color: var(--secondary); }
-
   .model { position: relative; display: grid; aspect-ratio: 1200 / 820; }
   .model > img, .model > video { grid-area: 1 / 1; position: relative; z-index: 1; width: 100%; height: 100%; object-fit: contain; }
-  .model > video { opacity: 0; transition: opacity .6s; mix-blend-mode: lighten; } /* The clip has an opaque #0c1211 ground; lighten drops it onto the brighter band. */
+  .model > video { opacity: 0; transition: opacity .6s; mix-blend-mode: lighten; }
   .model[data-playing="true"] > video { opacity: 1; }
   .model[data-playing="true"] > .still { opacity: 0; }
-  .light { position: absolute; inset: -20% -25%; background: radial-gradient(closest-side, rgb(185 231 221 / .13), rgb(88 185 176 / .05) 55%, transparent); }
-  .plate { position: absolute; left: 12%; right: 12%; bottom: 4%; height: 14%; border-radius: 50%; background: radial-gradient(closest-side, rgb(0 0 0 / .7), transparent); }
-  .plate span { position: absolute; left: 8%; right: 8%; top: 50%; border-top: var(--border) solid var(--divider); opacity: .6; }
 
   .routes { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-top: var(--space-16); }
   .route { display: flex; flex-direction: column; padding: var(--space-8); }
@@ -118,21 +96,12 @@ const external = (href: string) => /^https?:/.test(href);
   /* Open route: the repository itself. */
   .open { border: var(--border) solid var(--divider); background: var(--canvas); }
   .cost { color: var(--success); font: 500 var(--text-sm)/1 var(--font-mono); }
-  .tree { margin-top: var(--space-6); padding: var(--space-4); background: var(--surface); font: var(--text-xs)/1.6 var(--font-mono); }
-  .tree-root { display: flex; justify-content: space-between; gap: var(--space-4); color: var(--text); }
-  .tree-root small { color: var(--muted); font-size: inherit; }
-  .tree ul { margin: var(--space-1) 0 0; padding: 0; list-style: none; }
-  .tree li { position: relative; display: grid; grid-template-columns: 7rem 1fr; gap: var(--space-4); margin: 0; padding-left: var(--space-6); }
-  .tree li::before { content: '├─'; position: absolute; left: 0; color: var(--divider); }
-  .tree li:last-child::before { content: '└─'; }
-  .tree code { color: var(--link); font-size: inherit; }
-  .tree li span { color: var(--muted); }
   .links { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-8); margin: auto 0 0; padding: var(--space-6) 0 0; list-style: none; font: var(--text-sm)/1.5 var(--font-mono); }
   .links li { margin: 0; }
   .links a { text-decoration: none; }
 
-  /* Bundle route: the one light surface on the page. Quiet type, exact contents, plain price. */
-  .bundle { background: var(--focus); color: var(--canvas); box-shadow: 0 30px 80px -40px rgb(185 231 221 / .35); }
+  /* Bundle route */
+  .bundle { background: var(--focus); color: var(--canvas); }
   .bundle h3 { color: var(--canvas); }
   .bundle > p { color: var(--active-soft); }
   .rev { padding: 2px var(--space-2); border: var(--border) solid rgb(13 16 16 / .45); color: var(--active-soft); font: 500 var(--text-xs)/1.4 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
@@ -152,12 +121,10 @@ const external = (href: string) => /^https?:/.test(href);
   @media (max-width: 56rem) {
     .stage, .routes { grid-template-columns: 1fr; }
     .model { order: -1; }
-    .spec { margin-top: var(--space-8); }
   }
   @media (max-width: 40rem) {
     .scanner { padding-block: var(--space-16); }
     .route { padding: var(--space-6) var(--space-4); }
-    .tree li { grid-template-columns: 1fr; gap: 0; }
     .buy { flex-wrap: wrap; }
   }
   @media (prefers-reduced-motion: reduce) { .model > video { display: none; } }
