@@ -2,34 +2,6 @@
 /** What the system does, as the life of a part: a routed trace with one via per step. */
 import { steps } from '../../data/home';
 import { url } from '../../lib/url';
-
-// Deterministic Data Matrix-like pattern for the label detail. Decorative only.
-const matrixSize = 14;
-const matrix = Array.from({ length: matrixSize * matrixSize }, (_, i) => {
-  const x = i % matrixSize, y = Math.floor(i / matrixSize);
-  if (x === 0 || y === matrixSize - 1) return true; // solid "L" finder
-  if (y === 0) return x % 2 === 0; // clock track
-  if (x === matrixSize - 1) return y % 2 === 1;
-  return ((x * 7 + y * 13 + x * y * 3) % 5) < 2;
-});
-
-const rackRows = ['A', 'B', 'C', 'D', 'E'];
-const occupied = new Set(['A1', 'A2', 'A4', 'B1', 'B2', 'B3', 'B5', 'C1', 'C3', 'D2']);
-
-const bom = [
-  { part: 'CAP CER 10UF 16V X6S 0603', loc: 'R1-C1', need: 4, have: 6 },
-  { part: 'CAP CER 10NF 16V X7R 0603', loc: 'R1-B3', need: 6, have: 9 },
-  { part: 'DIODE SCHOTTKY 40V 1A DO41', loc: 'R1-A4', need: 2, have: 10 },
-  { part: 'TVS DIODE 16VWM 26VC SMA', loc: 'R1-D2', need: 2, have: 3 },
-  { part: 'RES 10K OHM 1% 1/10W 0603', loc: '—', need: 12, have: 0 },
-];
-
-const history = [
-  { time: '19:17', text: 'Qty 7 → 9', part: 'CAP CER 10NF 16V X7R 0603' },
-  { time: '19:12', text: 'Moved R1-A2 → R1-B3', part: 'CAP CER 10NF 16V X7R 0603' },
-  { time: '19:05', text: 'Checkpoint', part: 'before reflow', checkpoint: true },
-  { time: '18:40', text: 'Created from label scan', part: 'CAP CER 10NF 16V X7R 0603' },
-];
 ---
 <section class="lifecycle wrap" aria-labelledby="lifecycle-heading">
   <header class="intro">
@@ -50,79 +22,17 @@ const history = [
           <span class="num" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
           <h3 id={`step-${step.id}`}>{step.title}</h3>
           <p>{step.text}</p>
-          <dl class="specs">
-            {step.specs.map(spec => <div><dt>{spec.key}</dt><dd>{spec.value}</dd></div>)}
-          </dl>
           <a class="more" href={url(step.href)}>Read the guide <span aria-hidden="true">→</span></a>
         </div>
 
         <div class="visual">
           <figure class="media">
-            <figcaption><span>Fig. {index + 1}</span>{step.mediaCaption}</figcaption>
             {step.media
               ? <img src={url(step.media.src)} alt={step.media.alt} width={step.media.width} height={step.media.height} loading="lazy" decoding="async" style={{ objectPosition: step.media.position, '--zoom': step.media.zoom ?? 1 }} />
               : <div class="pending" role="img" aria-label={`${step.mediaCaption}: recording not yet available`}>
-                  <svg viewBox="0 0 160 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 0L160 90M160 0L0 90" /></svg>
                   <span>Recording pending</span>
                 </div>}
           </figure>
-
-          <div class={`detail detail-${step.figure.kind}`} aria-hidden="true">
-            <span class="detail-tag">Detail {String.fromCharCode(65 + index)}</span>
-
-            {step.figure.kind === 'label' && (
-              <div class="label-map">
-                <div class="label-card">
-                  <div class="matrix" style={{ '--n': matrixSize }}>{matrix.map(on => <i class={on ? 'on' : undefined}></i>)}</div>
-                  <div class="label-lines"><b>KEMET</b><span>10000PF 16V X7R</span><span>0603 · QTY 9</span></div>
-                </div>
-                <svg class="arrow" viewBox="0 0 40 12"><path d="M0 6H36M31 1L37 6L31 11" /></svg>
-                <dl class="fields">
-                  <div><dt>Mfr</dt><dd>KEMET</dd></div>
-                  <div><dt>Value</dt><dd>10 nF</dd></div>
-                  <div><dt>Pkg</dt><dd>0603</dd></div>
-                  <div><dt>Qty</dt><dd>9</dd></div>
-                </dl>
-              </div>
-            )}
-
-            {step.figure.kind === 'rack' && (
-              <div class="rack">
-                <div class="rack-grid">
-                  <span></span>{[1, 2, 3, 4, 5].map(c => <span class="axis">{c}</span>)}
-                  {rackRows.map(r => <>
-                    <span class="axis">{r}</span>
-                    {[1, 2, 3, 4, 5].map(c => {
-                      const id = r + c;
-                      const hit = step.figure.kind === 'rack' && id === step.figure.slot;
-                      return <span class:list={['cell', { filled: occupied.has(id), hit }]}></span>;
-                    })}
-                  </>)}
-                </div>
-                <div class="rack-readout"><b>R1-B3</b><span>CAP CER 10NF 16V X7R 0603</span><span>Label sent to printer</span></div>
-              </div>
-            )}
-
-            {step.figure.kind === 'bom' && (
-              <table class="bom">
-                <thead><tr><th>Part</th><th>Loc</th><th>Need</th><th>Have</th></tr></thead>
-                <tbody>
-                  {bom.map(row => <tr class:list={{ short: row.have < row.need }}>
-                    <td>{row.part}</td><td>{row.loc}</td><td>{row.need}</td><td>{row.have}</td>
-                  </tr>)}
-                </tbody>
-                <tfoot><tr><td colspan="4">× 2 boards · 4 of 5 lines in stock · 1 missing</td></tr></tfoot>
-              </table>
-            )}
-
-            {step.figure.kind === 'history' && (
-              <ol class="log">
-                {history.map(item => <li class:list={{ checkpoint: item.checkpoint }}>
-                  <time>{item.time}</time><b>{item.text}</b><span>{item.part}</span>
-                </li>)}
-              </ol>
-            )}
-          </div>
         </div>
       </article>
     ))}
@@ -200,7 +110,7 @@ const history = [
   .trace { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
   .trace path { fill: none; stroke-width: 3; stroke-linejoin: round; }
   .trace-base { stroke: var(--raised); }
-  .trace-lit { stroke: var(--accent); stroke-dasharray: 1; stroke-dashoffset: 1; filter: drop-shadow(0 0 4px rgb(88 185 176 / .45)); }
+  .trace-lit { stroke: var(--accent); stroke-dasharray: 1; stroke-dashoffset: 1; }
   /* Without script the trace is a plain rail. */
   .track:not([data-routed]) { border-left: 3px solid var(--raised); margin-left: 1.25rem; padding-left: calc(var(--rail) - 1.25rem); }
   .track:not([data-routed]) .trace { display: none; }
@@ -209,10 +119,10 @@ const history = [
   .step:last-of-type { padding-bottom: var(--space-12); }
 
   /* Via: annular ring with a drilled hole. Lanes alternate so the trace has somewhere to jog. */
-  .via, .pad { position: absolute; z-index: 1; width: 22px; height: 22px; border-radius: 50%; background: var(--canvas); border: 5px solid var(--raised); transition: border-color .3s, box-shadow .3s; }
+  .via, .pad { position: absolute; z-index: 1; width: 22px; height: 22px; border-radius: 50%; background: var(--canvas); border: 5px solid var(--raised); transition: border-color .3s; }
   .via { top: .35rem; left: calc(-1 * var(--rail) + 9px); }
   .step:nth-of-type(even) .via { left: calc(-1 * var(--rail) + 27px); }
-  .step.is-active .via, .pad.is-active { border-color: var(--accent); box-shadow: 0 0 0 4px rgb(88 185 176 / .12); }
+  .step.is-active .via, .pad.is-active { border-color: var(--accent); }
   .pad { position: relative; display: block; left: calc(-1 * var(--rail) + 20px); border-radius: 2px; width: 18px; height: 18px; border-width: 4px; }
   .track:not([data-routed]) .via, .track:not([data-routed]) .pad { display: none; }
 
@@ -222,67 +132,15 @@ const history = [
   h3 { margin-bottom: var(--space-4); font-size: clamp(1.75rem, 2.8vw, 2.5rem); line-height: 1.08; letter-spacing: -.03em; }
   .text > p { max-width: 36ch; font-size: var(--text-lead); line-height: 1.6; }
 
-  .specs { margin: var(--space-8) 0 0; border-top: var(--border) solid var(--divider); font: var(--text-xs)/1.5 var(--font-mono); }
-  .specs > div { display: grid; grid-template-columns: 7rem 1fr; gap: var(--space-4); padding-block: var(--space-2); border-bottom: var(--border) solid var(--divider); }
-  .specs dt { color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
-  .specs dd { margin: 0; color: var(--secondary); }
   .more { display: inline-block; margin-top: var(--space-6); font: var(--text-sm)/1.5 var(--font-mono); text-decoration: none; }
   .more span { display: inline-block; transition: transform .2s; }
   .more:hover span { transform: translateX(3px); }
 
-  .visual { position: relative; padding-bottom: var(--space-16); }
-  .media { border: var(--border) solid var(--divider); background: var(--surface); }
-  .media { overflow: hidden; }
+  .visual { position: relative; }
+  .media { background: var(--surface); overflow: hidden; }
   .media img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; transform: scale(var(--zoom)); transform-origin: var(--origin, 100% 0); }
-  .pending { position: relative; aspect-ratio: 16 / 10; display: grid; place-items: center; background: repeating-linear-gradient(-45deg, transparent 0 10px, rgb(56 69 67 / .18) 10px 11px); }
-  .pending svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .pending path { stroke: var(--divider); stroke-width: .4; vector-effect: non-scaling-stroke; fill: none; }
-  .pending span { position: relative; padding: var(--space-1) var(--space-3); background: var(--surface); border: var(--border) solid var(--divider); color: var(--muted); font: var(--text-xs)/1.5 var(--font-mono); }
-  figcaption { display: flex; gap: var(--space-3); padding: var(--space-2) var(--space-3); border-bottom: var(--border) solid var(--divider); color: var(--muted); font: var(--text-xs)/1.5 var(--font-mono); }
-  figcaption span { flex: none; color: var(--secondary); }
-
-  /* Detail view, pinned to the figure like a callout on a drawing. */
-  .detail { position: absolute; right: calc(-1 * var(--space-6)); bottom: 0; width: min(24rem, 78%); padding: var(--space-6) var(--space-4) var(--space-4); background: var(--canvas); border: var(--border) solid var(--divider); box-shadow: 0 20px 40px -20px rgb(0 0 0 / .8); font: var(--text-xs)/1.45 var(--font-mono); }
-  .step:nth-of-type(even) .detail { right: auto; left: calc(-1 * var(--space-6)); }
-  .detail-tag { position: absolute; top: calc(-1 * var(--space-3)); left: var(--space-4); padding: 0 var(--space-2); background: var(--canvas); border: var(--border) solid var(--divider); color: var(--accent); letter-spacing: .06em; text-transform: uppercase; }
-
-  .label-map { display: grid; grid-template-columns: auto 2.5rem 1fr; align-items: center; gap: var(--space-3); }
-  .label-card { display: grid; gap: var(--space-2); padding: var(--space-2); background: var(--text); color: var(--canvas); width: 7.5rem; }
-  .matrix { display: grid; grid-template-columns: repeat(var(--n), 1fr); width: 3.5rem; aspect-ratio: 1; }
-  .matrix i.on { background: var(--canvas); }
-  .label-lines { display: grid; font-size: .625rem; line-height: 1.3; }
-  .arrow { width: 100%; }
-  .arrow path { fill: none; stroke: var(--accent); stroke-width: 1.5; }
-  .fields { margin: 0; }
-  .fields > div { display: flex; justify-content: space-between; gap: var(--space-2); padding-block: 2px; border-bottom: var(--border) dotted var(--divider); }
-  .fields dt { color: var(--muted); }
-  .fields dd { margin: 0; color: var(--text); }
-
-  .rack { display: grid; grid-template-columns: auto 1fr; gap: var(--space-4); align-items: center; }
-  .rack-grid { display: grid; grid-template-columns: 1rem repeat(5, 1.35rem); gap: 3px; }
-  .rack-grid .axis { display: grid; place-items: center; color: var(--muted); font-size: .625rem; }
-  .cell { aspect-ratio: 1; border: var(--border) solid var(--divider); }
-  .cell.filled { background: var(--raised); }
-  .cell.hit { background: var(--accent); border-color: var(--focus); box-shadow: 0 0 10px rgb(88 185 176 / .6); }
-  .rack-readout { display: grid; gap: 2px; color: var(--muted); }
-  .rack-readout b { color: var(--focus); font-size: var(--text-sm); font-weight: 500; }
-
-  .bom { width: 100%; border-collapse: collapse; }
-  .bom th { color: var(--muted); font-weight: 400; text-align: left; padding-bottom: var(--space-1); border-bottom: var(--border) solid var(--divider); }
-  .bom td { padding-block: 3px; color: var(--secondary); white-space: nowrap; }
-  .bom td:first-child { max-width: 11rem; overflow: hidden; text-overflow: ellipsis; padding-right: var(--space-2); }
-  .bom th:nth-child(n + 3), .bom td:nth-child(n + 3) { text-align: right; padding-left: var(--space-2); }
-  .bom tr.short td { color: var(--danger); }
-  .bom tfoot td { padding-top: var(--space-2); border-top: var(--border) solid var(--divider); color: var(--muted); white-space: normal; }
-
-  .log { margin: 0; padding: 0; list-style: none; }
-  .log li { position: relative; display: grid; grid-template-columns: 3rem 1fr; column-gap: var(--space-2); margin: 0; padding: 3px 0 3px var(--space-4); border-left: var(--border) solid var(--divider); }
-  .log li::before { content: ''; position: absolute; left: -4px; top: .6rem; width: 7px; height: 7px; background: var(--canvas); border: var(--border) solid var(--muted); border-radius: 50%; }
-  .log li.checkpoint::before { border-color: var(--warning); background: var(--warning); border-radius: 0; transform: rotate(45deg); }
-  .log li.checkpoint b { color: var(--warning); }
-  .log time { grid-row: span 2; color: var(--muted); }
-  .log b { color: var(--text); font-weight: 500; }
-  .log span { color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pending { position: relative; aspect-ratio: 16 / 10; display: grid; place-items: center; background: var(--surface); }
+  .pending span { position: relative; padding: var(--space-2) var(--space-4); background: var(--raised); border: var(--border) solid var(--divider); color: var(--muted); font: var(--text-xs)/1.5 var(--font-mono); }
 
   @media (max-width: 64rem) {
     .step { grid-template-columns: 1fr; gap: var(--space-8); }
@@ -295,6 +153,5 @@ const history = [
     .step:nth-of-type(even) .via { left: calc(-1 * var(--rail) + 14px); }
     .pad { left: calc(-1 * var(--rail) + 12px); }
     .visual { padding-bottom: 0; }
-    .detail, .step:nth-of-type(even) .detail { position: relative; inset: auto; width: auto; margin-top: var(--space-6); }
   }
 </style>

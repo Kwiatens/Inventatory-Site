@@ -35,14 +35,6 @@ const logoColors = logoRows.map((_, row) => {
     border-top: var(--border) solid var(--divider);
     font: var(--text-xs)/1.7 var(--font-mono);
   }
-  .site-footer::before {
-    content: '';
-    position: absolute;
-    inset: calc(-1 * var(--border)) 0 auto;
-    height: var(--border);
-    background: linear-gradient(90deg, transparent, var(--muted) 18%, var(--divider) 82%, transparent);
-    opacity: .65;
-  }
   .footer-signature p { margin-top: var(--space-2); color: var(--muted); }
   .footer-wordmark { width: max-content; max-width: 100%; animation: footer-mark-in 480ms ease-out both; }
   .ascii { display: block; font-family: Consolas, 'Cascadia Mono', 'DejaVu Sans Mono', monospace; font-size: clamp(.42rem, .52vw, .6rem); line-height: 1; letter-spacing: 0; font-variant-ligatures: none; }
