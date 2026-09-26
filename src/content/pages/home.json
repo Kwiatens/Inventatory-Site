@@ -1,8 +1,8 @@
 {
   "hero": {
     "title": [
-      "Every component,",
-      "accounted for."
+      "Your inventory system",
+      "for electonics."
     ],
     "summary": "Open-source, terminal based hardware inventory management system.",
     "primary": "Install Inventatory",
@@ -10,8 +10,8 @@
   },
   "workflow": {
     "headingLines": [
-      "Automate your inventory,",
-      "and focus on building."
+      "Inventatory keeps track of your parts,",
+      "so you can focus on building."
     ],
     "summary": "",
     "readGuideText": "Read the guide",
