@@ -1,5 +1,5 @@
 ---
-/** What the system does, as the life of a part: a routed trace with one via per step. */
+/** What the system does, as the life of a part. */
 import { steps } from '../../data/home';
 import { url } from '../../lib/url';
 ---
@@ -9,15 +9,9 @@ import { url } from '../../lib/url';
     <p>Placeholder: a short line on what the system does end to end. The owner will write this.</p>
   </header>
 
-  <div class="track" data-track>
-    <svg class="trace" data-trace aria-hidden="true" focusable="false">
-      <path class="trace-base" data-trace-base />
-      <path class="trace-lit" data-trace-lit pathLength="1" />
-    </svg>
-
+  <div class="steps" data-track>
     {steps.map((step, index) => (
       <article class="step" id={step.id} data-step aria-labelledby={`step-${step.id}`}>
-        <span class="via" data-via aria-hidden="true"></span>
         <div class="text">
           <span class="num" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
           <h3 id={`step-${step.id}`}>{step.title}</h3>
@@ -36,99 +30,21 @@ import { url } from '../../lib/url';
         </div>
       </article>
     ))}
-    <span class="pad" data-pad aria-hidden="true"></span>
   </div>
 </section>
 
-<script>
-  // Route the trace between vias with 45° jogs, then light it up to the reading position.
-  const track = document.querySelector<HTMLElement>('[data-track]');
-  const svg = track?.querySelector<SVGSVGElement>('[data-trace]');
-  const base = track?.querySelector<SVGPathElement>('[data-trace-base]');
-  const lit = track?.querySelector<SVGPathElement>('[data-trace-lit]');
-  const pad = track?.querySelector<HTMLElement>('[data-pad]');
-  const stepEls = track ? [...track.querySelectorAll<HTMLElement>('[data-step]')] : [];
-
-  if (track && svg && base && lit && pad && stepEls.length) {
-    let viaYs: number[] = [];
-    let endY = 0;
-
-    const route = () => {
-      const top = track.getBoundingClientRect().top;
-      const vias = stepEls.map(step => step.querySelector<HTMLElement>('[data-via]')!);
-      const points = vias.map(via => {
-        const r = via.getBoundingClientRect();
-        return { x: r.left - track.getBoundingClientRect().left + r.width / 2, y: r.top - top + r.height / 2 };
-      });
-      const padRect = pad.getBoundingClientRect();
-      const end = { x: padRect.left - track.getBoundingClientRect().left + padRect.width / 2, y: padRect.top - top + padRect.height / 2 };
-      viaYs = points.map(p => p.y);
-      endY = end.y;
-
-      const stops = [...points, end];
-      let d = `M ${stops[0].x} 0 V ${stops[0].y}`;
-      for (let i = 1; i < stops.length; i++) {
-        const a = stops[i - 1], b = stops[i];
-        const dx = b.x - a.x;
-        const jogEnd = b.y - 72;
-        if (dx !== 0) d += ` V ${jogEnd - Math.abs(dx)} L ${b.x} ${jogEnd}`;
-        d += ` V ${b.y}`;
-      }
-      svg.setAttribute('viewBox', `0 0 ${track.clientWidth} ${track.clientHeight}`);
-      base.setAttribute('d', d);
-      lit.setAttribute('d', d);
-      paint();
-    };
-
-    let frame = 0;
-    const paint = () => {
-      frame = 0;
-      const top = track.getBoundingClientRect().top;
-      const reading = window.innerHeight * 0.55 - top;
-      const progress = Math.min(1, Math.max(0, reading / endY));
-      lit.style.strokeDashoffset = String(1 - progress);
-      stepEls.forEach((step, i) => step.classList.toggle('is-active', reading >= viaYs[i]));
-      pad.classList.toggle('is-active', reading >= endY);
-    };
-
-    track.dataset.routed = 'true';
-    route();
-    new ResizeObserver(route).observe(track);
-    window.addEventListener('scroll', () => { if (!frame) frame = requestAnimationFrame(paint); }, { passive: true });
-  }
-</script>
-
 <style>
   .lifecycle { padding-block: var(--space-20) var(--space-16); }
-  .intro { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr); gap: var(--space-12); align-items: end; margin-bottom: var(--space-16); padding-left: var(--rail); }
+  .intro { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr); gap: var(--space-12); align-items: end; margin-bottom: var(--space-16); }
   .intro h2 { font-size: clamp(2rem, 3.6vw, 3.25rem); line-height: 1.06; letter-spacing: -.035em; }
   .intro p { max-width: 40ch; color: var(--muted); }
 
-  /* --rail is the width of the trace gutter on the left. */
-  .lifecycle { --rail: 4rem; }
-  .track { position: relative; padding-left: var(--rail); }
-  .trace { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
-  .trace path { fill: none; stroke-width: 3; stroke-linejoin: round; }
-  .trace-base { stroke: var(--raised); }
-  .trace-lit { stroke: var(--accent); stroke-dasharray: 1; stroke-dashoffset: 1; }
-  /* Without script the trace is a plain rail. */
-  .track:not([data-routed]) { border-left: 3px solid var(--raised); margin-left: 1.25rem; padding-left: calc(var(--rail) - 1.25rem); }
-  .track:not([data-routed]) .trace { display: none; }
+  .steps { display: grid; gap: var(--space-16); }
 
-  .step { position: relative; display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: var(--space-12); align-items: start; padding-bottom: var(--space-20); }
-  .step:last-of-type { padding-bottom: var(--space-12); }
+  .step { position: relative; display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: var(--space-12); align-items: center; }
 
-  /* Via: annular ring with a drilled hole. Lanes alternate so the trace has somewhere to jog. */
-  .via, .pad { position: absolute; z-index: 1; width: 22px; height: 22px; border-radius: 50%; background: var(--canvas); border: 5px solid var(--raised); transition: border-color .3s; }
-  .via { top: .35rem; left: calc(-1 * var(--rail) + 9px); }
-  .step:nth-of-type(even) .via { left: calc(-1 * var(--rail) + 27px); }
-  .step.is-active .via, .pad.is-active { border-color: var(--accent); }
-  .pad { position: relative; display: block; left: calc(-1 * var(--rail) + 20px); border-radius: 2px; width: 18px; height: 18px; border-width: 4px; }
-  .track:not([data-routed]) .via, .track:not([data-routed]) .pad { display: none; }
-
-  .text { position: sticky; top: calc(var(--header-height) + var(--space-8)); }
-  .num { display: block; margin-bottom: var(--space-3); color: var(--muted); font: 500 var(--text-sm)/1.5 var(--font-mono); transition: color .3s; }
-  .step.is-active .num { color: var(--accent); }
+  .text { position: static; }
+  .num { display: block; margin-bottom: var(--space-3); color: var(--accent); font: 500 var(--text-sm)/1.5 var(--font-mono); }
   h3 { margin-bottom: var(--space-4); font-size: clamp(1.75rem, 2.8vw, 2.5rem); line-height: 1.08; letter-spacing: -.03em; }
   .text > p { max-width: 36ch; font-size: var(--text-lead); line-height: 1.6; }
 
@@ -144,14 +60,9 @@ import { url } from '../../lib/url';
 
   @media (max-width: 64rem) {
     .step { grid-template-columns: 1fr; gap: var(--space-8); }
-    .text { position: static; }
   }
   @media (max-width: 48rem) {
-    .lifecycle { --rail: 2.75rem; padding-top: var(--space-16); }
-    .intro { grid-template-columns: 1fr; gap: var(--space-4); padding-left: 0; }
-    .via { left: calc(-1 * var(--rail) + 2px); }
-    .step:nth-of-type(even) .via { left: calc(-1 * var(--rail) + 14px); }
-    .pad { left: calc(-1 * var(--rail) + 12px); }
-    .visual { padding-bottom: 0; }
+    .lifecycle { padding-top: var(--space-16); }
+    .intro { grid-template-columns: 1fr; gap: var(--space-4); }
   }
 </style>
