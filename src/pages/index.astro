@@ -1,232 +1,37 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import AsciiLogo from '../components/AsciiLogo.astro';
-import { features, media } from '../data/site';
-import { url } from '../lib/url';
+import Hero from '../components/home/Hero.astro';
+import Lifecycle from '../components/home/Lifecycle.astro';
+import SystemSheet from '../components/home/SystemSheet.astro';
+import Scanner from '../components/home/Scanner.astro';
 import PlatformInstallSelector from '../components/PlatformInstallSelector.astro';
-
-// Temporary layout copy; final wording and authentic media will be supplied by the owner.
-const workflowSteps = [
-  { title: 'Receive parts', text: 'Scan a supported vendor label to fill in component details, or import your order.' },
-  { title: 'Put them away', text: 'Inventatory assigns eligible parts to rack slots and can print their labels automatically.' },
-  { title: 'Build a board', text: 'Import your KiCad BOM and see exactly which rack slots hold the parts you need.' },
-];
-const stockFeature = features.find(item => item.label === 'Stock');
-if (!stockFeature) throw new Error('Missing Stock feature data.');
-const scannerFeature = features.find(item => item.label === 'Scan R1');
-if (!scannerFeature) throw new Error('Missing Scan R1 feature data.');
+import { nextSteps } from '../data/home';
+import { url } from '../lib/url';
 ---
 <BaseLayout title="Every component, accounted for">
-  <section class="hero" aria-label="Introducing Inventatory" data-homepage-hero>
-    <div class="hero-backdrop" aria-hidden="true">
-      <img
-        src={url(stockFeature.media.src)}
-        alt=""
-        width={stockFeature.media.width}
-        height={stockFeature.media.height}
-        fetchpriority="high"
-        decoding="async"
-      />
-      {media.heroVideo && <video
-        data-homepage-video
-        muted
-        loop
-        playsinline
-        preload="none"
-        poster={url(stockFeature.media.src)}
-        width={stockFeature.media.width}
-        height={stockFeature.media.height}
-      >
-        <source src={url(media.heroVideo)} type="video/mp4" />
-      </video>}
-    </div>
-    <div class="hero-content wrap">
-      <div class="hero-copy">
-        <div class="hero-mark"><AsciiLogo /></div>
-        <h1 class="hero-title">Every component,<br />accounted for.</h1>
-        <p class="hero-summary">Open-source, terminal based hardware inventory management system.</p>
-        <div class="hero-actions">
-          <a class="button" href="#homepage-download">Choose your system <span aria-hidden="true">&nbsp;↓</span></a>
-          <a class="hero-secondary" href={url('/features/')}>Explore features <span aria-hidden="true">→</span></a>
-        </div>
-      </div>
-    </div>
-  </section>
+  <Hero />
+  <Lifecycle />
+  <SystemSheet />
+  <Scanner />
   <div class="wrap">
-    <section id="desktop" class="workflow" aria-labelledby="desktop-heading">
-      <h2 id="desktop-heading" class="sr-only">From receiving parts to building a board</h2>
-      {workflowSteps.map((step, index) => (
-        <article class="workflow-step" aria-labelledby={`workflow-step-${index + 1}`}>
-          <div class="workflow-copy">
-            <span class="workflow-number" aria-hidden="true">{String(index + 1).padStart(2, '0')}</span>
-            <h3 id={`workflow-step-${index + 1}`}>{step.title}</h3>
-            <p>{step.text}</p>
-          </div>
-          <div class="workflow-media">
-            <span>Media coming soon</span>
-          </div>
-        </article>
-      ))}
-    </section>
-    <section id="scanner" class="scanner" aria-labelledby="scanner-heading">
-      <div class="scanner-copy">
-        <p class="scanner-edition">Official CAD bundle</p>
-        <h2 id="scanner-heading">Inventatory<br />Scan R1</h2>
-        <p class="scanner-summary">Print the scanner enclosure and charging dock from the official CAD files.</p>
-        <a class="scanner-link" href={url('/docs/scanner/')}>Explore the scanner <span aria-hidden="true">→</span></a>
-      </div>
-      <div class="scanner-model" data-scanner-model>
-        <img
-          class="scanner-still"
-          src={url(scannerFeature.media.src)}
-          alt=""
-          aria-hidden="true"
-          width={scannerFeature.media.width}
-          height={scannerFeature.media.height}
-        />
-        <video
-          data-scanner-preview
-          autoplay
-          muted
-          loop
-          playsinline
-          preload="none"
-          poster={url(scannerFeature.media.src)}
-          aria-hidden="true"
-        >
-          <source src={url(scannerFeature.media.video)} type="video/webm" />
-        </video>
-      </div>
-      <div class="scanner-details">
-        <div>
-          <h3>A build that supports the project.</h3>
-          <p>The enclosure and charging dock CAD files form an optional paid bundle. Your purchase supports Inventatory.</p>
-        </div>
-        <div>
-          <h3>Build it your own way, too.</h3>
-          <p>The firmware, schematics, and documentation are open source. Design your own enclosure and build the scanner without buying the bundle.</p>
-        </div>
-      </div>
-    </section>
-    <section class="section resources" aria-labelledby="resources-heading">
-      <div><p class="eyebrow">Start with the desktop application</p><h2 id="resources-heading">Set up your first inventory</h2><p>The scanner is optional. Install Inventatory, choose your data folder, and add a component or import an order.</p></div>
-      <ol><li><a href={url('/docs/getting-started/installation/')}>Installation instructions <span aria-hidden="true">→</span></a></li><li><a href={url('/docs/getting-started/first-inventory/')}>Add your first components <span aria-hidden="true">→</span></a></li><li><a href={url('/docs/desktop/racks/')}>Organize physical storage <span aria-hidden="true">→</span></a></li></ol>
-    </section>
     <PlatformInstallSelector id="homepage-download" />
+    <nav class="next" aria-label="After installing">
+      {nextSteps.map((step, i) => (
+        <a href={url(step.href)}><span>{String(i + 1).padStart(2, '0')}</span>{step.label}<i aria-hidden="true">→</i></a>
+      ))}
+    </nav>
   </div>
 </BaseLayout>
-<script>
-  const scannerModel = document.querySelector<HTMLElement>('[data-scanner-model]');
-  const scannerVideo = scannerModel?.querySelector<HTMLVideoElement>('[data-scanner-preview]');
-  const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
-
-  const hero = document.querySelector<HTMLElement>('[data-homepage-hero]');
-  const heroVideo = hero?.querySelector<HTMLVideoElement>('[data-homepage-video]');
-  if (hero && heroVideo) {
-    const updateHeroVideo = () => {
-      if (motionPreference.matches || document.hidden) {
-        heroVideo.pause();
-        hero.dataset.videoPlaying = 'false';
-        return;
-      }
-      const playback = heroVideo.play();
-      if (playback) {
-        playback.then(() => {
-          if (motionPreference.matches || document.hidden) {
-            heroVideo.pause();
-            hero.dataset.videoPlaying = 'false';
-            return;
-          }
-          hero.dataset.videoPlaying = 'true';
-        }).catch(() => { hero.dataset.videoPlaying = 'false'; });
-      }
-    };
-    updateHeroVideo();
-    document.addEventListener('visibilitychange', updateHeroVideo);
-    motionPreference.addEventListener('change', updateHeroVideo);
-  }
-
-  if (scannerModel && scannerVideo) {
-    const updateScannerMotion = () => {
-      if (motionPreference.matches || document.hidden) {
-        scannerVideo.pause();
-        return;
-      }
-      const playback = scannerVideo.play();
-      if (playback) playback.catch(() => {});
-    };
-    updateScannerMotion();
-    document.addEventListener('visibilitychange', updateScannerMotion);
-    motionPreference.addEventListener('change', updateScannerMotion);
-  }
-
-</script>
 <style>
-  .hero {
-    position: relative;
-    isolation: isolate;
-    display: flex;
-    min-height: calc(100vh - var(--header-height));
-    min-height: calc(100svh - var(--header-height));
-    overflow: hidden;
-    background: var(--canvas);
-  }
-  .hero-backdrop { position: absolute; z-index: 0; inset: 0; overflow: hidden; background: var(--canvas); }
-  .hero-backdrop > img, .hero-backdrop > video { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: 64% center; }
-  .hero-backdrop > img { opacity: .52; filter: saturate(.72) contrast(1.05); }
-  .hero-backdrop > video { opacity: 0; }
-  .hero[data-video-playing="true"] .hero-backdrop > img { opacity: 0; }
-  .hero[data-video-playing="true"] .hero-backdrop > video { opacity: .52; }
-  .hero-backdrop::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(13,16,16,.96) 0%, rgba(13,16,16,.88) 43%, rgba(13,16,16,.3) 100%), linear-gradient(0deg, rgba(13,16,16,.7), transparent 38%); }
-  .hero-content { position: relative; z-index: 1; display: flex; align-items: center; min-height: inherit; padding-block: var(--space-12); }
-  .hero-copy { width: min(58%, 44rem); }
-  .hero-mark { margin-bottom: var(--space-8); }
-  .hero-title { max-width: 14ch; margin-bottom: var(--space-4); font-size: clamp(2.5rem, 5.2vw, 4.5rem); line-height: 1.04; letter-spacing: -.04em; font-weight: 550; }
-  .hero-summary { max-width: 34ch; font-size: var(--text-lead); line-height: 1.6; }
-  .hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-6); margin-top: var(--space-8); }
-  .hero-secondary { font: var(--text-sm)/1.5 var(--font-mono); color: var(--focus); text-decoration: none; }
-  .hero-secondary span { color: var(--accent); }
-  .workflow { display: grid; gap: var(--space-16); padding-block: var(--space-16); }
-  .workflow-step { display: grid; grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr); align-items: center; gap: var(--space-12); }
-  .workflow-copy { max-width: 32rem; }
-  .workflow-number { display: block; margin-bottom: var(--space-4); color: var(--accent); font: var(--text-sm)/1.5 var(--font-mono); }
-  .workflow-copy h3 { margin-bottom: var(--space-4); font-size: clamp(2rem, 3.4vw, 3rem); line-height: 1.12; font-weight: 550; }
-  .workflow-copy p { max-width: 36ch; font-size: var(--text-lead); line-height: 1.65; }
-  .workflow-media { width: 100%; aspect-ratio: 16 / 9; display: grid; place-items: center; background: var(--surface); border: var(--border) solid var(--divider); }
-  .workflow-media span { color: var(--muted); font: var(--text-xs)/1.5 var(--font-mono); }
-  .scanner { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: var(--space-12); align-items: center; margin-block: var(--space-4) var(--space-16); padding: clamp(1.5rem, 4vw, 3.5rem); background: var(--focus); color: var(--canvas); }
-  .scanner-copy { max-width: 30rem; }
-  .scanner-edition { margin-bottom: var(--space-8); color: var(--active); font: 500 var(--text-xs)/1.5 var(--font-mono); letter-spacing: .09em; text-transform: uppercase; }
-  .scanner-copy h2 { font-size: clamp(2.8rem, 5.2vw, 4.5rem); line-height: 1.02; letter-spacing: -.045em; font-weight: 550; }
-  .scanner-summary { max-width: 30ch; margin-top: var(--space-6); color: var(--raised); font-size: var(--text-lead); line-height: 1.6; }
-  .scanner-link { display: inline-flex; align-items: center; gap: var(--space-6); margin-top: var(--space-8); padding-bottom: var(--space-2); color: var(--canvas); border-bottom: var(--border) solid var(--active); font: 500 var(--text-sm)/1.5 var(--font-mono); text-decoration: none; }
-  .scanner-link:hover { color: var(--active); }
-  .scanner-link:focus-visible { outline-color: var(--canvas); }
-  .scanner-model { width: 100%; aspect-ratio: 1; display: grid; place-items: center; overflow: hidden; background: var(--canvas); }
-  .scanner-model > img, .scanner-model > video { grid-area: 1 / 1; width: 100%; height: 100%; object-fit: contain; }
-  .scanner-still { display: none; }
-  .scanner-details { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-12); border-top: var(--border) solid var(--active); padding-top: var(--space-6); }
-  .scanner-details h3 { color: var(--canvas); font-size: var(--text-base); margin-bottom: var(--space-2); }
-  .scanner-details p { max-width: 48ch; color: var(--raised); font-size: var(--text-sm); line-height: 1.7; }
-  .resources { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-16); }
-  .resources h2 { margin-bottom: var(--space-4); } .resources ol { margin: 0; padding-left: var(--space-6); color: var(--muted); font-family: var(--font-mono); }
-  .resources li { padding: var(--space-3) 0 var(--space-3) var(--space-3); border-bottom: var(--border) solid var(--divider); }
-  .resources li a { display: flex; justify-content: space-between; gap: var(--space-4); text-decoration: none; }
+  .next { display: grid; grid-template-columns: repeat(3, 1fr); margin: calc(-1 * var(--space-12)) 0 var(--space-20); border: var(--border) solid var(--divider); }
+  .next a { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-4) var(--space-6); color: var(--secondary); font: var(--text-sm)/1.5 var(--font-mono); text-decoration: none; transition: background .2s, color .2s; }
+  .next a + a { border-left: var(--border) solid var(--divider); }
+  .next span { color: var(--muted); }
+  .next i { margin-left: auto; font-style: normal; color: var(--accent); transition: transform .2s; }
+  .next a:hover { background: var(--surface); color: var(--text); }
+  .next a:hover i { transform: translateX(3px); }
   @media (max-width: 48rem) {
-    .hero-content { padding-block: var(--space-8); }
-    .hero-copy { width: min(100%, 38rem); }
-    .hero-title { font-size: clamp(2.2rem, 8vw, 3.5rem); }
-    .hero-backdrop > img, .hero-backdrop > video { object-position: 68% center; }
-    .hero-backdrop::after { background: linear-gradient(90deg, rgba(13,16,16,.96) 0%, rgba(13,16,16,.84) 60%, rgba(13,16,16,.54) 100%), linear-gradient(0deg, rgba(13,16,16,.65), transparent 48%); }
-    .workflow-copy h3 { font-size: clamp(1.8rem, 8vw, 2.6rem); }
-    .workflow-step, .scanner, .scanner-details, .resources { grid-template-columns: 1fr; gap: var(--space-8); }
-    .scanner-model { aspect-ratio: 16 / 10; }
-    .scanner { gap: var(--space-8); }
-  }
-  @media (max-width: 26rem) { .resources { gap: var(--space-6); } }
-  @media (prefers-reduced-motion: reduce) {
-    .scanner-model > video { display: none; }
-    .hero-backdrop > video { display: none; }
-    .scanner-model > .scanner-still { display: block; }
+    .next { grid-template-columns: 1fr; }
+    .next a + a { border-left: 0; border-top: var(--border) solid var(--divider); }
   }
 </style>

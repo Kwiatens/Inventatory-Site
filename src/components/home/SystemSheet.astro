@@ -1,0 +1,138 @@
+---
+/** The system on one datasheet page: features, description, requirements, and a block diagram. */
+import { sheet, release } from '../../data/home';
+import { url } from '../../lib/url';
+---
+<section class="sheet-section wrap" aria-labelledby="sheet-heading">
+  <div class="sheet">
+    <header class="sheet-head">
+      <span class="part">INVENTATORY</span>
+      <span>Local component inventory</span>
+      <span class="rev">{release.version}</span>
+    </header>
+
+    <div class="sheet-title">
+      <h2 id="sheet-heading">{sheet.title}<span>{sheet.subtitle}</span></h2>
+    </div>
+
+    <div class="cols">
+      <div class="col">
+        <h3><span>1</span>Features</h3>
+        <ul class="features">
+          {sheet.features.map(item => <li>{item}</li>)}
+        </ul>
+      </div>
+      <div class="col">
+        <h3><span>2</span>Description</h3>
+        <p class="desc">{sheet.description}</p>
+        <h3 class="req-heading"><span>3</span>Requirements</h3>
+        <table class="req">
+          <tbody>{sheet.requirements.map(r => <tr><th scope="row">{r.key}</th><td>{r.value}</td></tr>)}</tbody>
+        </table>
+      </div>
+    </div>
+
+    <figure class="diagram">
+      <h3><span>4</span>Block diagram</h3>
+      <div class="bd" role="img" aria-label="Block diagram: DigiKey order CSVs, KiCad BOMs and Scan R1 feed the Inventatory desktop application, which keeps a local SQLite database and drives a label printer and shortage CSV export. DigiKey metadata lookup is optional.">
+        <div class="bd-cloud"><span class="blk dashed">DigiKey API<small>optional lookup</small></span></div>
+
+        <div class="bd-in">
+          <span class="blk arrow">DigiKey order CSV</span>
+          <span class="blk arrow">KiCad BOM</span>
+          <span class="blk arrow both accent">Scan R1<small>BLE pair · LAN sync</small></span>
+        </div>
+
+        <div class="bd-core">
+          <span class="core-title">Inventatory desktop</span>
+          <span class="mod">Import</span>
+          <span class="mod">Stock · Racks · Projects</span>
+          <span class="mod">History · Backups</span>
+          <span class="mod">Device service</span>
+          <span class="db">SQLite<small>local data folder</small></span>
+        </div>
+
+        <div class="bd-out">
+          <span class="blk arrow-in">Label printer</span>
+          <span class="blk arrow-in">Shortage CSV</span>
+        </div>
+      </div>
+      <figcaption>Fig. 5 · Data never leaves the PC unless an optional lookup is enabled. <a href={url('/docs/scanner/')}>How the scanner connects →</a></figcaption>
+    </figure>
+  </div>
+</section>
+
+<style>
+  .sheet-section { padding-block: var(--space-8) var(--space-20); }
+  .sheet { border: var(--border) solid var(--divider); background: linear-gradient(var(--surface), var(--canvas) 60%); }
+
+  .sheet-head { display: flex; gap: var(--space-6); justify-content: space-between; padding: var(--space-2) var(--space-6); border-bottom: 3px double var(--divider); color: var(--muted); font: var(--text-xs)/1.5 var(--font-mono); letter-spacing: .06em; }
+  .sheet-head .part { color: var(--accent); font-weight: 600; }
+
+  .sheet-title { padding: var(--space-12) var(--space-8) var(--space-8); border-bottom: var(--border) solid var(--divider); }
+  .sheet-title h2 { font-size: clamp(2.25rem, 4.4vw, 3.75rem); line-height: 1; letter-spacing: -.04em; }
+  .sheet-title h2 span { display: block; margin-top: var(--space-3); color: var(--muted); font-size: var(--text-lead); letter-spacing: 0; font-weight: 400; }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; }
+  .col { padding: var(--space-8); }
+  .col + .col { border-left: var(--border) solid var(--divider); }
+  h3 { display: flex; align-items: baseline; gap: var(--space-3); margin-bottom: var(--space-4); font-size: var(--text-base); font-weight: 600; }
+  h3 span { color: var(--accent); font: 500 var(--text-sm)/1 var(--font-mono); }
+
+  .features { margin: 0; padding: 0; list-style: none; }
+  .features li { position: relative; margin: 0; padding: var(--space-1) 0 var(--space-1) var(--space-6); color: var(--secondary); font-size: var(--text-sm); line-height: 1.5; }
+  .features li::before { content: ''; position: absolute; left: 2px; top: .7em; width: 6px; height: 6px; background: var(--accent); }
+
+  .desc { font-size: var(--text-sm); line-height: 1.7; }
+  .req-heading { margin-top: var(--space-8); }
+  .req { width: 100%; border-collapse: collapse; font: var(--text-xs)/1.5 var(--font-mono); }
+  .req th, .req td { padding: var(--space-2) 0; border-top: var(--border) solid var(--divider); text-align: left; vertical-align: top; }
+  .req tr:last-child th, .req tr:last-child td { border-bottom: var(--border) solid var(--divider); }
+  .req th { width: 7rem; color: var(--muted); font-weight: 400; text-transform: uppercase; letter-spacing: .06em; }
+  .req td { color: var(--secondary); }
+
+  /* Block diagram: plain boxes and arrows, drawn with borders so it reflows on small screens. */
+  .diagram { padding: var(--space-8); border-top: var(--border) solid var(--divider); }
+  .bd { --gap: 3.5rem; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr); grid-template-areas: ". cloud ." "in core out"; gap: var(--space-8) var(--gap); padding: var(--space-8) var(--space-4); font: var(--text-xs)/1.4 var(--font-mono); background-image: radial-gradient(var(--raised) 1px, transparent 1px); background-size: 16px 16px; }
+  .bd-cloud { grid-area: cloud; display: flex; justify-content: center; }
+  .bd-in, .bd-out { display: grid; align-content: center; gap: var(--space-6); }
+  .bd-in { grid-area: in; }
+  .bd-out { grid-area: out; }
+  .blk { position: relative; display: block; padding: var(--space-3) var(--space-4); background: var(--canvas); border: var(--border) solid var(--divider); color: var(--text); }
+  .blk small, .db small { display: block; color: var(--muted); }
+  .blk.dashed { border-style: dashed; color: var(--secondary); }
+  .blk.accent { border-color: var(--accent); }
+  .blk.dashed::after { content: ''; position: absolute; left: 50%; top: 100%; height: var(--space-8); border-left: var(--border) dashed var(--divider); }
+
+  /* Arrows into the core (inputs) and out of it (outputs). */
+  .arrow::after, .arrow-in::before { content: ''; position: absolute; top: 50%; width: var(--gap); height: 1px; background: var(--muted); }
+  .arrow::after { left: 100%; }
+  .arrow-in::before { right: 100%; }
+  .arrow::before, .arrow-in::after { content: ''; position: absolute; top: calc(50% - 4px); border: 4px solid transparent; border-left: 6px solid var(--muted); }
+  .arrow::before { left: calc(100% + var(--gap) - 6px); }
+  .arrow-in::after { left: -6px; }
+  .both::after { background: var(--accent); }
+  .both::before { border-left-color: var(--accent); }
+
+  .bd-core { grid-area: core; position: relative; display: grid; gap: var(--space-2); padding: var(--space-4); border: 2px solid var(--accent); background: var(--canvas); }
+  .core-title { margin-bottom: var(--space-2); color: var(--accent); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+  .mod { padding: var(--space-2) var(--space-3); background: var(--raised); color: var(--secondary); }
+  .db { margin-top: var(--space-2); padding: var(--space-3) var(--space-3) var(--space-2); border: var(--border) solid var(--divider); border-radius: 50% / 14px; text-align: center; color: var(--text); }
+
+  .diagram figcaption { margin-top: var(--space-4); color: var(--muted); font: var(--text-xs)/1.6 var(--font-mono); }
+
+  @media (max-width: 56rem) {
+    .cols { grid-template-columns: 1fr; }
+    .col + .col { border-left: 0; border-top: var(--border) solid var(--divider); }
+    .bd { grid-template-columns: 1fr; grid-template-areas: "cloud" "in" "core" "out"; gap: var(--space-8); }
+    .bd-in, .bd-out { grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--space-3); }
+    .arrow::after, .arrow::before, .arrow-in::before, .arrow-in::after { display: none; }
+    .bd-in::after, .bd-core::after { content: '↓'; grid-column: 1 / -1; justify-self: center; color: var(--muted); margin-bottom: calc(-1 * var(--space-6)); }
+    .bd-core::after { position: absolute; left: 50%; top: 100%; margin-top: var(--space-2); }
+  }
+  @media (max-width: 40rem) {
+    .sheet-head span:nth-child(2) { display: none; }
+    .sheet-title, .col, .diagram { padding-inline: var(--space-4); }
+    .bd { padding-inline: 0; background: none; }
+  }
+</style>
