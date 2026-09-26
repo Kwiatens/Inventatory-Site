@@ -60,7 +60,7 @@
   },
   "scanner": {
     "title": "Inventatory Scan R1",
-    "summary": "A custom, DiY-able hardware scanner that's directly integrated with Inventatory. It can read vendor labels, modify you stock and print labels for new parts automatically.",
+    "summary": "A custom, DiY-able hardware scanner that's directly integrated with Inventatory. It can read vendor labels, modify your stock and print labels for new parts automatically.",
     "open": {
       "title": "Build it yourself",
       "text": "The firmware, schematics and instructions that are needed to build the scanner are open-source and available for free. You can design and print your own enclosure.",
@@ -80,7 +80,7 @@
       "title": "Pre-designed CAD bundle",
       "text": "The 'just works' solution. It includes ready to use .STEP and .3MF files for the enclosure and charging dock for the scanner. Your purchase supports my projects, thank you!",
       "revision": "R1",
-      "price": "€ 10.99",
+      "price": "9.99€",
       "cta": "Get the bundle",
       "href": "#",
       "contents": [
