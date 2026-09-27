@@ -67,7 +67,7 @@ if (!homepage) {
   if (homepage('[data-feature-carousel], [data-feature-slide], [data-carousel-controls]').length) errors.push('Homepage must not retain the retired carousel.');
   if (homepage('.hero .eyebrow, .hero-caption').length) errors.push('Homepage hero must not contain the removed eyebrow or screenshot caption.');
   const homepageText = homepage.text();
-  if (!homepageText.includes('Open-source, terminal based hardware inventory management system.')) errors.push('Homepage must show the approved hero summary.');
+  if (!homepageText.includes('Free, open-source and terminal based. Purpose-built for electronics.')) errors.push('Homepage must show the approved hero summary.');
   for (const removedText of [
     'LOCAL INVENTORY / REAL WORKFLOW',
     'STOCK WORKSPACE · ACTUAL SCREENSHOT',

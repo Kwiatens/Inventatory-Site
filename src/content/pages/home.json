@@ -20,7 +20,7 @@
       {
         "id": "receive",
         "title": "Automated part entry",
-        "text": "Scan a supported vendor label or import a order BOM - Inventatory will automatically add the parts, their electrical parameters, datasheets and links to your inventory.",
+        "text": "Scan a supported vendor label or import an order BOM - Inventatory will automatically add the parts, their electrical parameters, datasheets and links to your inventory.",
         "mediaCaption": "Stock workspace, part created from a label scan",
         "href": "/docs/desktop/import/",
         "media": {
@@ -35,7 +35,7 @@
       {
         "id": "store",
         "title": "Know precisely where your parts are",
-        "text": "Inventatory features simple 3D-Printable racks. The system automatically assings the precise slot each part is stored in, so later it can give the precise location of each part, not just generic 'Drawer 12'.",
+        "text": "Inventatory features simple 3D-Printable racks. The system automatically assigns the precise slot each part is stored in, so later it can give the precise location of each part, not just generic 'Drawer 12'.",
         "mediaCaption": "Racks workspace",
         "href": "/docs/desktop/racks/",
         "media": null
