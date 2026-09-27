@@ -1,6 +1,6 @@
 ---
 /** Shared primary navigation; it stays visible on narrow screens without JavaScript. */
-import { nav, release } from '../data/site';
+import { nav } from '../data/site';
 import { url, isCurrent } from '../lib/url';
 const pages = nav.filter(item => !item.href.startsWith('https:'));
 const external = nav.filter(item => item.href.startsWith('https:'));
@@ -12,7 +12,6 @@ const external = nav.filter(item => item.href.startsWith('https:'));
       {pages.map(item => <a href={url(item.href)} aria-current={isCurrent(Astro.url.pathname, item.href) ? 'page' : undefined}>{item.label}</a>)}
     </nav>
     <div class="header-meta">
-      <a class="release" href={release.url}><span class="status" aria-hidden="true"></span>{release.version}</a>
       {external.map(item => <a class="external" href={item.href}>{item.label}<span aria-hidden="true"> ↗</span></a>)}
     </div>
   </div>
@@ -40,9 +39,6 @@ const external = nav.filter(item => item.href.startsWith('https:'));
     background: repeating-linear-gradient(90deg, var(--accent) 0 3px, transparent 3px 5px);
   }
   .header-meta { justify-self: end; display: flex; align-items: center; gap: var(--space-4); font: var(--text-xs)/1.5 var(--font-mono); }
-  .release { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--muted); text-decoration: none; }
-  .release:hover { color: var(--focus); }
-  .status { width: 6px; height: 6px; background: var(--accent); }
   .external {
     display: inline-flex; align-items: center; min-height: 2.125rem; padding: 0 var(--space-3);
     border: var(--border) solid var(--divider); color: var(--secondary); text-decoration: none; font-size: var(--text-sm);
@@ -51,7 +47,7 @@ const external = nav.filter(item => item.href.startsWith('https:'));
   .external:hover { border-color: var(--accent); color: var(--focus); }
   @media (max-width: 56rem) {
     .header-inner { grid-template-columns: 1fr auto; }
-    .header-balance, .release { display: none; }
+    .header-balance { display: none; }
     nav { margin-left: calc(-1 * var(--space-4)); }
   }
   @media (max-width: 40rem) {

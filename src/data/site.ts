@@ -4,12 +4,10 @@ export const site = {
   repository: 'https://github.com/Kwiatens/Inventatory-Software',
   releases: 'https://github.com/Kwiatens/Inventatory-Software/releases',
 };
+// Installers always resolve the latest stable release at download time (see
+// PlatformInstallSelector), so nothing here is pinned to a specific version.
 export const release = {
-  version: 'v0.2.0-rc.4',
-  status: 'Prerelease',
-  checked: '2026-09-24',
-  url: site.releases + '/tag/v0.2.0-rc.4',
-  package: site.releases + '/download/v0.2.0-rc.4/Inventatory-win-x64.zip',
+  url: site.releases + '/latest',
 };
 export const nav = [
   { label: 'Overview', href: '/' },

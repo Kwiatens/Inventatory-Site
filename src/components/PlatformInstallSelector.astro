@@ -6,8 +6,8 @@ interface Props {
 }
 
 const { id } = Astro.props;
-const releaseBase = site.releases + '/download/' + release.version;
-const windowsCommand = 'curl.exe -fL "' + releaseBase + '/Install-Inventatory.ps1" -o "%TEMP%\\Install-Inventatory.ps1" && powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%TEMP%\\Install-Inventatory.ps1" -ReleaseTag ' + release.version + ' && del /q "%TEMP%\\Install-Inventatory.ps1"';
+const releaseBase = site.releases + '/latest/download';
+const windowsCommand = 'curl.exe -fL "' + releaseBase + '/Install-Inventatory.ps1" -o "%TEMP%\\Install-Inventatory.ps1" && powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%TEMP%\\Install-Inventatory.ps1" && del /q "%TEMP%\\Install-Inventatory.ps1"';
 const linuxCommand = [
   'mkdir -p "$HOME/.cache/inventatory-installer"',
   'cd "$HOME/.cache/inventatory-installer"',
@@ -23,7 +23,7 @@ const linuxCommand = [
     <div>
       <p class="eyebrow">Downloads</p>
       <h2 id={id + '-title'}>Install Inventatory</h2>
-      <p class="install-lead">Choose your system for the current {release.status.toLowerCase()}.</p>
+      <p class="install-lead">Choose your system for the latest stable release.</p>
     </div>
     <a class="release-link" href={release.url}>Release notes <span aria-hidden="true">↗</span></a>
   </div>
@@ -67,7 +67,7 @@ const linuxCommand = [
     </div>
   </fieldset>
 
-  <p class="release-meta">{release.version} · {release.status} · Package details checked {release.checked}. <a href={site.releases}>Check for a newer release ↗</a></p>
+  <p class="release-meta">Installers always fetch the latest stable release. <a href={site.releases}>See all releases ↗</a></p>
 </section>
 
 <style>
