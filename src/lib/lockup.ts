@@ -15,13 +15,33 @@ const WORD_X = 8;
 const PROMPT: ReadonlyArray<[number, number]> = [[0, 0], [1, 1], [2, 2], [1, 3], [0, 4]];
 
 type Rgb = [number, number, number];
-const START: Rgb = [0x58, 0xb9, 0xb0]; // Interactive
-const END: Rgb = [0xb9, 0xe7, 0xdd]; // FocusText
-const CANVAS: Rgb = [0x0d, 0x10, 0x10]; // CanvasBg
+
+export type LockupTheme = 'teal' | 'gray';
+
+interface Palette {
+  start: Rgb;
+  end: Rgb;
+  canvas: Rgb;
+  shadowFactor: number;
+}
+
+const PALETTES: Record<LockupTheme, Palette> = {
+  teal: {
+    start: [0x58, 0xb9, 0xb0], // Interactive
+    end: [0xb9, 0xe7, 0xdd],   // FocusText
+    canvas: [0x0d, 0x10, 0x10], // CanvasBg
+    shadowFactor: 0.62,
+  },
+  gray: {
+    start: [0x38, 0x43, 0x41], // Deep graphite slate
+    end: [0xd2, 0xd8, 0xd6],   // Crisp silver focus
+    canvas: [0x0d, 0x10, 0x10], // CanvasBg
+    shadowFactor: 0.76,
+  },
+};
 
 const mix = (a: Rgb, b: Rgb, t: number): Rgb => a.map((v, i) => Math.round(v + (b[i] - v) * t)) as Rgb;
 const hex = (c: Rgb) => '#' + c.map(v => v.toString(16).padStart(2, '0')).join('');
-const rowRgb = (y: number) => mix(START, END, (y - TOP_ROW) / (LETTER_ROWS - 1 - TOP_ROW));
 
 export type LockupPart = 'prompt' | 'stem' | 'dot' | 'word';
 export interface LockupRect {
@@ -36,7 +56,9 @@ export interface LockupRect {
   order: number;
 }
 
-function build() {
+function build(theme: LockupTheme = 'teal') {
+  const palette = PALETTES[theme];
+  const rowRgb = (y: number) => mix(palette.start, palette.end, (y - TOP_ROW) / (LETTER_ROWS - 1 - TOP_ROW));
   const cells: Array<{ x: number; y: number; part: LockupPart; order: number }> = [];
   PROMPT.forEach(([px, py], i) => {
     cells.push({ x: px * 2, y: py, part: 'prompt', order: i }, { x: px * 2 + 1, y: py, part: 'prompt', order: i });
@@ -62,7 +84,7 @@ function build() {
       part: 'dot', order,
       x: dotX + i * CELL_W, y: dotY + j * half,
       width: CELL_W + (i === 0 ? 0.6 : 0), height: half + (j === 0 ? 0.6 : 0),
-      fill: hex(color), shadow: hex(mix(color, CANVAS, 0.62)),
+      fill: hex(color), shadow: hex(mix(color, palette.canvas, palette.shadowFactor)),
     });
   });
 
@@ -84,13 +106,16 @@ function build() {
       part: cell.part, order: cell.order,
       x: cell.x * CELL_W, y: (cell.y - TOP_ROW) * CELL_H,
       width: run * CELL_W + overlapX, height: CELL_H + overlapY,
-      fill: hex(color), shadow: hex(mix(color, CANVAS, 0.62)),
+      fill: hex(color), shadow: hex(mix(color, palette.canvas, palette.shadowFactor)),
     });
   }
   const columns = Math.max(...cells.map(c => c.x)) + 1;
   return { rects, width: columns * CELL_W, height: (LETTER_ROWS - TOP_ROW) * CELL_H };
 }
 
-export const lockup = build();
+export const lockupTeal = build('teal');
+export const lockupGray = build('gray');
+export const lockup = lockupTeal;
+export const getLockup = (theme: LockupTheme = 'teal') => theme === 'gray' ? lockupGray : lockupTeal;
 /** Offset of the half-block drop shadow: one character right, half a row down. */
 export const shadowOffset = { x: CELL_W, y: CELL_H / 2 };

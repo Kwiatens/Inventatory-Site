@@ -23,14 +23,17 @@
   --sl-content-width: 47rem;
   --sl-text-h1: var(--text-h1);
   --sl-text-h2: var(--text-h2);
-  --sl-nav-height: 5rem;
+  --sl-nav-height: 3.5rem;
   --sl-shadow-sm: none;
   --sl-shadow-md: none;
   --sl-shadow-lg: none;
 }
 ::selection { background: var(--selection); }
 :focus-visible { outline: var(--focus-width) solid var(--focus); outline-offset: var(--space-1); }
-.docs-header { display: flex; align-items: center; gap: var(--space-8); height: 100%; }
+.docs-header { display: flex; align-items: center; gap: var(--space-6); height: 100%; }
+.docs-brand { display: inline-flex; align-items: center; text-decoration: none; opacity: .80; transition: opacity .15s ease; flex-shrink: 0; }
+.docs-brand:hover { opacity: 1; }
+.docs-brand .lockup { height: 1.25rem; width: auto; }
 .docs-primary { display: flex; flex: 1; flex-wrap: wrap; gap: var(--space-1); }
 .docs-primary a { position: relative; font: var(--text-sm)/1.5 var(--font-mono); color: var(--secondary); text-decoration: none; padding: var(--space-2) var(--space-4); transition: background .15s, color .15s; }
 .docs-primary a:hover { background: var(--hover); color: var(--text); }

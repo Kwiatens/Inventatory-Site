@@ -5,7 +5,7 @@ import Lockup from './Lockup.astro';
 ---
 <footer class="wrap site-footer">
   <div class="footer-signature">
-    <div class="footer-wordmark"><Lockup shadow={false} /></div>
+    <div class="footer-wordmark"><Lockup theme="gray" shadow /></div>
   </div>
   <nav aria-label="Footer links">
     <a href={url('/docs/resources/')}>Contribute</a>
@@ -16,24 +16,23 @@ import Lockup from './Lockup.astro';
 <style>
   .site-footer {
     position: relative;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: var(--space-6);
-    padding-block: var(--space-8);
+    gap: var(--space-8);
+    padding-block: var(--space-12);
     border-top: var(--border) solid var(--divider);
     font: var(--text-xs)/1.7 var(--font-mono);
   }
-  .footer-wordmark { width: min(100%, 19rem); opacity: .85; filter: grayscale(1); animation: footer-mark-in 480ms ease-out both; }
-  nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-4); }
+  .footer-wordmark {
+    width: min(100%, clamp(20rem, 32vw, 26rem));
+    display: block;
+  }
+  nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-6); }
   nav a { color: var(--muted); text-decoration: none; transition: color 180ms ease; }
   nav a:hover { color: var(--focus); }
-  @keyframes footer-mark-in {
-    from { opacity: 0; transform: translateY(.35rem); }
-    to { opacity: 1; transform: translateY(0); }
-  }
   @media (max-width: 48rem) {
-    .site-footer { grid-template-columns: 1fr; align-items: start; }
-    nav { justify-content: flex-start; }
+    .site-footer { flex-direction: column; align-items: flex-start; gap: var(--space-6); padding-block: var(--space-8); }
+    nav { justify-content: flex-start; gap: var(--space-4); }
   }
 </style>

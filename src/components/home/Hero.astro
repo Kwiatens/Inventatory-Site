@@ -18,8 +18,8 @@ if (!stock) throw new Error('Missing Stock feature data.');
 
   <div class="content wrap">
     <div class="copy">
-      <div class="mark"><Lockup animate /></div>
-      <h1>{hero.title.map((line, i) => <span class="line" style={{ '--i': i }}>{line}</span>)}</h1>
+      <div class="mark"><Lockup /></div>
+      <h1>{hero.title.map(line => <span class="line">{line}</span>)}</h1>
       <p class="summary">{hero.summary}</p>
       <div class="actions">
         <a class="button" href="#homepage-download">{hero.primary}<span aria-hidden="true">&nbsp;↓</span></a>
@@ -82,15 +82,6 @@ if (!stock) throw new Error('Missing Stock feature data.');
   .secondary { font: var(--text-sm)/1.5 var(--font-mono); color: var(--focus); text-decoration: none; }
   .secondary span { display: inline-block; color: var(--accent); transition: transform .2s; }
   .secondary:hover span { transform: translateX(3px); }
-
-  /* Entrance: the lockup boots (see Lockup.astro), then the headline settles. */
-  @media (prefers-reduced-motion: no-preference) {
-    h1 .line, .summary, .actions { animation: rise .7s cubic-bezier(.2, .7, .2, 1) both; }
-    h1 .line { animation-delay: calc(.9s + var(--i) * 90ms); }
-    .summary { animation-delay: 1.15s; }
-    .actions { animation-delay: 1.25s; }
-  }
-  @keyframes rise { from { opacity: 0; transform: translateY(12px); } }
 
   @media (max-width: 48rem) {
     .content { padding-block: var(--space-12) var(--space-8); }

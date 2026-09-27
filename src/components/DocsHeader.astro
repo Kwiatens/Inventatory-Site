@@ -2,8 +2,12 @@
 import Search from '@astrojs/starlight/components/Search.astro';
 import { nav } from '../data/site';
 import { url, isCurrent } from '../lib/url';
+import Lockup from './Lockup.astro';
 ---
 <div class="docs-header">
+  <a class="docs-brand" href={url('/')} aria-label="Inventatory home">
+    <Lockup theme="gray" shadow={false} />
+  </a>
   <nav class="docs-primary" aria-label="Primary navigation">{nav.map(item => <a href={url(item.href)} aria-current={isCurrent(Astro.url.pathname, item.href) ? 'page' : undefined}>{item.label}</a>)}</nav>
   <Search />
 </div>

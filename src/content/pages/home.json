@@ -35,7 +35,7 @@
       {
         "id": "store",
         "title": "Know precisely where your parts are",
-        "text": "Inventatory features simple 3D-Printable racks. The system automatically assigns the precise slot each part is stored in, so later it can give the precise location of each part, not just generic 'Drawer 12'.",
+        "text": "Inventatory features simple 3D-Printable racks. The system automatically assigns a specific slot in a rack to each part, so later it can give the precise location of each part, not just generic 'Drawer 12'.",
         "mediaCaption": "Racks workspace",
         "href": "/docs/desktop/racks/",
         "media": null

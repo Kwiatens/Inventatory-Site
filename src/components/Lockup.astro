@@ -3,19 +3,21 @@
  * The ›iNVENTATORY lockup: the desktop ANSI wordmark whose "I" is the Inventatory mark
  * (prompt + i with a four-slot dot). Rendered as shapes so it looks the same on every system.
  */
-import { lockup, shadowOffset } from '../lib/lockup';
+import { getLockup, shadowOffset, type LockupTheme } from '../lib/lockup';
 
 interface Props {
   /** Half-block drop shadow behind the blocks. */
   shadow?: boolean;
   /** Boot animation: prompt → i → the rest of the word builds out. */
   animate?: boolean;
+  theme?: LockupTheme;
   label?: string;
   class?: string;
 }
-const { shadow = true, animate = false, label = 'Inventatory', class: className } = Astro.props;
-const width = lockup.width + (shadow ? shadowOffset.x : 0);
-const height = lockup.height + (shadow ? shadowOffset.y : 0);
+const { shadow = true, animate = false, theme = 'teal', label = 'Inventatory', class: className } = Astro.props;
+const data = getLockup(theme);
+const width = data.width + (shadow ? shadowOffset.x : 0);
+const height = data.height + (shadow ? shadowOffset.y : 0);
 const parts = ['prompt', 'stem', 'dot', 'word'] as const;
 // Boot timing in seconds: prompt pixels, stem rows bottom-up, dot slots, then the word.
 const delay = (part: (typeof parts)[number], order: number) =>
@@ -33,8 +35,8 @@ const delay = (part: (typeof parts)[number], order: number) =>
 >
   {parts.map(part => (
     <g class={`lockup-${part}`}>
-      {lockup.rects.filter(rect => rect.part === part).map(rect => (
-        <g class="lockup-cell" style={part === 'word' ? undefined : { '--delay': delay(part, rect.order) + 's' }}>
+      {data.rects.filter(rect => rect.part === part).map(rect => (
+        <g class="lockup-cell" style={!animate || part === 'word' ? undefined : { '--delay': delay(part, rect.order) + 's' }}>
           {shadow && <rect x={rect.x + shadowOffset.x} y={rect.y + shadowOffset.y} width={rect.width} height={rect.height} fill={rect.shadow} />}
           <rect class={part === 'dot' ? 'slot' : undefined} x={rect.x} y={rect.y} width={rect.width} height={rect.height} fill={rect.fill} />
         </g>
