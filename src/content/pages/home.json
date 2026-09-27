@@ -4,7 +4,7 @@
       "Your inventory system",
       "for electronics."
     ],
-    "summary": "Open-source, terminal based hardware inventory management system.",
+    "summary": "Free, open-source and terminal based. Purpose-built for electronics.",
     "primary": "Install Inventatory",
     "secondary": "Features"
   },
@@ -19,8 +19,8 @@
     "steps": [
       {
         "id": "receive",
-        "title": "Receive parts",
-        "text": "Scan a supported vendor label to fill in component details, or import your order.",
+        "title": "Automated part entry",
+        "text": "Scan a supported vendor label or import a order BOM - Inventatory will automatically add the parts, their electrical parameters, datasheets and links to your inventory.",
         "mediaCaption": "Stock workspace, part created from a label scan",
         "href": "/docs/desktop/import/",
         "media": {
@@ -34,8 +34,8 @@
       },
       {
         "id": "store",
-        "title": "Put them away",
-        "text": "Inventatory assigns eligible parts to rack slots and can print their labels automatically.",
+        "title": "Know precisely where your parts are",
+        "text": "Inventatory features simple 3D-Printable racks. The system automatically assings the precise slot each part is stored in, so later it can give the precise location of each part, not just generic 'Drawer 12'.",
         "mediaCaption": "Racks workspace",
         "href": "/docs/desktop/racks/",
         "media": null
@@ -43,15 +43,15 @@
       {
         "id": "build",
         "title": "Build a board",
-        "text": "Import your KiCad BOM and see exactly which rack slots hold the parts you need.",
+        "text": "Import your EDA BOM and Inventatory will automatically create a project, tell you what you have and what you are missing, and show you on which rack and slot each part is stored.",
         "mediaCaption": "Projects workspace",
         "href": "/docs/desktop/projects/",
         "media": null
       },
       {
         "id": "recover",
-        "title": "Undo anything",
-        "text": "Every inventory change is recorded. Name a checkpoint, reverse a mistake, restore a validated backup.",
+        "title": "Trust your inventory",
+        "text": "Every inventory change is recorded. You can see what changed, when and revert to a previous state if needed.",
         "mediaCaption": "History workspace",
         "href": "/docs/desktop/history/",
         "media": null
