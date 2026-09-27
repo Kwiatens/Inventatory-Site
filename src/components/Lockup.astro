@@ -1,0 +1,65 @@
+---
+/**
+ * The ›iNVENTATORY lockup: the desktop ANSI wordmark whose "I" is the Inventatory mark
+ * (prompt + i with a four-slot dot). Rendered as shapes so it looks the same on every system.
+ */
+import { lockup, shadowOffset } from '../lib/lockup';
+
+interface Props {
+  /** Half-block drop shadow behind the blocks. */
+  shadow?: boolean;
+  /** Boot animation: prompt → i → the rest of the word builds out. */
+  animate?: boolean;
+  label?: string;
+  class?: string;
+}
+const { shadow = true, animate = false, label = 'Inventatory', class: className } = Astro.props;
+const width = lockup.width + (shadow ? shadowOffset.x : 0);
+const height = lockup.height + (shadow ? shadowOffset.y : 0);
+const parts = ['prompt', 'stem', 'dot', 'word'] as const;
+// Boot timing in seconds: prompt pixels, stem rows bottom-up, dot slots, then the word.
+const delay = (part: (typeof parts)[number], order: number) =>
+  part === 'prompt' ? 0.15 + order * 0.09
+  : part === 'stem' ? 0.7 + order * 0.07
+  : part === 'dot' ? 1.1 + order * 0.08
+  : 0;
+---
+<svg
+  class:list={['lockup', { 'lockup-boot': animate }, className]}
+  viewBox={`0 0 ${width} ${height}`}
+  role="img"
+  aria-label={label}
+  focusable="false"
+>
+  {parts.map(part => (
+    <g class={`lockup-${part}`}>
+      {lockup.rects.filter(rect => rect.part === part).map(rect => (
+        <g class="lockup-cell" style={part === 'word' ? undefined : { '--delay': delay(part, rect.order) + 's' }}>
+          {shadow && <rect x={rect.x + shadowOffset.x} y={rect.y + shadowOffset.y} width={rect.width} height={rect.height} fill={rect.shadow} />}
+          <rect class={part === 'dot' ? 'slot' : undefined} x={rect.x} y={rect.y} width={rect.width} height={rect.height} fill={rect.fill} />
+        </g>
+      ))}
+    </g>
+  ))}
+</svg>
+
+<style>
+  /* Cells are drawn top-to-bottom, left-to-right, so each shadow (offset right and down)
+     is always covered by the blocks drawn after it. */
+  .lockup { display: block; width: 100%; height: auto; overflow: visible; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .lockup-boot :is(.lockup-prompt, .lockup-stem, .lockup-dot) .lockup-cell {
+      animation: lockup-pixel .01s both;
+      animation-delay: var(--delay);
+    }
+    .lockup-boot .lockup-word {
+      animation: lockup-type 1s steps(46) 1.45s both;
+    }
+  }
+  @keyframes lockup-pixel { from { opacity: 0; } }
+  @keyframes lockup-type {
+    from { clip-path: inset(0 100% 0 0); }
+    to { clip-path: inset(0 -2% 0 0); }
+  }
+</style>

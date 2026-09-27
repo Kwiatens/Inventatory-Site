@@ -1,16 +1,12 @@
 ---
-/** Homepage hero: full-bleed product backdrop and the original ASCII wordmark. */
-import { logoRows } from '../../data/logo';
+/** Homepage hero: full-bleed product backdrop and the ›iNVENTATORY lockup. */
+import Lockup from '../Lockup.astro';
 import { hero } from '../../data/home';
 import { features, media } from '../../data/site';
 import { url } from '../../lib/url';
 
 const stock = features.find(item => item.label === 'Stock');
 if (!stock) throw new Error('Missing Stock feature data.');
-const colors = logoRows.map((_, row) => {
-  const a = [88, 185, 176], b = [185, 231, 221];
-  return 'rgb(' + a.map((value, i) => value + Math.trunc((b[i] - value) * row / (logoRows.length - 1))).join(',') + ')';
-});
 ---
 <section class="hero" aria-label="Introducing Inventatory" data-hero>
   <div class="backdrop" aria-hidden="true">
@@ -22,10 +18,7 @@ const colors = logoRows.map((_, row) => {
 
   <div class="content wrap">
     <div class="copy">
-      <div class="mark" role="img" aria-label="Inventatory">
-        <span class="ascii" aria-hidden="true">{logoRows.map((row, i) => <span style={{ color: colors[i], '--row': i }}>{row}</span>)}</span>
-        <span class="compact" aria-hidden="true">Inventatory</span>
-      </div>
+      <div class="mark"><Lockup animate /></div>
       <h1>{hero.title.map((line, i) => <span class="line" style={{ '--i': i }}>{line}</span>)}</h1>
       <p class="summary">{hero.summary}</p>
       <div class="actions">
@@ -64,7 +57,12 @@ const colors = logoRows.map((_, row) => {
   }
 
   /* Backdrop: the real application, dimmed into the dark canvas. */
-  .backdrop { position: absolute; z-index: -1; inset: 0; }
+  .backdrop {
+    position: absolute; z-index: -1; inset: 0;
+    /* Keep the product out from behind the wordmark and headline. */
+    -webkit-mask-image: linear-gradient(90deg, transparent 0 38%, #000 82%);
+    mask-image: linear-gradient(90deg, transparent 0 38%, #000 82%);
+  }
   .backdrop > img, .backdrop > video { position: absolute; inset: 0; width: 100%; height: 100%; max-width: none; object-fit: cover; object-position: 30% 0; }
   .backdrop > img { opacity: .18; }
   .backdrop > video { opacity: 0; }
@@ -74,10 +72,7 @@ const colors = logoRows.map((_, row) => {
   .content { display: flex; align-items: center; padding-block: var(--space-16) var(--space-12); }
   .copy { width: min(100%, 50rem); }
 
-  .mark { margin-bottom: var(--space-12); }
-  .ascii { display: block; font-family: Consolas, 'Cascadia Mono', 'DejaVu Sans Mono', monospace; font-size: clamp(.5rem, .86vw, .86rem); line-height: 1.06; letter-spacing: 0; font-variant-ligatures: none; color: var(--accent); }
-  .ascii > span { display: block; white-space: pre; }
-  .compact { display: none; color: var(--accent); font: 500 var(--text-h1)/1 var(--font-mono); }
+  .mark { width: min(100%, clamp(18rem, 50vw, 44rem)); margin-bottom: var(--space-12); }
 
   h1 { font-size: clamp(2.6rem, 5.6vw, 5rem); line-height: 1; letter-spacing: -.045em; font-weight: 550; }
   h1 .line { display: block; }
@@ -88,15 +83,13 @@ const colors = logoRows.map((_, row) => {
   .secondary span { display: inline-block; color: var(--accent); transition: transform .2s; }
   .secondary:hover span { transform: translateX(3px); }
 
-  /* Entrance: the wordmark draws row by row like terminal output, then the headline settles. */
+  /* Entrance: the lockup boots (see Lockup.astro), then the headline settles. */
   @media (prefers-reduced-motion: no-preference) {
-    .ascii > span { animation: row-in .5s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--row) * 55ms); clip-path: inset(0 100% 0 0); }
     h1 .line, .summary, .actions { animation: rise .7s cubic-bezier(.2, .7, .2, 1) both; }
-    h1 .line { animation-delay: calc(.35s + var(--i) * 90ms); }
-    .summary { animation-delay: .6s; }
-    .actions { animation-delay: .7s; }
+    h1 .line { animation-delay: calc(.9s + var(--i) * 90ms); }
+    .summary { animation-delay: 1.15s; }
+    .actions { animation-delay: 1.25s; }
   }
-  @keyframes row-in { to { clip-path: inset(0 0 0 0); } }
   @keyframes rise { from { opacity: 0; transform: translateY(12px); } }
 
   @media (max-width: 48rem) {
@@ -104,8 +97,6 @@ const colors = logoRows.map((_, row) => {
     .backdrop > img, .backdrop > video { object-position: 18% 0; }
   }
   @media (max-width: 40rem) {
-    .ascii { display: none; }
-    .compact { display: block; }
     .mark { margin-bottom: var(--space-8); }
   }
 </style>

@@ -1,21 +1,11 @@
 ---
 import { site } from '../data/site';
 import { url } from '../lib/url';
-import { logoRows } from '../data/logo';
-
-const logoColors = logoRows.map((_, row) => {
-  const start = [117, 124, 120];
-  const end = [220, 223, 220];
-  const progress = row / Math.max(logoRows.length - 1, 1);
-  return 'rgb(' + start.map((value, channel) => value + Math.round((end[channel] - value) * progress)).join(', ') + ')';
-});
+import Lockup from './Lockup.astro';
 ---
 <footer class="wrap site-footer">
   <div class="footer-signature">
-    <div class="footer-wordmark" role="img" aria-label="Inventatory">
-      <span class="ascii" aria-hidden="true">{logoRows.map((row, i) => <span style={{ color: logoColors[i] }}>{row}</span>)}</span>
-      <span class="compact" aria-hidden="true">Inventatory</span>
-    </div>
+    <div class="footer-wordmark"><Lockup shadow={false} /></div>
     <p>Local electronic component inventory</p>
   </div>
   <nav aria-label="Footer links">
@@ -36,10 +26,7 @@ const logoColors = logoRows.map((_, row) => {
     font: var(--text-xs)/1.7 var(--font-mono);
   }
   .footer-signature p { margin-top: var(--space-2); color: var(--muted); }
-  .footer-wordmark { width: max-content; max-width: 100%; animation: footer-mark-in 480ms ease-out both; }
-  .ascii { display: block; font-family: Consolas, 'Cascadia Mono', 'DejaVu Sans Mono', monospace; font-size: clamp(.42rem, .52vw, .6rem); line-height: 1; letter-spacing: 0; font-variant-ligatures: none; }
-  .ascii > span { display: block; white-space: pre; }
-  .compact { display: none; color: var(--muted); font: 500 var(--text-lead)/1.2 var(--font-mono); }
+  .footer-wordmark { width: min(100%, 15rem); opacity: .85; animation: footer-mark-in 480ms ease-out both; }
   nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-4); }
   nav a { color: var(--muted); text-decoration: none; transition: color 180ms ease; }
   nav a:hover { color: var(--focus); }
@@ -50,9 +37,5 @@ const logoColors = logoRows.map((_, row) => {
   @media (max-width: 48rem) {
     .site-footer { grid-template-columns: 1fr; align-items: start; }
     nav { justify-content: flex-start; }
-  }
-  @media (max-width: 40rem) {
-    .ascii { display: none; }
-    .compact { display: block; }
   }
 </style>
