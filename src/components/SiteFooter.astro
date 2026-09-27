@@ -6,7 +6,6 @@ import Lockup from './Lockup.astro';
 <footer class="wrap site-footer">
   <div class="footer-signature">
     <div class="footer-wordmark"><Lockup shadow={false} /></div>
-    <p>Local electronic component inventory</p>
   </div>
   <nav aria-label="Footer links">
     <a href={url('/docs/resources/')}>Contribute</a>
@@ -19,13 +18,12 @@ import Lockup from './Lockup.astro';
     position: relative;
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    align-items: end;
+    align-items: center;
     gap: var(--space-6);
     padding-block: var(--space-8);
     border-top: var(--border) solid var(--divider);
     font: var(--text-xs)/1.7 var(--font-mono);
   }
-  .footer-signature p { margin-top: var(--space-2); color: var(--muted); }
   .footer-wordmark { width: min(100%, 19rem); opacity: .85; filter: grayscale(1); animation: footer-mark-in 480ms ease-out both; }
   nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-4); }
   nav a { color: var(--muted); text-decoration: none; transition: color 180ms ease; }

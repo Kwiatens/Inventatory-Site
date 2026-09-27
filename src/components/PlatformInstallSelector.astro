@@ -21,7 +21,6 @@ const linuxCommand = [
 <section id={id} class="install-section" aria-labelledby={id + '-title'}>
   <div class="install-heading">
     <div>
-      <p class="eyebrow">Downloads</p>
       <h2 id={id + '-title'}>Install Inventatory</h2>
       <p class="install-lead">Choose your system for the latest stable release.</p>
     </div>
@@ -50,7 +49,27 @@ const linuxCommand = [
           <p>Open Command Prompt, paste this command, then follow the installer and first-run setup.</p>
           <p class="platform-note">The installer checks the release package before it is installed.</p>
         </div>
-        <pre><code>{windowsCommand}</code></pre>
+        <div class="command-block">
+          <pre><code>{windowsCommand}</code></pre>
+          <button
+            type="button"
+            class="copy-button"
+            aria-label="Copy install command"
+            title="Copy command"
+            data-copy={windowsCommand}
+          >
+            <span class="copy-icon-wrap" aria-hidden="true">
+              <svg class="copy-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <svg class="check-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </span>
+            <span class="copy-label">Copy</span>
+          </button>
+        </div>
       </section>
       <section class="platform-panel" data-platform-panel="linux" aria-labelledby={id + '-linux-title'}>
         <div class="platform-copy">
@@ -61,7 +80,27 @@ const linuxCommand = [
             <p><code>sudo apt update &amp;&amp; sudo apt install -y libsecret-1-0 libcurl4 libssl3 libglib2.0-0</code></p>
           </details>
         </div>
-        <pre><code>{linuxCommand}</code></pre>
+        <div class="command-block">
+          <pre><code>{linuxCommand}</code></pre>
+          <button
+            type="button"
+            class="copy-button"
+            aria-label="Copy install command"
+            title="Copy command"
+            data-copy={linuxCommand}
+          >
+            <span class="copy-icon-wrap" aria-hidden="true">
+              <svg class="copy-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <svg class="check-icon" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </span>
+            <span class="copy-label">Copy</span>
+          </button>
+        </div>
         <p class="platform-note">Start the installed app with <code>~/.local/bin/inventatory</code>, or use <code>inventatory</code> if <code>~/.local/bin</code> is in your PATH.</p>
       </section>
     </div>
@@ -70,10 +109,49 @@ const linuxCommand = [
   <p class="release-meta">Installers always fetch the latest stable release. <a href={site.releases}>See all releases ↗</a></p>
 </section>
 
+<script>
+  document.addEventListener('click', async (e) => {
+    const button = (e.target as Element).closest<HTMLButtonElement>('.copy-button');
+    if (!button) return;
+
+    const text = button.getAttribute('data-copy') || button.closest('.command-block')?.querySelector('code')?.textContent?.trim() || '';
+    if (!text) return;
+
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        textArea.remove();
+      }
+
+      button.classList.add('copied');
+      const label = button.querySelector<HTMLElement>('.copy-label');
+      if (label) label.textContent = 'Copied!';
+      button.setAttribute('aria-label', 'Copied to clipboard');
+
+      setTimeout(() => {
+        button.classList.remove('copied');
+        if (label) label.textContent = 'Copy';
+        button.setAttribute('aria-label', 'Copy install command');
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy install command', err);
+    }
+  });
+</script>
+
 <style>
   .install-section { margin-block: var(--space-12) var(--space-20); padding-top: var(--space-8); border-top: var(--border) solid var(--divider); }
   .install-heading { display: flex; align-items: end; justify-content: space-between; gap: var(--space-8); margin-bottom: var(--space-8); }
-  .install-heading .eyebrow { margin-bottom: var(--space-2); color: var(--muted); font: var(--text-xs)/1.5 var(--font-mono); }
   .install-heading h2 { margin-bottom: var(--space-3); font-size: var(--text-h2); }
   .install-lead { margin: 0; color: var(--secondary); }
   .release-link { flex: 0 0 auto; font: var(--text-sm)/1.5 var(--font-mono); }
@@ -93,8 +171,48 @@ const linuxCommand = [
   .platform-copy details { margin-top: var(--space-4); color: var(--muted); font-size: var(--text-sm); }
   .platform-copy summary { width: fit-content; cursor: pointer; }
   .platform-copy details p { margin-top: var(--space-3); line-height: 1.6; }
-  pre { min-width: 0; margin: 0; padding: var(--space-4); overflow: auto; border: var(--border) solid var(--divider); background: var(--canvas); color: var(--focus); font: var(--text-xs)/1.7 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
-  pre code { color: inherit; }
+  .command-block { position: relative; min-width: 0; }
+  .command-block pre { min-width: 0; margin: 0; padding: var(--space-4); padding-right: calc(var(--space-4) + 5.25rem); overflow: auto; border: var(--border) solid var(--divider); background: var(--canvas); color: var(--focus); font: var(--text-xs)/1.7 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
+  .command-block pre code { color: inherit; }
+  .copy-button {
+    position: absolute;
+    top: var(--space-2);
+    right: var(--space-2);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    height: 1.75rem;
+    padding: 0 var(--space-2);
+    background: var(--surface);
+    color: var(--muted);
+    border: var(--border) solid var(--divider);
+    font: 500 var(--text-xs)/1 var(--font-mono);
+    cursor: pointer;
+    transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
+    user-select: none;
+  }
+  .copy-button:hover {
+    color: var(--text);
+    background: var(--hover);
+    border-color: var(--focus);
+  }
+  .copy-button:focus-visible {
+    outline: var(--focus-width) solid var(--focus);
+    outline-offset: 1px;
+  }
+  .copy-icon-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .copy-button .check-icon { display: none; }
+  .copy-button.copied {
+    color: var(--success);
+    border-color: var(--success);
+    background: var(--surface);
+  }
+  .copy-button.copied .copy-icon { display: none; }
+  .copy-button.copied .check-icon { display: inline-block; color: var(--success); }
   .platform-note { grid-column: 2; margin: calc(-1 * var(--space-2)) 0 0; color: var(--muted); font-size: var(--text-xs); line-height: 1.6; }
   .release-meta { margin: var(--space-4) 0 0; color: var(--muted); font: var(--text-xs)/1.7 var(--font-mono); }
   .release-meta a { white-space: nowrap; }
