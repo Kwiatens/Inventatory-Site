@@ -28,10 +28,10 @@ const external = (href: string) => /^https?:/.test(href);
       <article class="route open" aria-labelledby="route-open">
         <header>
           <h3 id="route-open">{scanner.open.title}</h3>
-          <span class="cost">{scanner.open.cost}</span>
+          <span class="tag">{scanner.open.cost}</span>
         </header>
         <p>{scanner.open.text}</p>
-        <ul class="links">
+        <ul class="foot links">
           {scanner.open.links.map(link => <li>
             <a href={external(link.href) ? link.href : url(link.href)}>{link.label} <span aria-hidden="true">{external(link.href) ? '↗' : '→'}</span></a>
           </li>)}
@@ -41,16 +41,18 @@ const external = (href: string) => /^https?:/.test(href);
       <article class="route bundle" aria-labelledby="route-bundle">
         <header>
           <h3 id="route-bundle">{scanner.bundle.title}</h3>
-          <span class="rev">{scanner.bundle.revision}</span>
         </header>
         <p>{scanner.bundle.text}</p>
         <table class="manifest">
           <caption class="sr-only">Bundle contents</caption>
-          <thead><tr><th scope="col">Qty</th><th scope="col">Item</th><th scope="col">Notes</th></tr></thead>
-          <tbody>{scanner.bundle.contents.map(row => <tr><td>{row.qty}</td><td>{row.item}</td><td>{row.note}</td></tr>)}</tbody>
+          <thead><tr><th scope="col">Item</th><th scope="col">Format</th></tr></thead>
+          <tbody>{scanner.bundle.contents.map(row => <tr><td>{row.item}</td><td>{row.note}</td></tr>)}</tbody>
         </table>
-        <div class="buy">
-          <span class="price">{scanner.bundle.price}</span>
+        <div class="foot buy">
+          <div class="price-block">
+            <span class="price">{scanner.bundle.price}</span>
+            <span class="delivery">{scanner.bundle.delivery}</span>
+          </div>
           <a class="buy-link" href={scanner.bundle.href}>{scanner.bundle.cta} <span aria-hidden="true">→</span></a>
         </div>
       </article>
@@ -78,7 +80,7 @@ const external = (href: string) => /^https?:/.test(href);
   .scanner { position: relative; padding-block: var(--space-20); background: var(--surface); border-block: var(--border) solid var(--divider); overflow: hidden; }
 
   .stage { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: var(--space-12); align-items: center; }
-  h2 { font-size: clamp(2.75rem, 5.6vw, 5rem); line-height: .98; letter-spacing: -.05em; }
+  h2 { font-size: clamp(2rem, 3.6vw, 3rem); line-height: 1.05; letter-spacing: -.035em; }
   .summary { max-width: 38ch; margin-top: var(--space-6); font-size: var(--text-lead); line-height: 1.6; }
 
   .model { position: relative; display: grid; aspect-ratio: 1200 / 820; }
@@ -87,36 +89,43 @@ const external = (href: string) => /^https?:/.test(href);
   .model[data-playing="true"] > video { opacity: 1; }
   .model[data-playing="true"] > .still { opacity: 0; }
 
+  /* ---------- the two routes: same skeleton, so their footers share one line ---------- */
   .routes { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-top: var(--space-16); }
-  .route { display: flex; flex-direction: column; padding: var(--space-8); }
-  .route header { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4); margin-bottom: var(--space-4); }
+  .route { position: relative; display: flex; flex-direction: column; padding: var(--space-8); overflow: hidden; }
+  .route header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); min-height: 2rem; margin-bottom: var(--space-4); }
   h3 { font-size: clamp(1.5rem, 2.2vw, 2rem); line-height: 1.1; letter-spacing: -.03em; }
   .route > p { max-width: 44ch; font-size: var(--text-base); line-height: 1.65; }
+  .foot {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-3) var(--space-6);
+    min-height: calc(3.625rem + var(--space-6)); margin: auto 0 0; padding: var(--space-6) 0 0;
+    border-top: var(--border) solid var(--divider);
+  }
+  /* Keep at least this much air above the footer when a card is the taller one. */
+  .route > :is(p, .manifest):has(+ .foot) { margin-bottom: var(--space-8); }
 
   /* Open route: the repository itself. */
   .open { border: var(--border) solid var(--divider); background: var(--canvas); }
-  .cost { color: var(--success); font: 500 var(--text-sm)/1 var(--font-mono); }
-  .links { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-8); margin: auto 0 0; padding: var(--space-6) 0 0; list-style: none; font: var(--text-sm)/1.5 var(--font-mono); }
+  .tag { flex: 0 0 auto; color: var(--success); font: 500 var(--text-sm)/1 var(--font-mono); }
+  .links { justify-content: flex-start; gap: var(--space-2) var(--space-8); list-style: none; font: var(--text-sm)/1.5 var(--font-mono); }
   .links li { margin: 0; }
   .links a { text-decoration: none; }
 
   /* Bundle route: the supported option. Set apart by a lit edge, a tinted surface and the
      one filled button in the section, rather than by volume. */
-  .bundle {
-    position: relative;
-    border: var(--border) solid var(--active);
-    background: var(--active-soft);
-  }
-  .bundle::before { content: ''; position: absolute; inset: -1px -1px auto; height: 2px; background: var(--accent); }
+  .bundle { border: var(--border) solid var(--active); background: var(--active-soft); }
+  .bundle::before { content: ''; position: absolute; z-index: 1; inset: 0 0 auto; height: 2px; background: var(--accent); }
   .bundle > p { color: var(--secondary); }
-  .rev { padding: 2px var(--space-2); border: var(--border) solid var(--active); color: var(--focus); font: 500 var(--text-xs)/1.4 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
-  .manifest { width: 100%; margin-top: var(--space-6); border-collapse: collapse; font: var(--text-xs)/1.5 var(--font-mono); }
-  .manifest th { padding-bottom: var(--space-2); color: var(--muted); font-weight: 400; text-align: left; text-transform: uppercase; letter-spacing: .06em; border-bottom: var(--border) solid var(--divider); }
-  .manifest td { padding: var(--space-2) 0; border-bottom: var(--border) solid rgb(56 69 67 / .5); color: var(--text); }
-  .manifest td:first-child { color: var(--muted); }
-  .manifest th:first-child, .manifest td:first-child { width: 3.5rem; }
-  .manifest td:last-child, .manifest th:last-child { text-align: right; color: var(--link); }
-  .buy { display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); margin-top: auto; padding-top: var(--space-8); }
+  .bundle .foot { border-top-color: var(--active); }
+
+  /* Contents: one line per file, the item and its format. */
+  .manifest { width: 100%; margin-top: var(--space-6); border-collapse: collapse; font-size: var(--text-sm); line-height: 1.4; }
+  .manifest th { padding: 0 0 var(--space-2); color: var(--muted); font: 400 var(--text-xs)/1.5 var(--font-mono); text-align: left; text-transform: uppercase; letter-spacing: .06em; border-bottom: var(--border) solid var(--active); }
+  .manifest td { height: 2.5rem; padding: 0; border-bottom: var(--border) solid rgb(49 90 85 / .5); color: var(--text); vertical-align: middle; white-space: nowrap; }
+  .manifest tr:last-child td { border-bottom: 0; }
+  .manifest :is(th, td):last-child { width: 1%; padding-left: var(--space-6); text-align: right; }
+  .manifest td:last-child { color: var(--link); font: var(--text-xs)/1.4 var(--font-mono); letter-spacing: .04em; }
+  .price-block { display: flex; flex-direction: column; gap: var(--space-2); }
+  .delivery { color: var(--muted); font: var(--text-xs)/1.4 var(--font-mono); }
   .price { color: var(--text); font: 500 var(--text-h2)/1 var(--font-mono); letter-spacing: -.02em; }
   .buy-link { display: inline-flex; align-items: center; gap: var(--space-3); min-height: 2.875rem; padding: var(--space-2) var(--space-6); background: var(--accent); color: var(--canvas); font: 500 var(--text-sm)/1.5 var(--font-mono); text-decoration: none; transition: background .2s; }
   .buy-link:hover { background: var(--focus); color: var(--canvas); }
@@ -130,7 +139,16 @@ const external = (href: string) => /^https?:/.test(href);
   @media (max-width: 40rem) {
     .scanner { padding-block: var(--space-16); }
     .route { padding: var(--space-6) var(--space-4); }
-    .buy { flex-wrap: wrap; }
+    /* Phones: the formats speak for themselves, so the header row is kept for screen
+       readers only and the item gets the width it needs to stay on one line. */
+    .manifest { font-size: var(--text-xs); border-top: var(--border) solid var(--active); }
+    .manifest thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .manifest :is(th, td):last-child { padding-left: var(--space-2); }
+    .manifest td:last-child { font-size: .6875rem; letter-spacing: 0; }
+  }
+  /* Below a 375px screen the longest item no longer fits; let it wrap rather than clip. */
+  @media (max-width: 23.4rem) {
+    .manifest td { white-space: normal; padding-block: var(--space-2); }
   }
   @media (prefers-reduced-motion: reduce) { .model > video { display: none; } }
 </style>

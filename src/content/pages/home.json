@@ -86,15 +86,15 @@
     "bundle": {
       "title": "Pre-designed CAD bundle",
       "text": "The 'just works' solution. It includes ready to use .STEP and .3MF files for the enclosure and charging dock for the scanner. Your purchase supports my projects, thank you!",
-      "revision": "R1",
       "price": "9.99€",
+      "delivery": "Digital download. No physical items.",
       "cta": "Get the bundle",
       "href": "#",
       "contents": [
-        { "qty": "1", "item": "Scanner enclosure", "note": ".STEP" },
-        { "qty": "1", "item": "Charging dock", "note": ".STEP"},
-        { "qty": "—", "item": "Fine-tuned print-ready files", "note": ".3MF" },
-        { "qty": "—", "item": "Detailed .PDF and video assembly instructions", "note": "" }
+        { "item": "Scanner enclosure", "note": ".STEP" },
+        { "item": "Charging dock", "note": ".STEP"},
+        { "item": "Fine-tuned print-ready files", "note": ".3MF" },
+        { "item": "Detailed .PDF and video assembly instructions", "note": "" }
       ]
     }
   },
