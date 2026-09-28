@@ -18,9 +18,9 @@ interface Props {
   theme?: LockupTheme;
   tone?: 'gradient' | 'flat';
   /**
-   * The i's dot. `none` leaves it out; `static` draws it; `rack` fills the four slots
-   * once, then drops them into the stem. `rack` draws above the lockup's box, so the
-   * layout is the same as `none`.
+   * The i's dot. `none` leaves it out; `static` draws it; `rack` switches the four slots
+   * on one by one, holds, then switches them off. `rack` draws above the lockup's box, so
+   * the layout is the same as `none`.
    */
   dot?: 'none' | 'static' | 'rack';
   /** Blinking underscore cursor after the word. */
@@ -87,7 +87,7 @@ const cellStyle = (part: Part, order: number) =>
   .lockup-cursor .shade { fill: var(--lockup-shadow, currentColor); }
 
   /* Rack dot: hidden at rest (and with reduced motion); the animation shows it once. */
-  .lockup-rack .lockup-dot .lockup-cell { opacity: 0; transform-box: fill-box; transform-origin: 50% 50%; }
+  .lockup-rack .lockup-dot .lockup-cell { opacity: 0; }
 
   @media (prefers-reduced-motion: no-preference) {
     .lockup-boot :is(.lockup-prompt, .lockup-stem, .lockup-dot) .lockup-cell {
@@ -98,11 +98,11 @@ const cellStyle = (part: Part, order: number) =>
       animation: lockup-type 1s steps(46) 1.45s both;
     }
     .lockup-cursor { animation: lockup-blink 1.1s steps(1) infinite; }
-    /* Slots fill one by one like parts going into a rack, hold, then each one drops
-       into the stem in the same order. */
+    /* Slots switch on one by one like parts going into a rack, hold, then switch off
+       in the same order. No motion, only on and off. */
     .lockup-rack .lockup-dot .lockup-cell {
-      animation: lockup-rack 3.6s linear both;
-      animation-delay: calc(.6s + var(--i) * .14s);
+      animation: lockup-rack 3s steps(1, end) forwards;
+      animation-delay: calc(.6s + var(--i) * .16s);
     }
   }
   @keyframes lockup-pixel { from { opacity: 0; } }
@@ -112,10 +112,8 @@ const cellStyle = (part: Part, order: number) =>
   }
   @keyframes lockup-blink { 50% { opacity: 0; } }
   @keyframes lockup-rack {
-    0% { opacity: 0; transform: translateY(-14px) scale(.6); animation-timing-function: cubic-bezier(.2, .9, .3, 1.25); }
-    9% { opacity: 1; transform: none; }
-    64% { opacity: 1; transform: none; animation-timing-function: cubic-bezier(.55, 0, .8, .3); }
-    76% { opacity: 0; transform: translateY(32px) scaleY(.5); }
-    100% { opacity: 0; transform: translateY(32px) scaleY(.5); }
+    0% { opacity: 1; }
+    75% { opacity: 0; }
+    100% { opacity: 0; }
   }
 </style>

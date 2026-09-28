@@ -1,7 +1,8 @@
 ---
 /**
  * Header brand: the ›i mark at rest, unfolding into the full ›iNVENTATORY wordmark on
- * hover or keyboard focus and folding back when the pointer leaves.
+ * hover or keyboard focus (on wide screens with a pointer) and folding back when the
+ * pointer leaves.
  * The box widens from the mark to the full word while each letter slides in behind it;
  * folding plays the same motion in reverse, letters first, then the box.
  * Size it with --h (default 1.5rem); colours via --lockup-word and --lockup-mark.
@@ -59,12 +60,15 @@ const word = Array.from({ length: letters }, (_, i) => lockup.rects.filter(rect 
     transition: opacity .18s ease calc((var(--letters) - 1 - var(--i)) * 16ms), transform .24s var(--ease) calc((var(--letters) - 1 - var(--i)) * 16ms);
   }
 
-  .brand-mark:is(:hover, :focus-visible) .brand-clip { width: calc(var(--h, 1.5rem) * var(--expanded)); transition: width .56s var(--ease); }
-  .brand-mark:is(:hover, :focus-visible) .brand-letter {
-    opacity: 1;
-    transform: none;
-    /* Unfolding runs left to right, a beat behind the opening box. */
-    transition: opacity .34s ease calc(70ms + var(--i) * 32ms), transform .5s var(--ease) calc(40ms + var(--i) * 32ms);
+  /* Only where there is a pointer to hover with and room to unfold into. */
+  @media (min-width: 64rem) and (hover: hover) {
+    .brand-mark:is(:hover, :focus-visible) .brand-clip { width: calc(var(--h, 1.5rem) * var(--expanded)); transition: width .56s var(--ease); }
+    .brand-mark:is(:hover, :focus-visible) .brand-letter {
+      opacity: 1;
+      transform: none;
+      /* Unfolding runs left to right, a beat behind the opening box. */
+      transition: opacity .34s ease calc(70ms + var(--i) * 32ms), transform .5s var(--ease) calc(40ms + var(--i) * 32ms);
+    }
   }
   .brand-mark:focus-visible { outline-offset: 2px; }
 </style>

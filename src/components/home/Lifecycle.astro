@@ -2,15 +2,13 @@
 /**
  * What the system does, as the life of a part.
  * Without JavaScript every step is listed in order with its own media. With JavaScript the
- * steps become a numbered accordion: one step open at a time, its media shown in a single
+ * steps become an accordion: one step open at a time, its media shown in a single
  * frame beside the list on wide screens, advancing on its own until the visitor picks one.
  */
 import { workflow, steps } from '../../data/home';
 import { url } from '../../lib/url';
-
-const pad = (i: number) => String(i + 1).padStart(2, '0');
 ---
-<section class="lifecycle wrap" aria-labelledby="lifecycle-heading" data-lifecycle>
+<section id="features" class="lifecycle wrap" aria-labelledby="lifecycle-heading" data-lifecycle>
   <header class="intro">
     <h2 id="lifecycle-heading">
       {workflow.headingLines.map((line, i) => (
@@ -22,13 +20,12 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
 
   <div class="layout">
     <div class="steps" data-track>
-      {steps.map((step, i) => (
+      {steps.map((step) => (
         <article class="step" id={step.id} data-step aria-labelledby={`step-${step.id}`}>
           <span class="progress" aria-hidden="true"></span>
           <h3 id={`step-${step.id}`}>
             <button type="button" class="toggle" aria-expanded="true" aria-controls={`body-${step.id}`} data-toggle>
-              <span class="num" aria-hidden="true">{pad(i)}</span>
-              <span class="title">{step.title}</span>
+              {step.title}
             </button>
           </h3>
           <div class="body" id={`body-${step.id}`}>
@@ -48,7 +45,7 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
       ))}
     </div>
 
-    <!-- Wide screens: one frame for the open step's media, with a datasheet-style caption. -->
+    <!-- Wide screens: one frame for the open step's media, with its caption. -->
     <div class="stage" data-stage>
       {steps.map((step, i) => (
         <figure class="frame" data-frame aria-hidden={i === 0 ? undefined : 'true'}>
@@ -57,7 +54,7 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
               ? <img src={url(step.media.src)} alt={step.media.alt} width={step.media.width} height={step.media.height} loading="lazy" decoding="async" style={{ objectPosition: step.media.position, '--zoom': step.media.zoom ?? 1 }} />
               : <div class="pending" role="img" aria-label={`${step.mediaCaption}: ${workflow.recordingPendingText}`}><span>{workflow.recordingPendingText}</span></div>}
           </div>
-          <figcaption><span class="fig">Fig. {pad(i)}</span>{step.mediaCaption}</figcaption>
+          <figcaption>{step.mediaCaption}</figcaption>
         </figure>
       ))}
     </div>
@@ -150,17 +147,15 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
   .step { position: relative; border-top: var(--border) solid var(--divider); }
   h3 { margin: 0; font: inherit; }
   .toggle {
-    display: flex; align-items: baseline; gap: var(--space-4); width: 100%;
+    display: block; width: 100%;
     padding: var(--space-6) 0; background: none; border: 0; color: var(--text); text-align: left;
     font-size: clamp(1.125rem, 1.5vw, 1.3125rem); font-weight: 500; line-height: 1.3; letter-spacing: -.01em;
   }
-  .num { flex: 0 0 auto; min-width: 1.75rem; color: var(--muted); font: var(--text-xs)/1 var(--font-mono); letter-spacing: .04em; }
   .toggle:focus-visible { outline-offset: -2px; }
 
   /* Progress: the item's top rule fills with the accent while it is shown. */
   .progress { position: absolute; left: 0; top: -1px; height: 1px; width: 0; background: var(--accent); }
 
-  .text { padding-left: calc(1.75rem + var(--space-4)); }
   .text > p { max-width: 42ch; color: var(--secondary); font-size: var(--text-base); line-height: 1.65; }
   .more { display: inline-block; margin-top: var(--space-4); font: var(--text-sm)/1.5 var(--font-mono); text-decoration: none; }
   .more span { display: inline-block; transition: transform .2s; }
@@ -179,7 +174,6 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
   .is-enhanced .toggle { cursor: pointer; color: var(--muted); transition: color .2s; }
   .is-enhanced .toggle:hover { color: var(--secondary); }
   .is-enhanced .is-open .toggle { color: var(--text); cursor: default; }
-  .is-enhanced .is-open .num { color: var(--accent); }
   .is-enhanced .is-open .progress { width: 100%; }
   .is-enhanced .body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .45s cubic-bezier(.65, 0, .35, 1); }
   .is-enhanced .inner { min-height: 0; overflow: hidden; padding-bottom: 0; visibility: hidden; transition: visibility 0s .45s, padding .45s cubic-bezier(.65, 0, .35, 1); }
@@ -197,12 +191,10 @@ const pad = (i: number) => String(i + 1).padStart(2, '0');
     .is-enhanced .stage { display: grid; }
     .frame { grid-area: 1 / 1; margin: 0; opacity: 0; visibility: hidden; transition: opacity .4s ease, visibility 0s .4s; }
     .frame.is-active { opacity: 1; visibility: visible; transition-delay: 0s; }
-    figcaption { display: flex; gap: var(--space-4); margin-top: var(--space-3); color: var(--muted); font: var(--text-xs)/1.5 var(--font-mono); }
-    .fig { color: var(--secondary); }
+    figcaption { margin-top: var(--space-3); color: var(--muted); font: var(--text-xs)/1.5 var(--font-mono); }
   }
   @media (max-width: 40rem) {
     .lifecycle { padding-block: var(--space-8) var(--space-16); }
-    .text { padding-left: 0; }
     .toggle { padding-block: var(--space-4); }
   }
 </style>

@@ -11,9 +11,9 @@ export const release = {
 };
 export const nav = [
   { label: 'Overview', href: '/' },
-  { label: 'Features', href: '/features/' },
   { label: 'Documentation', href: '/docs/' },
-  { label: 'Download', href: '/download/' },
+  // Scrolls to the install section at the bottom of the homepage.
+  { label: 'Download', href: '/#homepage-download' },
   { label: 'GitHub', href: site.repository },
 ];
 // Shared page media. Homepage feature visuals are defined with their feature data below.
