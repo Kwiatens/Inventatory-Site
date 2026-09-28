@@ -33,7 +33,8 @@
 .docs-header { display: flex; align-items: center; gap: var(--space-6); height: 100%; }
 /* Reserve the unfolded width so the navigation does not move when the mark unfolds. */
 .docs-brand { flex-shrink: 0; --lockup-word: var(--muted); --lockup-mark: #5d6865; }
-@media (min-width: 64rem) and (hover: hover) { .docs-brand { min-width: calc(var(--h, 1.5rem) * var(--expanded)); } }
+/* Reserve the unfolded width (plus the link's own right padding) so nothing moves. */
+@media (min-width: 64rem) and (hover: hover) { .docs-brand { min-width: calc(var(--h, 1.5rem) * var(--expanded) + var(--space-2)); } }
 .docs-brand:is(:hover, :focus-visible) { --lockup-mark: var(--accent); }
 .docs-primary { display: flex; flex: 1; flex-wrap: nowrap; gap: var(--space-1); min-width: 0; }
 .docs-primary a { position: relative; font: var(--text-sm)/1.5 var(--font-mono); color: var(--secondary); text-decoration: none; padding: var(--space-2) var(--space-4); transition: background .15s, color .15s; }
@@ -50,7 +51,7 @@
 @media (max-width: 65rem) { .docs-header { gap: var(--space-4); } .docs-primary a { padding-inline: var(--space-2); font-size: var(--text-xs); } .docs-primary a[aria-current]::after { left: var(--space-2); right: var(--space-2); } }
 /* Starlight stretches the search button; keep it compact, and icon-only until there is
    room beside the navigation for its label. */
-@media (min-width: 50rem) { .docs-header site-search button { width: auto; max-width: 15rem; } }
+@media (min-width: 50rem) { .docs-header site-search button { width: auto; max-width: none; flex-shrink: 0; white-space: nowrap; } }
 @media (min-width: 50rem) and (max-width: 74.99rem) {
   .docs-header site-search button { padding-inline: .625rem; }
   .docs-header site-search button > :is(span, kbd) { display: none; }
