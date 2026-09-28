@@ -1,11 +1,14 @@
 ---
 /**
  * What the system does, as the life of a part.
- * Without JavaScript every step is listed in order. With JavaScript the steps become
- * app-style numbered tabs that advance on their own until the visitor picks one.
+ * Without JavaScript every step is listed in order with its own media. With JavaScript the
+ * steps become a numbered accordion: one step open at a time, its media shown in a single
+ * frame beside the list on wide screens, advancing on its own until the visitor picks one.
  */
 import { workflow, steps } from '../../data/home';
 import { url } from '../../lib/url';
+
+const pad = (i: number) => String(i + 1).padStart(2, '0');
 ---
 <section class="lifecycle wrap" aria-labelledby="lifecycle-heading" data-lifecycle>
   <header class="intro">
@@ -17,101 +20,104 @@ import { url } from '../../lib/url';
     {workflow.summary && <p>{workflow.summary}</p>}
   </header>
 
-  <div class="tabs" role="tablist" aria-label="Workflow steps" data-tabs hidden>
-    {steps.map((step, i) => (
-      <button type="button" role="tab" id={`tab-${step.id}`} aria-controls={step.id} aria-selected={i === 0 ? 'true' : 'false'} tabindex={i === 0 ? 0 : -1} data-tab={i}>
-        <span class="key" aria-hidden="true">{i + 1}</span>
-        <span class="label">{step.title}</span>
-        <span class="progress" aria-hidden="true"></span>
-      </button>
-    ))}
-  </div>
+  <div class="layout">
+    <div class="steps" data-track>
+      {steps.map((step, i) => (
+        <article class="step" id={step.id} data-step aria-labelledby={`step-${step.id}`}>
+          <span class="progress" aria-hidden="true"></span>
+          <h3 id={`step-${step.id}`}>
+            <button type="button" class="toggle" aria-expanded="true" aria-controls={`body-${step.id}`} data-toggle>
+              <span class="num" aria-hidden="true">{pad(i)}</span>
+              <span class="title">{step.title}</span>
+            </button>
+          </h3>
+          <div class="body" id={`body-${step.id}`}>
+            <div class="inner">
+              <div class="text">
+                <p>{step.text}</p>
+                <a class="more" href={url(step.href)}>{workflow.readGuideText} <span aria-hidden="true">→</span></a>
+              </div>
+              <figure class="media">
+                {step.media
+                  ? <img src={url(step.media.src)} alt={step.media.alt} width={step.media.width} height={step.media.height} loading="lazy" decoding="async" style={{ objectPosition: step.media.position, '--zoom': step.media.zoom ?? 1 }} />
+                  : <div class="pending" role="img" aria-label={`${step.mediaCaption}: ${workflow.recordingPendingText}`}><span>{workflow.recordingPendingText}</span></div>}
+              </figure>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
 
-  <div class="steps" data-track>
-    {steps.map((step) => (
-      <article class="step" id={step.id} data-step aria-labelledby={`step-${step.id}`}>
-        <div class="text">
-          <h3 id={`step-${step.id}`}>{step.title}</h3>
-          <p>{step.text}</p>
-          <a class="more" href={url(step.href)}>{workflow.readGuideText} <span aria-hidden="true">→</span></a>
-        </div>
-
-        <div class="visual">
-          <figure class="media">
+    <!-- Wide screens: one frame for the open step's media, with a datasheet-style caption. -->
+    <div class="stage" data-stage>
+      {steps.map((step, i) => (
+        <figure class="frame" data-frame aria-hidden={i === 0 ? undefined : 'true'}>
+          <div class="frame-media">
             {step.media
               ? <img src={url(step.media.src)} alt={step.media.alt} width={step.media.width} height={step.media.height} loading="lazy" decoding="async" style={{ objectPosition: step.media.position, '--zoom': step.media.zoom ?? 1 }} />
-              : <div class="pending" role="img" aria-label={`${step.mediaCaption}: ${workflow.recordingPendingText}`}></div>}
-          </figure>
-        </div>
-      </article>
-    ))}
+              : <div class="pending" role="img" aria-label={`${step.mediaCaption}: ${workflow.recordingPendingText}`}><span>{workflow.recordingPendingText}</span></div>}
+          </div>
+          <figcaption><span class="fig">Fig. {pad(i)}</span>{step.mediaCaption}</figcaption>
+        </figure>
+      ))}
+    </div>
   </div>
 </section>
 
 <script>
   const AUTO_MS = 7000;
   const section = document.querySelector<HTMLElement>('[data-lifecycle]');
-  const tablist = section?.querySelector<HTMLElement>('[data-tabs]');
-  const tabs = [...(tablist?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ?? [])];
-  const panels = [...(section?.querySelectorAll<HTMLElement>('[data-step]') ?? [])];
+  const items = [...(section?.querySelectorAll<HTMLElement>('[data-step]') ?? [])];
+  const toggles = items.map(item => item.querySelector<HTMLButtonElement>('[data-toggle]')!);
+  const frames = [...(section?.querySelectorAll<HTMLElement>('[data-frame]') ?? [])];
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  // The side-by-side layout; on narrow screens the media sits inside the open step and
+  // advancing on its own would move the page under the reader, so it only runs here.
+  const wide = window.matchMedia('(min-width: 64.01rem)');
 
-  if (section && tablist && tabs.length === panels.length && panels.length > 1) {
+  if (section && items.length > 1 && frames.length === items.length) {
     let current = 0;
     let timer = 0;
     let auto = !reduced.matches; // stops for good once the visitor chooses a step
-    // Checked synchronously so the first step's progress bar can start on the very same
-    // paint as its "is-running" class if the section is already on screen at load; the
-    // IntersectionObserver below only fires asynchronously and would otherwise leave the
-    // first tab's timer bar static until its first, delayed callback.
-    let visible = (() => {
-      const rect = section.getBoundingClientRect();
-      const shown = Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0);
-      return rect.height > 0 && shown / rect.height >= 0.35;
-    })();
+    let visible = false;
     let paused = false;
 
     const schedule = () => {
       window.clearTimeout(timer);
-      const running = auto && visible && !paused && !document.hidden;
+      const running = auto && wide.matches && visible && !paused && !document.hidden;
       section.dataset.autoplay = String(running);
-      if (running) timer = window.setTimeout(() => select((current + 1) % tabs.length, false), AUTO_MS);
+      if (running) timer = window.setTimeout(() => select((current + 1) % items.length), AUTO_MS);
     };
 
-    const select = (index: number, focus: boolean) => {
+    const select = (index: number) => {
       current = index;
-      tabs.forEach((tab, i) => {
-        const selected = i === index;
-        tab.setAttribute('aria-selected', String(selected));
-        tab.tabIndex = selected ? 0 : -1;
-        // Restart the progress line on the newly selected tab.
-        tab.classList.remove('is-running');
-        if (selected) { void tab.offsetWidth; tab.classList.add('is-running'); }
+      items.forEach((item, i) => {
+        const open = i === index;
+        item.classList.toggle('is-open', open);
+        toggles[i].setAttribute('aria-expanded', String(open));
+        // Restart the progress line on the newly opened step.
+        item.classList.remove('is-running');
+        if (open) { void item.offsetWidth; item.classList.add('is-running'); }
       });
-      panels.forEach((panel, i) => { panel.hidden = i !== index; });
-      if (focus) tabs[index].focus();
+      frames.forEach((frame, i) => {
+        frame.classList.toggle('is-active', i === index);
+        if (i === index) frame.removeAttribute('aria-hidden'); else frame.setAttribute('aria-hidden', 'true');
+      });
       schedule();
     };
 
-    const choose = (index: number, focus = false) => { auto = false; select(index, focus); };
+    const choose = (index: number) => { auto = false; select(index); };
 
-    panels.forEach((panel, i) => {
-      panel.setAttribute('role', 'tabpanel');
-      panel.setAttribute('aria-labelledby', tabs[i].id);
-      panel.tabIndex = 0;
-    });
-    tablist.hidden = false;
-    section.classList.add('is-tabbed');
-
-    tabs.forEach((tab, i) => {
-      tab.addEventListener('click', () => choose(i));
-      tab.addEventListener('keydown', (event) => {
-        const last = tabs.length - 1;
-        const keys: Record<string, number> = { ArrowRight: i === last ? 0 : i + 1, ArrowLeft: i === 0 ? last : i - 1, Home: 0, End: last };
+    section.classList.add('is-enhanced');
+    toggles.forEach((toggle, i) => {
+      toggle.addEventListener('click', () => choose(i));
+      toggle.addEventListener('keydown', (event) => {
+        const last = toggles.length - 1;
+        const keys: Record<string, number> = { ArrowDown: i === last ? 0 : i + 1, ArrowUp: i === 0 ? last : i - 1, Home: 0, End: last };
         const next = keys[event.key];
         if (next === undefined) return;
         event.preventDefault();
-        choose(next, true);
+        toggles[next].focus();
       });
     });
 
@@ -123,70 +129,80 @@ import { url } from '../../lib/url';
       if (!section.contains(event.relatedTarget as Node | null)) { paused = false; schedule(); }
     });
     document.addEventListener('visibilitychange', schedule);
+    wide.addEventListener('change', schedule);
     reduced.addEventListener('change', () => { if (reduced.matches) auto = false; schedule(); });
     new IntersectionObserver((entries) => { visible = entries.some(entry => entry.isIntersecting); schedule(); }, { threshold: 0.35 }).observe(section);
 
-    select(0, false);
+    select(0);
   }
 </script>
 
 <style>
-  .lifecycle { padding-block: var(--space-20) var(--space-16); }
-  .intro { margin-bottom: var(--space-12); }
-  .intro h2 { font-size: clamp(2rem, 3.6vw, 3.25rem); line-height: 1.06; letter-spacing: -.035em; }
+  .lifecycle { padding-block: var(--space-16) var(--space-20); }
+  .intro { padding-top: var(--space-12); margin-bottom: var(--space-12); border-top: var(--border) solid var(--divider); }
+  .intro h2 { font-size: clamp(1.5rem, 2.4vw, 2rem); line-height: 1.2; letter-spacing: -.02em; }
   .intro p { max-width: 40ch; margin-top: var(--space-4); color: var(--muted); }
 
-  /* ---------- tab strip, styled after the app's numbered workspace tabs ---------- */
-  .tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: var(--border) solid var(--divider); background: var(--surface); }
-  .tabs[hidden] { display: none; }
-  [role='tab'] {
-    position: relative; display: flex; align-items: center; gap: var(--space-3);
-    min-height: 3.25rem; padding: var(--space-3) var(--space-4);
-    background: none; border: 0; border-right: var(--border) solid var(--divider);
-    color: var(--secondary); font: var(--text-sm)/1.4 var(--font-mono); text-align: left; cursor: pointer;
-    transition: background .15s, color .15s;
-  }
-  [role='tab']:last-child { border-right: 0; }
-  [role='tab']:hover { background: var(--hover); color: var(--text); }
-  [role='tab'][aria-selected='true'] { background: var(--active-soft); color: var(--text); }
-  [role='tab']:focus-visible { outline-offset: -3px; }
-  .key { color: var(--muted); }
-  [aria-selected='true'] .key { color: var(--accent); }
-  .progress { position: absolute; left: 0; bottom: -1px; height: 2px; width: 0; background: var(--accent); }
-  [aria-selected='true'] .progress { width: 100%; }
-  @media (prefers-reduced-motion: no-preference) {
-    [data-autoplay='true'] [aria-selected='true'].is-running .progress { animation: tab-progress 7s linear both; }
-    .is-tabbed .step:not([hidden]) { animation: panel-in .35s ease-out both; }
-  }
-  @keyframes tab-progress { from { width: 0; } to { width: 100%; } }
-  @keyframes panel-in { from { opacity: 0; transform: translateY(6px); } }
+  .layout { display: grid; gap: var(--space-12); }
 
-  /* ---------- steps ---------- */
-  .steps { display: grid; gap: var(--space-16); }
-  .is-tabbed .steps { gap: 0; padding-top: var(--space-12); }
-  .step { position: relative; display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: var(--space-12); align-items: center; }
-  .step[hidden] { display: none; }
-  .step:focus-visible { outline-offset: var(--space-4); }
+  /* ---------- step list ---------- */
+  .steps { border-bottom: var(--border) solid var(--divider); }
+  .step { position: relative; border-top: var(--border) solid var(--divider); }
+  h3 { margin: 0; font: inherit; }
+  .toggle {
+    display: flex; align-items: baseline; gap: var(--space-4); width: 100%;
+    padding: var(--space-6) 0; background: none; border: 0; color: var(--text); text-align: left;
+    font-size: clamp(1.125rem, 1.5vw, 1.3125rem); font-weight: 500; line-height: 1.3; letter-spacing: -.01em;
+  }
+  .num { flex: 0 0 auto; min-width: 1.75rem; color: var(--muted); font: var(--text-xs)/1 var(--font-mono); letter-spacing: .04em; }
+  .toggle:focus-visible { outline-offset: -2px; }
 
-  h3 { margin-bottom: var(--space-4); font-size: clamp(1.75rem, 2.8vw, 2.5rem); line-height: 1.08; letter-spacing: -.03em; }
-  .text > p { max-width: 36ch; font-size: var(--text-lead); line-height: 1.6; }
-  .more { display: inline-block; margin-top: var(--space-6); font: var(--text-sm)/1.5 var(--font-mono); text-decoration: none; }
+  /* Progress: the item's top rule fills with the accent while it is shown. */
+  .progress { position: absolute; left: 0; top: -1px; height: 1px; width: 0; background: var(--accent); }
+
+  .text { padding-left: calc(1.75rem + var(--space-4)); }
+  .text > p { max-width: 42ch; color: var(--secondary); font-size: var(--text-base); line-height: 1.65; }
+  .more { display: inline-block; margin-top: var(--space-4); font: var(--text-sm)/1.5 var(--font-mono); text-decoration: none; }
   .more span { display: inline-block; transition: transform .2s; }
   .more:hover span { transform: translateX(3px); }
+  .inner { padding-bottom: var(--space-6); }
 
   /* ---------- media ---------- */
-  .media { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: var(--surface); }
-  .media img { width: 100%; height: 100%; object-fit: cover; transform: scale(var(--zoom)); transform-origin: var(--origin, 100% 0); }
-  .pending { position: absolute; inset: 0; }
+  .media, .frame-media { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: var(--surface); border: var(--border) solid var(--divider); }
+  .media { margin-top: var(--space-6); }
+  :is(.media, .frame-media) img { width: 100%; height: 100%; object-fit: cover; transform: scale(var(--zoom)); transform-origin: var(--origin, 100% 0); }
+  .pending { position: absolute; inset: 0; display: grid; place-items: center; border: var(--border) dashed var(--divider); margin: var(--space-4); }
+  .pending span { color: var(--muted); font: var(--text-xs)/1 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
+  .stage { display: none; }
 
-  @media (max-width: 64rem) {
-    .step { grid-template-columns: 1fr; gap: var(--space-8); }
+  /* ---------- enhanced: accordion ---------- */
+  .is-enhanced .toggle { cursor: pointer; color: var(--muted); transition: color .2s; }
+  .is-enhanced .toggle:hover { color: var(--secondary); }
+  .is-enhanced .is-open .toggle { color: var(--text); cursor: default; }
+  .is-enhanced .is-open .num { color: var(--accent); }
+  .is-enhanced .is-open .progress { width: 100%; }
+  .is-enhanced .body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .45s cubic-bezier(.65, 0, .35, 1); }
+  .is-enhanced .inner { min-height: 0; overflow: hidden; padding-bottom: 0; visibility: hidden; transition: visibility 0s .45s, padding .45s cubic-bezier(.65, 0, .35, 1); }
+  .is-enhanced .is-open .body { grid-template-rows: 1fr; }
+  .is-enhanced .is-open .inner { visibility: visible; padding-bottom: var(--space-6); transition-delay: 0s; }
+  @media (prefers-reduced-motion: no-preference) {
+    [data-autoplay='true'] .is-open.is-running .progress { animation: step-progress 7s linear both; }
   }
-  @media (max-width: 48rem) {
-    .lifecycle { padding-top: var(--space-16); }
-    .tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    [role='tab']:nth-child(2) { border-right: 0; }
-    [role='tab']:nth-child(-n + 2) { border-bottom: var(--border) solid var(--divider); }
-    .is-tabbed .steps { padding-top: var(--space-8); }
+  @keyframes step-progress { from { width: 0; } to { width: 100%; } }
+
+  /* ---------- wide: list beside a single frame ---------- */
+  @media (min-width: 64.01rem) {
+    .is-enhanced .layout { grid-template-columns: minmax(0, 25rem) minmax(0, 1fr); gap: var(--space-16); align-items: start; }
+    .is-enhanced .media { display: none; }
+    .is-enhanced .stage { display: grid; }
+    .frame { grid-area: 1 / 1; margin: 0; opacity: 0; visibility: hidden; transition: opacity .4s ease, visibility 0s .4s; }
+    .frame.is-active { opacity: 1; visibility: visible; transition-delay: 0s; }
+    figcaption { display: flex; gap: var(--space-4); margin-top: var(--space-3); color: var(--muted); font: var(--text-xs)/1.5 var(--font-mono); }
+    .fig { color: var(--secondary); }
+  }
+  @media (max-width: 40rem) {
+    .lifecycle { padding-block: var(--space-8) var(--space-16); }
+    .text { padding-left: 0; }
+    .toggle { padding-block: var(--space-4); }
   }
 </style>

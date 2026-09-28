@@ -8,6 +8,13 @@
     "primary": "Install Inventatory",
     "secondary": "Features"
   },
+  "statement": {
+    "lines": [
+      "One place for every part you own.",
+      "Scan it in, store it in a known slot, build from it,",
+      "and see every change along the way."
+    ]
+  },
   "workflow": {
     "headingLines": [
       "Inventatory keeps track of your parts,",

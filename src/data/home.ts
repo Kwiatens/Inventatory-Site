@@ -6,6 +6,7 @@ import { release, site } from './site';
 export const firmwareRepository = 'https://github.com/Kwiatens/Inventatory-Firmware';
 
 export const hero = content.hero;
+export const statement = content.statement;
 export const workflow = content.workflow;
 export const steps = content.workflow.steps;
 export const scanner = content.scanner;

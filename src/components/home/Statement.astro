@@ -1,0 +1,25 @@
+---
+/** A short, large-type summary of the system between the hero and the feature walkthrough. */
+import { statement } from '../../data/home';
+---
+<section class="statement wrap" aria-label="Inventatory in brief">
+  <p>{statement.lines.map(line => <span>{line}</span>)}</p>
+</section>
+
+<style>
+  .statement { padding-block: var(--space-20) var(--space-16); }
+  p {
+    max-width: 30ch;
+    color: var(--muted);
+    font-size: clamp(1.625rem, 3.3vw, 2.75rem);
+    font-weight: 500;
+    line-height: 1.18;
+    letter-spacing: -.03em;
+    text-wrap: balance;
+  }
+  /* The first line states it; the rest follows in the quieter tone, like the hero headline. */
+  span { display: block; }
+  span:first-child { color: var(--text); }
+  @media (min-width: 64rem) { p { max-width: none; } }
+  @media (max-width: 40rem) { .statement { padding-block: var(--space-12) var(--space-8); } }
+</style>
