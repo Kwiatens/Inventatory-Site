@@ -10,15 +10,15 @@
   },
   "statement": {
     "lines": [
-      "One place for every part you own.",
-      "Scan it in, store it in a known slot, build from it,",
-      "and see every change along the way."
+      "Stock management software should take work off your hands, not add more.",
+      "Inventatory is designed with automation in mind,",
+      "you just scan a part label, and it will do the rest for you."
     ]
   },
   "workflow": {
     "headingLines": [
-      "Inventatory keeps track of your parts,",
-      "so you can focus on building."
+      "See what it can do",
+      ""
     ],
     "summary": "",
     "readGuideText": "Read the guide",
@@ -27,7 +27,7 @@
       {
         "id": "receive",
         "title": "Automated part entry",
-        "text": "Scan a supported vendor label or import an order BOM - Inventatory will automatically add the parts, their electrical parameters, datasheets and links to your inventory.",
+        "text": "Scan a supported vendor label or import an order BOM - Inventatory will automatically add the parts, their electrical parameters, packages and datasheets to your inventory.",
         "mediaCaption": "Stock workspace, part created from a label scan",
         "href": "/docs/desktop/import/",
         "media": {
@@ -50,7 +50,7 @@
       {
         "id": "build",
         "title": "Build a board",
-        "text": "Import your EDA BOM and Inventatory will automatically create a project, tell you what you have and what you are missing, and show you on which rack and slot each part is stored.",
+        "text": "Import your PCB's BOM and Inventatory will automatically create a project, tell you what you have and what you are missing, and show you on which rack and slot each part is stored.",
         "mediaCaption": "Projects workspace",
         "href": "/docs/desktop/projects/",
         "media": null
@@ -85,9 +85,9 @@
     },
     "bundle": {
       "title": "Pre-designed CAD bundle",
-      "text": "The 'just works' solution. It includes ready to use .STEP and .3MF files for the enclosure and charging dock for the scanner. Your purchase supports my projects, thank you!",
+      "text": "If you don't feel like designing it yourself, this bundle includes ready to use .STEP and .3MF files for the enclosure and charging dock for the scanner. Your purchase supports my projects, thank you!",
       "price": "9.99€",
-      "delivery": "Digital download. No physical items.",
+      "delivery": "Digital download",
       "cta": "Get the bundle",
       "href": "#",
       "contents": [
