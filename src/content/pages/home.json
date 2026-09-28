@@ -10,9 +10,9 @@
   },
   "statement": {
     "lines": [
-      "Stock management software should take work off your hands, not add more.",
-      "Inventatory is designed with automation in mind,",
-      "you just scan a part label, and it will do the rest for you."
+      "Automated stock management for electronics.",
+      "",
+      "You just scan a label and the system handels the rest."
     ]
   },
   "workflow": {
@@ -24,7 +24,7 @@
       {
         "id": "receive",
         "title": "Automated part entry",
-        "text": "Scan a supported vendor label or import an order BOM - Inventatory will automatically add the parts, their electrical parameters, packages and datasheets to your inventory.",
+        "text": "Scan a supported vendor label or import an order - Inventatory will automatically add the parts, fill in their electrical parameters, packages and datasheets to your inventory.",
         "mediaCaption": "Stock workspace, part created from a label scan",
         "href": "/docs/desktop/import/",
         "media": {
@@ -39,7 +39,7 @@
       {
         "id": "store",
         "title": "Know precisely where your parts are",
-        "text": "Inventatory features simple 3D-Printable racks. The system automatically assigns a specific slot in a rack to each part, so later it can give the precise location of each part, not just generic 'Drawer 12'.",
+        "text": "Inventatory features 3D-Printable racks. The system automatically assigns each part to a specific slot on the rack, so later it can give you the precise location of it, not just generic 'Drawer 12'.",
         "mediaCaption": "Racks workspace",
         "href": "/docs/desktop/racks/",
         "media": null
@@ -47,15 +47,15 @@
       {
         "id": "build",
         "title": "Build a board",
-        "text": "Import your PCB's BOM and Inventatory will automatically create a project, tell you what you have and what you are missing, and show you on which rack and slot each part is stored.",
+        "text": "Import your PCBs BOM and Inventatory will automatically display on which rack and slot each of the part is stored.",
         "mediaCaption": "Projects workspace",
         "href": "/docs/desktop/projects/",
         "media": null
       },
       {
         "id": "recover",
-        "title": "Trust your inventory",
-        "text": "Every inventory change is recorded. You can see what changed, when and revert to a previous state if needed.",
+        "title": "Build a hardware scanner",
+        "text": "Our scanner let's you keep track of your inventory, without having to go back and forth to your computer during PCB assembly. Instead you just scan the QR ID code, and type in the quantity change - no manual searching for the part in the software.",
         "mediaCaption": "History workspace",
         "href": "/docs/desktop/history/",
         "media": null
@@ -91,7 +91,7 @@
         { "item": "Scanner enclosure", "note": ".STEP" },
         { "item": "Charging dock", "note": ".STEP"},
         { "item": "Fine-tuned print-ready files", "note": ".3MF" },
-        { "item": "Detailed .PDF and video assembly instructions", "note": "" }
+        { "item": "Detailed assembly instructions", "note": ".PDF/.MP4" }
       ]
     }
   },
