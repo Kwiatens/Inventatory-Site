@@ -22,7 +22,6 @@ import { url } from '../../lib/url';
     <div class="steps" data-track>
       {steps.map((step) => (
         <article class="step" id={step.id} data-step aria-labelledby={`step-${step.id}`}>
-          <span class="progress" aria-hidden="true"></span>
           <h3 id={`step-${step.id}`}>
             <button type="button" class="toggle" aria-expanded="true" aria-controls={`body-${step.id}`} data-toggle>
               {step.title}
@@ -91,9 +90,6 @@ import { url } from '../../lib/url';
         const open = i === index;
         item.classList.toggle('is-open', open);
         toggles[i].setAttribute('aria-expanded', String(open));
-        // Restart the progress line on the newly opened step.
-        item.classList.remove('is-running');
-        if (open) { void item.offsetWidth; item.classList.add('is-running'); }
       });
       frames.forEach((frame, i) => {
         frame.classList.toggle('is-active', i === index);
@@ -142,7 +138,6 @@ import { url } from '../../lib/url';
   .layout { display: grid; gap: var(--space-12); }
 
   /* ---------- step list ---------- */
-  .steps { border-bottom: var(--border) solid var(--divider); }
   .step { position: relative; }
   h3 { margin: 0; font: inherit; }
   .toggle {
@@ -152,8 +147,6 @@ import { url } from '../../lib/url';
   }
   .toggle:focus-visible { outline-offset: -2px; }
 
-  /* Progress: the item's top rule fills with the accent while it is shown. */
-  .progress { position: absolute; left: 0; top: -1px; height: 1px; width: 0; background: var(--accent); }
 
   .text > p { max-width: 42ch; color: var(--secondary); font-size: var(--text-base); line-height: 1.65; }
   .more { display: inline-block; margin-top: var(--space-4); font: var(--text-sm)/1.5 var(--font-mono); text-decoration: none; }
@@ -173,15 +166,10 @@ import { url } from '../../lib/url';
   .is-enhanced .toggle { cursor: pointer; color: var(--muted); transition: color .2s; }
   .is-enhanced .toggle:hover { color: var(--secondary); }
   .is-enhanced .is-open .toggle { color: var(--text); cursor: default; }
-  .is-enhanced .is-open .progress { width: 100%; }
   .is-enhanced .body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .45s cubic-bezier(.65, 0, .35, 1); }
   .is-enhanced .inner { min-height: 0; overflow: hidden; padding-bottom: 0; visibility: hidden; transition: visibility 0s .45s, padding .45s cubic-bezier(.65, 0, .35, 1); }
   .is-enhanced .is-open .body { grid-template-rows: 1fr; }
   .is-enhanced .is-open .inner { visibility: visible; padding-bottom: var(--space-6); transition-delay: 0s; }
-  @media (prefers-reduced-motion: no-preference) {
-    [data-autoplay='true'] .is-open.is-running .progress { animation: step-progress 7s linear both; }
-  }
-  @keyframes step-progress { from { width: 0; } to { width: 100%; } }
 
   /* ---------- wide: list beside a single frame ---------- */
   @media (min-width: 64.01rem) {

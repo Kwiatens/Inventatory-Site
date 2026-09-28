@@ -45,7 +45,7 @@
 .sl-markdown-content h2, .sl-markdown-content h3 { font-weight: 550; }
 .sl-markdown-content a { text-underline-offset: .2em; }
 .sl-markdown-content img { border: var(--border) solid var(--divider); }
-.sidebar a[aria-current='page'] { background: var(--selection); color: var(--focus); }
+.sidebar a[aria-current='page'] { background: #343d3b; color: var(--text); }
 .pagination-links a { border-radius: 0; box-shadow: none; }
 .docs-version-note { color: var(--muted); font-size: var(--text-sm); }
 @media (max-width: 65rem) { .docs-header { gap: var(--space-4); } .docs-primary a { padding-inline: var(--space-2); font-size: var(--text-xs); } .docs-primary a[aria-current]::after { left: var(--space-2); right: var(--space-2); } }
