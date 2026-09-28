@@ -45,7 +45,7 @@ import { url } from '../../lib/url';
       ))}
     </div>
 
-    <!-- Wide screens: one frame for the open step's media, with its caption. -->
+    <!-- Wide screens: one frame for the open step's media. -->
     <div class="stage" data-stage>
       {steps.map((step, i) => (
         <figure class="frame" data-frame aria-hidden={i === 0 ? undefined : 'true'}>
@@ -54,7 +54,6 @@ import { url } from '../../lib/url';
               ? <img src={url(step.media.src)} alt={step.media.alt} width={step.media.width} height={step.media.height} loading="lazy" decoding="async" style={{ objectPosition: step.media.position, '--zoom': step.media.zoom ?? 1 }} />
               : <div class="pending" role="img" aria-label={`${step.mediaCaption}: ${workflow.recordingPendingText}`}><span>{workflow.recordingPendingText}</span></div>}
           </div>
-          <figcaption>{step.mediaCaption}</figcaption>
         </figure>
       ))}
     </div>
@@ -136,7 +135,7 @@ import { url } from '../../lib/url';
 
 <style>
   .lifecycle { padding-block: var(--space-16) var(--space-20); }
-  .intro { padding-top: var(--space-12); margin-bottom: var(--space-12); border-top: var(--border) solid var(--divider); }
+  .intro { margin-bottom: var(--space-12); }
   .intro h2 { font-size: clamp(1.5rem, 2.4vw, 2rem); line-height: 1.2; letter-spacing: -.02em; }
   .intro p { max-width: 40ch; margin-top: var(--space-4); color: var(--muted); }
 
@@ -191,7 +190,6 @@ import { url } from '../../lib/url';
     .is-enhanced .stage { display: grid; }
     .frame { grid-area: 1 / 1; margin: 0; opacity: 0; visibility: hidden; transition: opacity .4s ease, visibility 0s .4s; }
     .frame.is-active { opacity: 1; visibility: visible; transition-delay: 0s; }
-    figcaption { margin-top: var(--space-3); color: var(--muted); font: var(--text-xs)/1.5 var(--font-mono); }
   }
   @media (max-width: 40rem) {
     .lifecycle { padding-block: var(--space-8) var(--space-16); }

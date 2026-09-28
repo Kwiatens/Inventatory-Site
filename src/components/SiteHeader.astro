@@ -38,11 +38,11 @@ const external = nav.filter(item => item.href.startsWith('https:'));
     transition: background .15s, color .15s;
   }
   nav a:hover { background: var(--hover); color: var(--text); }
-  nav a[aria-current] { color: var(--focus); }
+  nav a[aria-current] { color: var(--text); }
   /* Active page: a row of pixel dashes, like the slots in the mark. */
   nav a[aria-current]::after {
     content: ''; position: absolute; left: var(--space-4); right: var(--space-4); bottom: 2px; height: 3px;
-    background: repeating-linear-gradient(90deg, var(--accent) 0 3px, transparent 3px 5px);
+    background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--accent) 50%, transparent) 0 3px, transparent 3px 5px);
   }
   .header-meta { justify-self: end; display: flex; align-items: center; gap: var(--space-4); font: var(--text-xs)/1.5 var(--font-mono); }
   .external {
