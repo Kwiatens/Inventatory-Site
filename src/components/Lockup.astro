@@ -1,9 +1,14 @@
 ---
 /**
  * The ›iNVENTATORY lockup: the desktop ANSI wordmark whose "I" is the Inventatory mark
- * (prompt + i with a four-slot dot). Rendered as shapes so it looks the same on every system.
+ * (prompt + i). The i's dot is one letter pixel split into four rack slots; it is left out
+ * by default so the lockup sits on the letters' own box.
+ *
+ * `tone="flat"` drops the baked-in gradient; colours then come from CSS custom properties
+ * so each placement can tune them: --lockup-word, --lockup-mark and --lockup-shadow
+ * (all default to currentColor).
  */
-import { getLockup, shadowOffset, type LockupTheme } from '../lib/lockup';
+import { getLockup, shadowOffset, CELL_H, TOP_ROW, LETTER_TOP, type LockupTheme } from '../lib/lockup';
 
 interface Props {
   /** Half-block drop shadow behind the blocks. */
@@ -11,24 +16,43 @@ interface Props {
   /** Boot animation: prompt → i → the rest of the word builds out. */
   animate?: boolean;
   theme?: LockupTheme;
+  tone?: 'gradient' | 'flat';
+  /**
+   * The i's dot. `none` leaves it out; `static` draws it; `rack` fills the four slots
+   * once, then drops them into the stem. `rack` draws above the lockup's box, so the
+   * layout is the same as `none`.
+   */
+  dot?: 'none' | 'static' | 'rack';
+  /** Blinking underscore cursor after the word. */
+  cursor?: boolean;
   label?: string;
   class?: string;
 }
-const { shadow = true, animate = false, theme = 'teal', label = 'Inventatory', class: className } = Astro.props;
+const { shadow = true, animate = false, theme = 'teal', tone = 'gradient', dot = 'none', cursor = false, label = 'Inventatory', class: className } = Astro.props;
 const data = getLockup(theme);
-const width = data.width + (shadow ? shadowOffset.x : 0);
-const height = data.height + (shadow ? shadowOffset.y : 0);
-const parts = ['prompt', 'stem', 'dot', 'word'] as const;
+const flat = tone === 'flat';
+// Cursor: one letter wide (three pixels), on the baseline row, one pixel after the word.
+const cursorRect = { x: data.width + CELL_H, y: (4 - TOP_ROW) * CELL_H, width: CELL_H * 3, height: CELL_H };
+const contentWidth = cursor ? cursorRect.x + cursorRect.width : data.width;
+const width = contentWidth + (shadow ? shadowOffset.x : 0);
+const top = dot === 'static' ? 0 : LETTER_TOP;
+const height = data.height - top + (shadow ? shadowOffset.y : 0);
+type Part = 'prompt' | 'stem' | 'dot' | 'word';
+const parts: Part[] = dot === 'none' ? ['prompt', 'stem', 'word'] : ['prompt', 'stem', 'dot', 'word'];
 // Boot timing in seconds: prompt pixels, stem rows bottom-up, dot slots, then the word.
-const delay = (part: (typeof parts)[number], order: number) =>
+const delay = (part: Part, order: number) =>
   part === 'prompt' ? 0.15 + order * 0.09
   : part === 'stem' ? 0.7 + order * 0.07
   : part === 'dot' ? 1.1 + order * 0.08
   : 0;
+const cellStyle = (part: Part, order: number) =>
+  part === 'dot' && dot === 'rack' ? { '--i': order }
+  : animate && part !== 'word' ? { '--delay': delay(part, order) + 's' }
+  : undefined;
 ---
 <svg
-  class:list={['lockup', { 'lockup-boot': animate }, className]}
-  viewBox={`0 0 ${width} ${height}`}
+  class:list={['lockup', { 'lockup-boot': animate, 'lockup-flat': flat, 'lockup-rack': dot === 'rack' }, className]}
+  viewBox={`0 ${top} ${width} ${height}`}
   role="img"
   aria-label={label}
   focusable="false"
@@ -36,19 +60,34 @@ const delay = (part: (typeof parts)[number], order: number) =>
   {parts.map(part => (
     <g class={`lockup-${part}`}>
       {data.rects.filter(rect => rect.part === part).map(rect => (
-        <g class="lockup-cell" style={!animate || part === 'word' ? undefined : { '--delay': delay(part, rect.order) + 's' }}>
-          {shadow && <rect x={rect.x + shadowOffset.x} y={rect.y + shadowOffset.y} width={rect.width} height={rect.height} fill={rect.shadow} />}
-          <rect class={part === 'dot' ? 'slot' : undefined} x={rect.x} y={rect.y} width={rect.width} height={rect.height} fill={rect.fill} />
+        <g class="lockup-cell" style={cellStyle(part, rect.order)}>
+          {shadow && <rect class="shade" x={rect.x + shadowOffset.x} y={rect.y + shadowOffset.y} width={rect.width} height={rect.height} fill={flat ? undefined : rect.shadow} />}
+          <rect class:list={['face', { slot: part === 'dot' }]} x={rect.x} y={rect.y} width={rect.width} height={rect.height} fill={flat ? undefined : rect.fill} />
         </g>
       ))}
     </g>
   ))}
+  {cursor && (
+    <g class="lockup-cursor">
+      {shadow && <rect class="shade" x={cursorRect.x + shadowOffset.x} y={cursorRect.y + shadowOffset.y} width={cursorRect.width} height={cursorRect.height} />}
+      <rect class="face" {...cursorRect} />
+    </g>
+  )}
 </svg>
 
 <style>
   /* Cells are drawn top-to-bottom, left-to-right, so each shadow (offset right and down)
      is always covered by the blocks drawn after it. */
   .lockup { display: block; width: 100%; height: auto; overflow: visible; }
+
+  .lockup-flat .face { fill: var(--lockup-word, currentColor); }
+  .lockup-flat :is(.lockup-prompt, .lockup-stem, .lockup-dot) .face { fill: var(--lockup-mark, var(--lockup-word, currentColor)); transition: fill .2s ease; }
+  .lockup-flat .shade { fill: var(--lockup-shadow, currentColor); opacity: var(--lockup-shadow-opacity, 1); }
+  .lockup-cursor .face { fill: var(--lockup-cursor, var(--lockup-mark, currentColor)); }
+  .lockup-cursor .shade { fill: var(--lockup-shadow, currentColor); }
+
+  /* Rack dot: hidden at rest (and with reduced motion); the animation shows it once. */
+  .lockup-rack .lockup-dot .lockup-cell { opacity: 0; transform-box: fill-box; transform-origin: 50% 50%; }
 
   @media (prefers-reduced-motion: no-preference) {
     .lockup-boot :is(.lockup-prompt, .lockup-stem, .lockup-dot) .lockup-cell {
@@ -58,10 +97,25 @@ const delay = (part: (typeof parts)[number], order: number) =>
     .lockup-boot .lockup-word {
       animation: lockup-type 1s steps(46) 1.45s both;
     }
+    .lockup-cursor { animation: lockup-blink 1.1s steps(1) infinite; }
+    /* Slots fill one by one like parts going into a rack, hold, then each one drops
+       into the stem in the same order. */
+    .lockup-rack .lockup-dot .lockup-cell {
+      animation: lockup-rack 3.6s linear both;
+      animation-delay: calc(.6s + var(--i) * .14s);
+    }
   }
   @keyframes lockup-pixel { from { opacity: 0; } }
   @keyframes lockup-type {
     from { clip-path: inset(0 100% 0 0); }
     to { clip-path: inset(0 -2% 0 0); }
+  }
+  @keyframes lockup-blink { 50% { opacity: 0; } }
+  @keyframes lockup-rack {
+    0% { opacity: 0; transform: translateY(-14px) scale(.6); animation-timing-function: cubic-bezier(.2, .9, .3, 1.25); }
+    9% { opacity: 1; transform: none; }
+    64% { opacity: 1; transform: none; animation-timing-function: cubic-bezier(.55, 0, .8, .3); }
+    76% { opacity: 0; transform: translateY(32px) scaleY(.5); }
+    100% { opacity: 0; transform: translateY(32px) scaleY(.5); }
   }
 </style>

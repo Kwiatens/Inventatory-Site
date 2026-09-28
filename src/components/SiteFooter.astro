@@ -3,36 +3,46 @@ import { site } from '../data/site';
 import { url } from '../lib/url';
 import Lockup from './Lockup.astro';
 ---
-<footer class="wrap site-footer">
-  <div class="footer-signature">
-    <div class="footer-wordmark"><Lockup theme="gray" shadow /></div>
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <div class="footer-signature">
+      <a class="footer-wordmark" href={url('/')} aria-label="Inventatory home"><Lockup tone="flat" shadow /></a>
+      <p class="byline">by <a href="https://github.com/Kwiatens">Kwiatens</a></p>
+    </div>
+    <nav aria-label="Footer links">
+      <a href={url('/docs/resources/')}>Contribute</a>
+      <a href={site.repository + '/issues'}>Report an issue</a>
+      <a href={site.repository + '/blob/main/LICENSE.md'}>GPL-3.0-only</a>
+    </nav>
   </div>
-  <nav aria-label="Footer links">
-    <a href={url('/docs/resources/')}>Contribute</a>
-    <a href={site.repository + '/issues'}>Report an issue</a>
-    <a href={site.repository + '/blob/main/LICENSE.md'}>GPL-3.0-only</a>
-  </nav>
 </footer>
 <style>
-  .site-footer {
-    position: relative;
+  .site-footer { border-top: var(--border) solid var(--divider); background: var(--canvas); }
+  .footer-inner {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    gap: var(--space-8);
-    padding-block: var(--space-12);
-    border-top: var(--border) solid var(--divider);
-    font: var(--text-xs)/1.7 var(--font-mono);
+    align-items: flex-end;
+    gap: var(--space-6);
+    padding-block: var(--space-8);
+    font: var(--text-xs)/1 var(--font-mono);
   }
+  /* Embossed into the canvas: barely lighter than the background, with a darker drop. */
   .footer-wordmark {
-    width: min(100%, clamp(20rem, 32vw, 26rem));
     display: block;
+    width: 10.5rem;
+    --lockup-word: #2a3331;
+    --lockup-mark: #2a3331;
+    --lockup-shadow: #080a0a;
   }
+  .footer-wordmark:hover { --lockup-mark: var(--active); }
+  .byline { margin-top: var(--space-3); color: #4f5a57; font: inherit; letter-spacing: .04em; }
+  .byline a { color: inherit; text-decoration: none; transition: color .18s ease; }
+  .byline a:hover { color: var(--muted); }
   nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-6); }
   nav a { color: var(--muted); text-decoration: none; transition: color 180ms ease; }
   nav a:hover { color: var(--focus); }
-  @media (max-width: 48rem) {
-    .site-footer { flex-direction: column; align-items: flex-start; gap: var(--space-6); padding-block: var(--space-8); }
-    nav { justify-content: flex-start; gap: var(--space-4); }
+  @media (max-width: 40rem) {
+    .footer-inner { flex-direction: column; align-items: flex-start; gap: var(--space-6); padding-block: var(--space-8); }
+    nav { justify-content: flex-start; gap: var(--space-3) var(--space-6); }
   }
 </style>

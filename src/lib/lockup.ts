@@ -54,12 +54,23 @@ export interface LockupRect {
   shadow: string;
   /** Build order inside its part, used for the boot animation. */
   order: number;
+  /** Letter of the word this block belongs to (0 = N … 9 = Y); -1 outside the word. */
+  letter: number;
 }
 
 function build(theme: LockupTheme = 'teal') {
   const palette = PALETTES[theme];
   const rowRgb = (y: number) => mix(palette.start, palette.end, (y - TOP_ROW) / (LETTER_ROWS - 1 - TOP_ROW));
   const cells: Array<{ x: number; y: number; part: LockupPart; order: number }> = [];
+  // Letters of the wordmark are separated by columns with no solid block.
+  const letterOf: number[] = [];
+  let letter = -1;
+  for (let x = 0, inLetter = false; x < logoRows[0].length; x++) {
+    const solid = logoRows.slice(0, LETTER_ROWS).some(row => row[x] === '█');
+    if (solid && !inLetter) letter++;
+    inLetter = solid;
+    letterOf[x] = letter - 1; // the first letter is the I stem, part of the mark
+  }
   PROMPT.forEach(([px, py], i) => {
     cells.push({ x: px * 2, y: py, part: 'prompt', order: i }, { x: px * 2 + 1, y: py, part: 'prompt', order: i });
   });
@@ -81,7 +92,7 @@ function build(theme: LockupTheme = 'teal') {
   [[0, 0], [1, 0], [0, 1], [1, 1]].forEach(([i, j], order) => {
     const color = rowRgb(TOP_ROW);
     rects.push({
-      part: 'dot', order,
+      part: 'dot', order, letter: -1,
       x: dotX + i * CELL_W, y: dotY + j * half,
       width: CELL_W + (i === 0 ? 0.6 : 0), height: half + (j === 0 ? 0.6 : 0),
       fill: hex(color), shadow: hex(mix(color, palette.canvas, palette.shadowFactor)),
@@ -103,7 +114,7 @@ function build(theme: LockupTheme = 'teal') {
     const overlapX = has(cell.x + run, cell.y) ? 0.6 : 0;
     const overlapY = has(cell.x, cell.y + 1) ? 0.6 : 0;
     rects.push({
-      part: cell.part, order: cell.order,
+      part: cell.part, order: cell.order, letter: cell.part === 'word' ? letterOf[cell.x - WORD_X] : -1,
       x: cell.x * CELL_W, y: (cell.y - TOP_ROW) * CELL_H,
       width: run * CELL_W + overlapX, height: CELL_H + overlapY,
       fill: hex(color), shadow: hex(mix(color, palette.canvas, palette.shadowFactor)),
@@ -117,5 +128,9 @@ export const lockupTeal = build('teal');
 export const lockupGray = build('gray');
 export const lockup = lockupTeal;
 export const getLockup = (theme: LockupTheme = 'teal') => theme === 'gray' ? lockupGray : lockupTeal;
+/** Top of the letter rows; the dot and its gap sit above this line. */
+export const LETTER_TOP = -TOP_ROW * CELL_H;
+/** Width of the ›i mark (prompt and stem) without the rest of the word. */
+export const MARK_WIDTH = (WORD_X + 2) * CELL_W;
 /** Offset of the half-block drop shadow: one character right, half a row down. */
 export const shadowOffset = { x: CELL_W, y: CELL_H / 2 };

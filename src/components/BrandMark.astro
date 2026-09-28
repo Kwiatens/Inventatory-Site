@@ -1,0 +1,70 @@
+---
+/**
+ * Header brand: the ›i mark at rest, unfolding into the full ›iNVENTATORY wordmark on
+ * hover or keyboard focus and folding back when the pointer leaves.
+ * The box widens from the mark to the full word while each letter slides in behind it;
+ * folding plays the same motion in reverse, letters first, then the box.
+ * Size it with --h (default 1.5rem); colours via --lockup-word and --lockup-mark.
+ */
+import { lockup, LETTER_TOP, MARK_WIDTH } from '../lib/lockup';
+import { url } from '../lib/url';
+
+interface Props { class?: string; }
+const { class: className } = Astro.props;
+const height = lockup.height - LETTER_TOP;
+const letters = Math.max(...lockup.rects.map(rect => rect.letter)) + 1;
+const mark = lockup.rects.filter(rect => rect.part === 'prompt' || rect.part === 'stem');
+const word = Array.from({ length: letters }, (_, i) => lockup.rects.filter(rect => rect.part === 'word' && rect.letter === i));
+---
+<a
+  class:list={['brand-mark', className]}
+  href={url('/')}
+  aria-label="Inventatory home"
+  style={{ '--collapsed': MARK_WIDTH / height, '--expanded': lockup.width / height, '--letters': letters }}
+>
+  <span class="brand-clip">
+    <svg viewBox={`0 ${LETTER_TOP} ${lockup.width} ${height}`} aria-hidden="true" focusable="false">
+      <g class="brand-i">{mark.map(rect => <rect x={rect.x} y={rect.y} width={rect.width} height={rect.height} />)}</g>
+      {word.map((rects, i) => (
+        <g class="brand-letter" style={{ '--i': i }}>{rects.map(rect => <rect x={rect.x} y={rect.y} width={rect.width} height={rect.height} />)}</g>
+      ))}
+    </svg>
+  </span>
+</a>
+
+<style>
+  .brand-mark {
+    --ease: cubic-bezier(.65, 0, .35, 1);
+    display: inline-flex;
+    align-items: center;
+    /* A little extra hit area so the collapsed mark is easy to reach. */
+    padding: var(--space-2) var(--space-2) var(--space-2) 0;
+    text-decoration: none;
+  }
+  .brand-clip {
+    display: block;
+    width: calc(var(--h, 1.5rem) * var(--collapsed));
+    height: var(--h, 1.5rem);
+    overflow: hidden;
+    /* Folding: wait for the letters to leave, then close. */
+    transition: width .42s var(--ease) .16s;
+  }
+  svg { display: block; width: calc(var(--h, 1.5rem) * var(--expanded)); height: var(--h, 1.5rem); overflow: visible; }
+  .brand-i rect { fill: var(--lockup-mark, currentColor); transition: fill .25s ease; }
+  .brand-letter rect { fill: var(--lockup-word, currentColor); }
+  .brand-letter {
+    opacity: 0;
+    transform: translateX(-14px);
+    /* Folding runs right to left: the Y leaves first. */
+    transition: opacity .18s ease calc((var(--letters) - 1 - var(--i)) * 16ms), transform .24s var(--ease) calc((var(--letters) - 1 - var(--i)) * 16ms);
+  }
+
+  .brand-mark:is(:hover, :focus-visible) .brand-clip { width: calc(var(--h, 1.5rem) * var(--expanded)); transition: width .56s var(--ease); }
+  .brand-mark:is(:hover, :focus-visible) .brand-letter {
+    opacity: 1;
+    transform: none;
+    /* Unfolding runs left to right, a beat behind the opening box. */
+    transition: opacity .34s ease calc(70ms + var(--i) * 32ms), transform .5s var(--ease) calc(40ms + var(--i) * 32ms);
+  }
+  .brand-mark:focus-visible { outline-offset: 2px; }
+</style>

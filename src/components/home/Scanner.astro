@@ -100,21 +100,26 @@ const external = (href: string) => /^https?:/.test(href);
   .links li { margin: 0; }
   .links a { text-decoration: none; }
 
-  /* Bundle route */
-  .bundle { background: var(--focus); color: var(--canvas); }
-  .bundle h3 { color: var(--canvas); }
-  .bundle > p { color: var(--active-soft); }
-  .rev { padding: 2px var(--space-2); border: var(--border) solid rgb(13 16 16 / .45); color: var(--active-soft); font: 500 var(--text-xs)/1.4 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
+  /* Bundle route: the supported option. Set apart by a lit edge, a tinted surface and the
+     one filled button in the section, rather than by volume. */
+  .bundle {
+    position: relative;
+    border: var(--border) solid var(--active);
+    background: var(--active-soft);
+  }
+  .bundle::before { content: ''; position: absolute; inset: -1px -1px auto; height: 2px; background: var(--accent); }
+  .bundle > p { color: var(--secondary); }
+  .rev { padding: 2px var(--space-2); border: var(--border) solid var(--active); color: var(--focus); font: 500 var(--text-xs)/1.4 var(--font-mono); letter-spacing: .06em; text-transform: uppercase; }
   .manifest { width: 100%; margin-top: var(--space-6); border-collapse: collapse; font: var(--text-xs)/1.5 var(--font-mono); }
-  .manifest th { padding-bottom: var(--space-2); color: var(--active); font-weight: 400; text-align: left; text-transform: uppercase; letter-spacing: .06em; border-bottom: var(--border) solid rgb(13 16 16 / .35); }
-  .manifest td { padding: var(--space-2) 0; border-bottom: var(--border) solid rgb(13 16 16 / .15); color: var(--canvas); }
+  .manifest th { padding-bottom: var(--space-2); color: var(--muted); font-weight: 400; text-align: left; text-transform: uppercase; letter-spacing: .06em; border-bottom: var(--border) solid var(--divider); }
+  .manifest td { padding: var(--space-2) 0; border-bottom: var(--border) solid rgb(56 69 67 / .5); color: var(--text); }
+  .manifest td:first-child { color: var(--muted); }
   .manifest th:first-child, .manifest td:first-child { width: 3.5rem; }
-  .manifest td:last-child, .manifest th:last-child { text-align: right; color: var(--active); }
+  .manifest td:last-child, .manifest th:last-child { text-align: right; color: var(--link); }
   .buy { display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); margin-top: auto; padding-top: var(--space-8); }
-  .price { font: 500 var(--text-h2)/1 var(--font-mono); letter-spacing: -.02em; }
-  .buy-link { display: inline-flex; align-items: center; gap: var(--space-3); min-height: 2.875rem; padding: var(--space-2) var(--space-6); background: var(--canvas); color: var(--focus); font: 500 var(--text-sm)/1.5 var(--font-mono); text-decoration: none; transition: background .2s; }
-  .buy-link:hover { background: var(--raised); color: var(--text); }
-  .buy-link:focus-visible { outline-color: var(--canvas); }
+  .price { color: var(--text); font: 500 var(--text-h2)/1 var(--font-mono); letter-spacing: -.02em; }
+  .buy-link { display: inline-flex; align-items: center; gap: var(--space-3); min-height: 2.875rem; padding: var(--space-2) var(--space-6); background: var(--accent); color: var(--canvas); font: 500 var(--text-sm)/1.5 var(--font-mono); text-decoration: none; transition: background .2s; }
+  .buy-link:hover { background: var(--focus); color: var(--canvas); }
   .buy-link span { transition: transform .2s; }
   .buy-link:hover span { transform: translateX(3px); }
 

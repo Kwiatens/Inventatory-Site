@@ -31,9 +31,9 @@
 ::selection { background: var(--selection); }
 :focus-visible { outline: var(--focus-width) solid var(--focus); outline-offset: var(--space-1); }
 .docs-header { display: flex; align-items: center; gap: var(--space-6); height: 100%; }
-.docs-brand { display: inline-flex; align-items: center; text-decoration: none; opacity: .80; transition: opacity .15s ease; flex-shrink: 0; }
-.docs-brand:hover { opacity: 1; }
-.docs-brand .lockup { height: 1.25rem; width: auto; }
+/* Reserve the unfolded width so the navigation does not move when the mark unfolds. */
+.docs-brand { flex-shrink: 0; min-width: calc(var(--h, 1.5rem) * var(--expanded)); --lockup-word: var(--muted); --lockup-mark: #5d6865; }
+.docs-brand:is(:hover, :focus-visible) { --lockup-mark: var(--accent); }
 .docs-primary { display: flex; flex: 1; flex-wrap: wrap; gap: var(--space-1); }
 .docs-primary a { position: relative; font: var(--text-sm)/1.5 var(--font-mono); color: var(--secondary); text-decoration: none; padding: var(--space-2) var(--space-4); transition: background .15s, color .15s; }
 .docs-primary a:hover { background: var(--hover); color: var(--text); }
