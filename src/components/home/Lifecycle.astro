@@ -10,14 +10,15 @@ import { url } from '../../lib/url';
 
 // The ›-prompt from the logo mark, in letter pixels (x, y).
 const prompt = [[0, 0], [1, 1], [2, 2], [1, 3], [0, 4]];
-const hasIntro = (workflow.headingLines && workflow.headingLines.some(line => line.trim().length > 0)) || Boolean(workflow.summary);
+const headingLines = (workflow.headingLines ?? []) as string[];
+const hasIntro = headingLines.some(line => line.trim().length > 0) || Boolean(workflow.summary);
 ---
 <section id="features" class="lifecycle wrap" aria-labelledby={hasIntro ? "lifecycle-heading" : undefined} aria-label={hasIntro ? undefined : "Features"} data-lifecycle>
   {hasIntro && (
     <header class="intro">
       <h2 id="lifecycle-heading">
-        {workflow.headingLines.map((line, i) => (
-          <Fragment key={i}>{line}{i < workflow.headingLines.length - 1 && <br />}</Fragment>
+        {headingLines.map((line, i) => (
+          <Fragment key={i}>{line}{i < headingLines.length - 1 && <br />}</Fragment>
         ))}
       </h2>
       {workflow.summary && <p>{workflow.summary}</p>}
