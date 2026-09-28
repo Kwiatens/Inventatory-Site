@@ -16,10 +16,7 @@
     ]
   },
   "workflow": {
-    "headingLines": [
-      "See what it can do",
-      ""
-    ],
+    "headingLines": [],
     "summary": "",
     "readGuideText": "Read the guide",
     "recordingPendingText": "Recording pending",
