@@ -7,6 +7,9 @@
  */
 import { workflow, steps } from '../../data/home';
 import { url } from '../../lib/url';
+
+// The ›-prompt from the logo mark, in letter pixels (x, y).
+const prompt = [[0, 0], [1, 1], [2, 2], [1, 3], [0, 4]];
 ---
 <section id="features" class="lifecycle wrap" aria-labelledby="lifecycle-heading" data-lifecycle>
   <header class="intro">
@@ -24,7 +27,10 @@ import { url } from '../../lib/url';
         <article class="step" id={step.id} data-step aria-labelledby={`step-${step.id}`}>
           <h3 id={`step-${step.id}`}>
             <button type="button" class="toggle" aria-expanded="true" aria-controls={`body-${step.id}`} data-toggle>
-              {step.title}
+              <span>{step.title}</span>
+              <svg class="hint" viewBox="0 0 60 100" aria-hidden="true" focusable="false">
+                {prompt.map(([x, y], i) => <rect x={x * 20} y={y * 20} width="20.6" height="20.6" style={{ '--i': i }} />)}
+              </svg>
             </button>
           </h3>
           <div class="body" id={`body-${step.id}`}>
@@ -166,6 +172,17 @@ import { url } from '../../lib/url';
   .is-enhanced .toggle { cursor: pointer; color: var(--muted); transition: color .2s; }
   .is-enhanced .toggle:hover { color: var(--secondary); }
   .is-enhanced .is-open .toggle { color: var(--text); cursor: default; }
+  /* Closed steps show the logo's › prompt so it is clear they can be opened. It turns to point
+     down on hover. When a step opens, its pixels switch off one by one; they come back when
+     it closes. */
+  .hint { display: none; }
+  .is-enhanced .toggle { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); }
+  .is-enhanced .hint { display: block; flex: none; height: 1rem; width: .6rem; margin-right: var(--space-1); fill: var(--muted); transition: transform .25s cubic-bezier(.65, 0, .35, 1), fill .2s; }
+  .is-enhanced .toggle:is(:hover, :focus-visible) .hint { fill: var(--accent); transform: rotate(90deg); }
+  .is-enhanced .is-open .hint :global(rect) { opacity: 0; }
+  @media (prefers-reduced-motion: no-preference) {
+    .is-enhanced .is-open .hint :global(rect) { transition: opacity .01s calc(max(var(--i) - 2, 2 - var(--i)) * .12s); }
+  }
   .is-enhanced .body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .45s cubic-bezier(.65, 0, .35, 1); }
   .is-enhanced .inner { min-height: 0; overflow: hidden; padding-bottom: 0; visibility: hidden; transition: visibility 0s .45s, padding .45s cubic-bezier(.65, 0, .35, 1); }
   .is-enhanced .is-open .body { grid-template-rows: 1fr; }

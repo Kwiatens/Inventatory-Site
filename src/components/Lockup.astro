@@ -8,13 +8,15 @@
  * so each placement can tune them: --lockup-word, --lockup-mark and --lockup-shadow
  * (all default to currentColor).
  */
-import { getLockup, shadowOffset, CELL_H, TOP_ROW, LETTER_TOP, type LockupTheme } from '../lib/lockup';
+import { getLockup, shadowOffset, CELL_W, CELL_H, TOP_ROW, LETTER_TOP, MARK_WIDTH, type LockupTheme } from '../lib/lockup';
 
 interface Props {
   /** Half-block drop shadow behind the blocks. */
   shadow?: boolean;
-  /** Boot animation: prompt → i → the rest of the word builds out. */
+  /** Boot animation: a terminal types the prompt, the i and then the word, cursor and all. */
   animate?: boolean;
+  /** With `animate`: the typist swaps two letters, notices, backspaces and types them again. */
+  typo?: boolean;
   theme?: LockupTheme;
   tone?: 'gradient' | 'flat';
   /**
@@ -28,7 +30,7 @@ interface Props {
   label?: string;
   class?: string;
 }
-const { shadow = true, animate = false, theme = 'teal', tone = 'gradient', dot = 'none', cursor = false, label = 'Inventatory', class: className } = Astro.props;
+const { shadow = true, animate = false, typo = false, theme = 'teal', tone = 'gradient', dot = 'none', cursor = false, label = 'Inventatory', class: className } = Astro.props;
 const data = getLockup(theme);
 const flat = tone === 'flat';
 // Cursor: one letter wide (three pixels), on the baseline row, one pixel after the word.
@@ -39,16 +41,94 @@ const top = dot === 'static' ? 0 : LETTER_TOP;
 const height = data.height - top + (shadow ? shadowOffset.y : 0);
 type Part = 'prompt' | 'stem' | 'dot' | 'word';
 const parts: Part[] = dot === 'none' ? ['prompt', 'stem', 'word'] : ['prompt', 'stem', 'dot', 'word'];
-// Boot timing in seconds: prompt pixels, stem rows bottom-up, dot slots, then the word.
-const delay = (part: Part, order: number) =>
-  part === 'prompt' ? 0.15 + order * 0.09
-  : part === 'stem' ? 0.7 + order * 0.07
-  : part === 'dot' ? 1.1 + order * 0.08
-  : 0;
-const cellStyle = (part: Part, order: number) =>
+// ---- Boot animation: a typist at a terminal -------------------------------------------
+// One timeline drives everything: when each glyph appears, where the caret is, and when it
+// blinks. It is fixed at build time (seeded jitter), so the page renders the same every time
+// and needs no script.
+const HOLD = 0.55;   // the caret stays solid this long after a keystroke, then blinks
+const BLINK = 0.53;  // half a blink period
+const TAIL = 3.2;    // how long the caret keeps blinking once the word is typed
+const letterLeft = (n: number) => Math.min(...data.rects.filter(r => r.letter === n).map(r => r.x));
+const promptX = 0;
+const stemX = MARK_WIDTH - 2 * CELL_W;
+const finalX = cursorRect.x;
+const afterLetter = (n: number) => (n < 9 ? letterLeft(n + 1) : finalX);
+
+interface Ghost { letter: number; dx: number; on: number; off: number }
+function buildTimeline() {
+  let seed = 11;
+  const rand = () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
+  const gap = (mean: number) => mean * (0.6 + rand() * 0.8);
+  const moves: Array<{ t: number; x: number }> = [{ t: 0, x: promptX }];
+  const letters: number[] = [];
+  const ghosts: Ghost[] = [];
+  // The caret waits, blinking, before the first key.
+  let t = 1.1;
+  const prompt = t;
+  moves.push({ t, x: stemX });
+  t += gap(0.36);
+  const stem = t;
+  moves.push({ t, x: letterLeft(0) });
+  t += 0.3;
+  let typed = false;
+  for (let k = 0; k < 10; k++) {
+    if (typo && k === 7 && !typed) {
+      typed = true;
+      // O and R typed the wrong way round.
+      t += gap(0.12);
+      const r: Ghost = { letter: 8, dx: letterLeft(7) - letterLeft(8), on: t, off: 0 };
+      moves.push({ t, x: letterLeft(8) });
+      t += gap(0.1);
+      const o: Ghost = { letter: 7, dx: letterLeft(8) - letterLeft(7), on: t, off: 0 };
+      moves.push({ t, x: letterLeft(9) });
+      // A beat to notice, then two backspaces, then the caret settles before retyping.
+      t += 0.72;
+      o.off = t; moves.push({ t, x: letterLeft(8) });
+      t += gap(0.11);
+      r.off = t; moves.push({ t, x: letterLeft(7) });
+      t += 0.26;
+      ghosts.push(r, o);
+    }
+    t += gap(k === 4 ? 0.2 : 0.11);
+    letters[k] = t;
+    moves.push({ t, x: afterLetter(k) });
+  }
+  return { moves, letters, ghosts, prompt, stem, end: t };
+}
+const timeline = animate ? buildTimeline() : null;
+
+const delay = (part: Part, order: number, letter: number) => {
+  if (!timeline) return 0;
+  return part === 'prompt' ? timeline.prompt
+    : part === 'stem' ? timeline.stem
+    : part === 'dot' ? timeline.stem + order * 0.08
+    : timeline.letters[letter];
+};
+const cellStyle = (part: Part, order: number, letter: number) =>
   part === 'dot' && dot === 'rack' ? { '--i': order }
-  : animate && part !== 'word' ? { '--delay': delay(part, order) + 's' }
+  : animate ? { '--delay': delay(part, order, letter).toFixed(3) + 's' }
   : undefined;
+
+// Caret keyframes: it jumps to each new position with the keystroke (no easing), stays
+// solid while keys are coming and blinks while it waits.
+let caretCss = '';
+let caretDuration = 0;
+if (timeline && cursor) {
+  const { moves, end } = timeline;
+  caretDuration = end + TAIL;
+  const pct = (t: number) => (t / caretDuration * 100).toFixed(3) + '%';
+  const move = moves.map(m => `${pct(m.t)}{transform:translate(${m.x}px,0)}`).join('') + `100%{transform:translate(${finalX}px,0)}`;
+  const blinks: Array<[number, number]> = [];
+  moves.forEach((m, i) => {
+    const until = i + 1 < moves.length ? moves[i + 1].t : caretDuration;
+    blinks.push([m.t, 1]);
+    let on = false;
+    for (let s = m.t + HOLD; s < until - 0.02; s += BLINK) { blinks.push([s, on ? 1 : 0]); on = !on; }
+    if (i + 1 === moves.length) blinks.push([caretDuration - 0.01, 1]);
+  });
+  const blink = blinks.map(([t, v]) => `${pct(t)}{opacity:${v}}`).join('') + '100%{opacity:1}';
+  caretCss = `@keyframes lockup-caret-move{${move}}@keyframes lockup-caret-blink{${blink}}`;
+}
 ---
 <svg
   class:list={['lockup', { 'lockup-boot': animate, 'lockup-flat': flat, 'lockup-rack': dot === 'rack' }, className]}
@@ -60,20 +140,37 @@ const cellStyle = (part: Part, order: number) =>
   {parts.map(part => (
     <g class={`lockup-${part}`}>
       {data.rects.filter(rect => rect.part === part).map(rect => (
-        <g class="lockup-cell" style={cellStyle(part, rect.order)}>
+        <g class="lockup-cell" style={cellStyle(part, rect.order, rect.letter)}>
           {shadow && <rect class="shade" x={rect.x + shadowOffset.x} y={rect.y + shadowOffset.y} width={rect.width} height={rect.height} fill={flat ? undefined : rect.shadow} />}
           <rect class:list={['face', { slot: part === 'dot' }]} x={rect.x} y={rect.y} width={rect.width} height={rect.height} fill={flat ? undefined : rect.fill} />
         </g>
       ))}
     </g>
   ))}
+  {timeline && timeline.ghosts.length > 0 && (
+    <g class="lockup-ghosts">
+      {timeline.ghosts.map(ghost => (
+        <g class="lockup-ghost" style={{ '--delay': ghost.on.toFixed(3) + 's', '--gone': ghost.off.toFixed(3) + 's' }}>
+          {data.rects.filter(rect => rect.letter === ghost.letter).map(rect => (
+            <g class="lockup-cell">
+              {shadow && <rect class="shade" x={rect.x + ghost.dx + shadowOffset.x} y={rect.y + shadowOffset.y} width={rect.width} height={rect.height} fill={flat ? undefined : rect.shadow} />}
+              <rect class="face" x={rect.x + ghost.dx} y={rect.y} width={rect.width} height={rect.height} fill={flat ? undefined : rect.fill} />
+            </g>
+          ))}
+        </g>
+      ))}
+    </g>
+  )}
   {cursor && (
-    <g class="lockup-cursor">
-      {shadow && <rect class="shade" x={cursorRect.x + shadowOffset.x} y={cursorRect.y + shadowOffset.y} width={cursorRect.width} height={cursorRect.height} />}
-      <rect class="face" {...cursorRect} />
+    <g class:list={['lockup-caret', { 'lockup-caret-live': !!timeline }]} transform={`translate(${finalX} 0)`} style={timeline ? { 'animation-duration': caretDuration.toFixed(3) + 's' } : undefined}>
+      <g class="lockup-cursor" style={timeline ? { 'animation-duration': caretDuration.toFixed(3) + 's' } : undefined}>
+        {shadow && <rect class="shade" x={shadowOffset.x} y={cursorRect.y + shadowOffset.y} width={cursorRect.width} height={cursorRect.height} />}
+        <rect class="face" x="0" y={cursorRect.y} width={cursorRect.width} height={cursorRect.height} />
+      </g>
     </g>
   )}
 </svg>
+{caretCss && <style is:inline set:html={caretCss} />}
 
 <style>
   /* Cells are drawn top-to-bottom, left-to-right, so each shadow (offset right and down)
@@ -86,18 +183,37 @@ const cellStyle = (part: Part, order: number) =>
   .lockup-cursor .face { fill: var(--lockup-cursor, var(--lockup-mark, currentColor)); }
   .lockup-cursor .shade { fill: var(--lockup-shadow, currentColor); }
 
+  .lockup-ghosts { display: none; }
+  @media (prefers-reduced-motion: no-preference) { .lockup-boot .lockup-ghosts { display: inline; } }
+
   /* Rack dot: hidden at rest (and with reduced motion); the animation shows it once. */
   .lockup-rack .lockup-dot .lockup-cell { opacity: 0; }
 
   @media (prefers-reduced-motion: no-preference) {
-    .lockup-boot :is(.lockup-prompt, .lockup-stem, .lockup-dot) .lockup-cell {
+    /* Every glyph appears at once, like a character landing in a terminal, and glows for a
+       moment as if freshly drawn. */
+    .lockup-boot .lockup-cell {
       animation: lockup-pixel .01s both;
       animation-delay: var(--delay);
     }
-    .lockup-boot .lockup-word {
-      animation: lockup-type 1s steps(46) 1.45s both;
+    .lockup-boot .lockup-cell .face:not(.slot) {
+      animation: lockup-glow .55s ease-out both;
+      animation-delay: var(--delay);
     }
+    /* Mistyped letters: shown on the keystroke, gone on the backspace. */
+    .lockup-boot .lockup-ghost { display: inline; }
+    .lockup-boot .lockup-ghost > .lockup-cell { animation: none; }
+    .lockup-boot .lockup-ghost {
+      animation-name: lockup-pixel, lockup-hide;
+      animation-duration: .01s;
+      animation-delay: var(--delay), var(--gone);
+      animation-fill-mode: both, forwards;
+    }
+    /* The caret: one keyframe track moves it, the other blinks it. Both are generated
+       from the same timeline as the glyphs. */
     .lockup-cursor { animation: lockup-blink 1.1s steps(1) infinite; }
+    .lockup-caret-live { animation: lockup-caret-move 1s step-end both; }
+    .lockup-caret-live > .lockup-cursor { animation: lockup-caret-blink 1s step-end both; }
     /* Slots switch on one by one like parts going into a rack, hold, then switch off
        in the same order. No motion, only on and off. */
     .lockup-rack .lockup-dot .lockup-cell {
@@ -106,11 +222,9 @@ const cellStyle = (part: Part, order: number) =>
     }
   }
   @keyframes lockup-pixel { from { opacity: 0; } }
-  @keyframes lockup-type {
-    from { clip-path: inset(0 100% 0 0); }
-    to { clip-path: inset(0 -2% 0 0); }
-  }
   @keyframes lockup-blink { 50% { opacity: 0; } }
+  @keyframes lockup-hide { to { opacity: 0; } }
+  @keyframes lockup-glow { from { fill: var(--lockup-glow, #e8fbf6); } }
   @keyframes lockup-rack {
     0% { opacity: 1; }
     75% { opacity: 0; }
