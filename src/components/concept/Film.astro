@@ -1,15 +1,22 @@
 ---
 /**
- * Concept: "One scan", the intake film (lib/film). A pixel-art canvas that plays like a short
- * video: one take along the desk, cuts with a dither dissolve. Plays while on screen; pause and
- * scrub below. With reduced motion it shows the last frame until played.
+ * Concept: a pixel-art film (lib/film) that plays like a short video: one take along the desk,
+ * cuts with a dither dissolve. Plays while on screen; pause and scrub below, chapter names
+ * under the scrubber. With reduced motion it shows its poster frame until played.
+ * `film`: "intake" (one scan puts a part away) or "build" (a BOM takes parts out).
  */
-const chapters = ['Scan', 'Confirm', 'Fill in', 'Tube', 'Label', 'Rack', 'Inventatory', 'Result'];
+interface Props { film: 'intake' | 'build' }
+const { film } = Astro.props;
+const chapters = film === 'intake'
+  ? ['Scan', 'Confirm', 'Fill in', 'Tube', 'Label', 'Rack', 'Inventatory', 'Result']
+  : ['KiCad', 'Compare', 'Find in racks', 'Rack', 'Build', 'Stock'];
+const label = film === 'intake'
+  ? 'Animation: the Scan R1 reads a vendor bag\'s label; you press A once; Inventatory on the PC fills in the part from the vendor and reserves slot R1-B3; parts go into a tube, its label prints and wraps the tube, and the tube drops into the rack. One key pressed, ten fields filled.'
+  : 'Animation: a board is laid out in KiCad and its BOM exported; Inventatory matches every line to stock; Find in racks lights slots A2, A4, B3, C1 and D1 of rack 1; those five tubes are lifted out of the rack; the parts go on the board; one key subtracts the 14 pieces from stock.';
 ---
-<figure class="film" data-film>
+<figure class="film" data-film={film}>
   <div class="screen" data-screen>
-    <canvas data-canvas width="384" height="192" role="img"
-      aria-label="Animation: the Scan R1 reads a vendor bag's label; you press A once; Inventatory on the PC fills in the part from the vendor and reserves slot R1-B3; parts go into a tube, its label prints and wraps the tube, and the tube drops into the rack. One key pressed, ten fields filled."></canvas>
+    <canvas data-canvas width="384" height="192" role="img" aria-label={label}></canvas>
   </div>
   <figcaption class="bar">
     <button type="button" class="play" data-play aria-label="Pause"><span data-icon></span></button>
@@ -26,17 +33,24 @@ const chapters = ['Scan', 'Confirm', 'Fill in', 'Tube', 'Label', 'Rack', 'Invent
 </figure>
 
 <script>
-  import { createFilm, LOOP, POSTER, CHAPTERS, W, H } from '../../lib/film/film';
+  import * as intake from '../../lib/film/film';
+  import * as build from '../../lib/film/build';
 
-  const root = document.querySelector<HTMLElement>('[data-film]');
-  if (root) {
+  const FILMS = {
+    intake: { create: intake.createFilm, LOOP: intake.LOOP, POSTER: intake.POSTER, CHAPTERS: intake.CHAPTERS },
+    build: { create: build.createBuildFilm, LOOP: build.LOOP, POSTER: build.POSTER, CHAPTERS: build.CHAPTERS },
+  };
+  const { W, H } = intake;
+
+  for (const root of document.querySelectorAll<HTMLElement>('[data-film]')) {
+    const { create, LOOP, POSTER, CHAPTERS } = FILMS[root.dataset.film as keyof typeof FILMS];
     const canvas = root.querySelector<HTMLCanvasElement>('[data-canvas]')!;
     const screen = root.querySelector<HTMLElement>('[data-screen]')!;
     const track = root.querySelector<HTMLElement>('[data-track]')!;
     const fill = root.querySelector<HTMLElement>('[data-fill]')!;
     const play = root.querySelector<HTMLButtonElement>('[data-play]')!;
     const bar = root.querySelector<HTMLElement>('.bar')!;
-    const film = createFilm(canvas);
+    const film = create(canvas);
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     // Whole-number scale when there is room, so every art pixel is the same size.

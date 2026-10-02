@@ -52,16 +52,27 @@ class Scene:
         r, u, _ = view(az, el)
         return (float((P @ r).min()), float((P @ r).max()), float((P @ u).min()), float((P @ u).max()))
 
-    def render(self, az, el, width, plane=None, bounds=None):
+    def render(self, az, el, width, plane=None, bounds=None, depth=False, persp=None, px_per_mm=None):
         """plane: (pid, origin, U, V) -> report (u, v) for that part's pixels.
         bounds: (xmin, xmax, ymin, ymax) in view space, so frames of a moving part share
-        one framing; defaults to this scene's own extent (returned as "bounds")."""
+        one framing; defaults to this scene's own extent (returned as "bounds").
+        depth: also return "depth", each pixel's nearest point toward the viewer in mm (None
+        where empty), so a page can depth-test a part it moves against the rest.
+        persp: (distance, focus) for a perspective camera that far (mm) from the model point
+        `focus`; things at the focus's depth keep the orthographic scale, nearer ones grow.
+        px_per_mm: fix the scale at the focus's depth instead of fitting `width`."""
         T = np.concatenate(self.tris); I = np.concatenate(self.parts)
         N = np.cross(T[:, 1] - T[:, 0], T[:, 2] - T[:, 0])
         nl = np.linalg.norm(N, axis=1); nl[nl == 0] = 1; N /= nl[:, None]
         r, u, d = view(az, el)
         P = T.reshape(-1, 3); X, Y, Z = P @ r, P @ u, P @ d
+        if persp:
+            D, F = persp[0], np.asarray(persp[1], float)
+            fx, fy, fz = F @ r, F @ u, F @ d
+            k = D / (D - (Z - fz))
+            X, Y = fx + (X - fx) * k, fy + (Y - fy) * k
         xmin, xmax, ymin, ymax = bounds or (X.min(), X.max(), Y.min(), Y.max())
+        if px_per_mm: width = int(math.ceil((xmax - xmin) * px_per_mm))
         s = width * SS / (xmax - xmin)
         Wp, Hp = width * SS, int(math.ceil((ymax - ymin) * s / SS)) * SS
         sx = ((X - xmin) * s).reshape(-1, 3); sy = ((ymax - Y) * s).reshape(-1, 3); sz = Z.reshape(-1, 3)
@@ -87,15 +98,17 @@ class Scene:
         H = Hp // SS
         ids_b = ib.reshape(H, SS, width, SS).transpose(0, 2, 1, 3).reshape(H, width, -1)
         nrm_b = nb.reshape(H, SS, width, SS, 3).transpose(0, 2, 1, 3, 4).reshape(H, width, -1, 3)
-        rows, tags, uv = [], {}, []
+        z_b = zb.reshape(H, SS, width, SS).transpose(0, 2, 1, 3).reshape(H, width, -1)
+        rows, tags, uv, zs = [], {}, [], []
         for y in range(H):
-            row = ""
+            row, zrow = "", []
             for x in range(width):
                 vals, counts = np.unique(ids_b[y, x], return_counts=True)
                 hit, hc = vals[vals >= 0], counts[vals >= 0]
                 if hc.sum() < SS * SS * 0.45:
-                    row += "."; continue
+                    row += "."; zrow.append(None); continue
                 pid = int(hit[np.argmax(hc)])
+                zrow.append(float(z_b[y, x][ids_b[y, x] == pid].max()))
                 nv = nrm_b[y, x][ids_b[y, x] == pid].mean(axis=0); nv /= (np.linalg.norm(nv) or 1)
                 material, tag = self.info[pid]
                 codes = MATERIALS[material]
@@ -104,13 +117,16 @@ class Scene:
                 if plane and pid == plane[0]:
                     _, O, U, V = plane
                     cx = xmin + (x + .5) * SS / s; cy = ymax - (y + .5) * SS / s
+                    if persp:   # back to the plane's depth (the LCD is square to the view)
+                        k = D / (D - (O @ d - fz)); cx, cy = fx + (cx - fx) / k, fy + (cy - fy) / k
                     A = np.array([[U @ r, V @ r], [U @ u, V @ u]])
                     uu, vv = np.linalg.solve(A, [cx - O @ r, cy - O @ u])
                     uv.append([x, y, round(float(uu), 4), round(float(vv), 4)])
-            rows.append(row)
+            rows.append(row); zs.append(zrow)
         out = {"width": width, "height": H, "rows": rows, "tags": tags, "az": az, "el": el,
                "bounds": [float(xmin), float(xmax), float(ymin), float(ymax)]}
         if plane: out["uv"] = uv
+        if depth: out["depth"] = zs
         return out
 
 def view(az, el):
@@ -134,3 +150,15 @@ def box(x0, x1, y0, y1, z0, z1):
             quad(P(x0, y1, z0), P(x1, y1, z0), P(x1, y1, z1), P(x0, y1, z1)) +
             quad(P(x0, y0, z0), P(x0, y1, z0), P(x0, y1, z1), P(x0, y0, z1)) +
             quad(P(x1, y0, z0), P(x1, y1, z0), P(x1, y1, z1), P(x1, y0, z1)))
+
+def despeckle(rows):
+    """Lone pixels on a silhouette's edge: a pixel whose neighbours above and below agree with
+    each other but not with it, and that matches neither side, takes their code."""
+    rows = [list(r) for r in rows]
+    for y in range(1, len(rows) - 1):
+        for x in range(len(rows[y])):
+            c, up, dn = rows[y][x], rows[y - 1][x], rows[y + 1][x]
+            l = rows[y][x - 1] if x > 0 else "."; rr = rows[y][x + 1] if x + 1 < len(rows[y]) else "."
+            if c != "." and up == dn and up not in (".", c) and c not in (l, rr):
+                rows[y][x] = up
+    return ["".join(r) for r in rows]
