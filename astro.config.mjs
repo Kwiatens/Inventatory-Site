@@ -9,6 +9,8 @@ export default defineConfig({
   prefetch: false,
   trailingSlash: 'always',
   devToolbar: { enabled: false },
+  // the dev server takes PORT when one is assigned (e.g. a second preview alongside another)
+  server: { port: Number(process.env.PORT) || 4321 },
   integrations: [starlight({
     title: 'inventatory',
     disable404Route: true,

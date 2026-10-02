@@ -104,11 +104,8 @@ export function text(g: CanvasRenderingContext2D, name: FontName, str: string, x
 
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 const patterns = new Map<number, CanvasPattern>();
-/** Cover the canvas with `color` at `amount` (0..1) as an ordered dither. */
-/** Dither dissolve: erases `amount` (0..1) of the pixels, ordered, down to row `h`. */
-export function dither(g: CanvasRenderingContext2D, amount: number, h = g.canvas.height) {
-  const level = Math.round(Math.max(0, Math.min(1, amount)) * 16);
-  if (level === 0) return;
+/** The 4 x 4 ordered pattern at `level` (0..16): the pixels whose threshold is under it. */
+function ditherPattern(g: CanvasRenderingContext2D, level: number) {
   let p = patterns.get(level);
   if (!p) {
     const [t, tg] = bitmap(4, 4);
@@ -117,9 +114,15 @@ export function dither(g: CanvasRenderingContext2D, amount: number, h = g.canvas
     p = g.createPattern(t, 'repeat')!;
     patterns.set(level, p);
   }
+  return p;
+}
+/** Dither dissolve: erases `amount` (0..1) of the pixels, ordered, down to row `h`. */
+export function dither(g: CanvasRenderingContext2D, amount: number, h = g.canvas.height) {
+  const level = Math.round(Math.max(0, Math.min(1, amount)) * 16);
+  if (level === 0) return;
   g.save();
   g.globalCompositeOperation = 'destination-out';
-  g.fillStyle = p;
+  g.fillStyle = ditherPattern(g, level);
   g.fillRect(0, 0, g.canvas.width, h);
   g.restore();
 }

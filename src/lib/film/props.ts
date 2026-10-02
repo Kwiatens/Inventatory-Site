@@ -1,6 +1,6 @@
 // Concept film: the props, drawn as pixel art from photos of the real things.
 import { Canvas, dataMatrix } from '../pixel';
-import { bitmap, fromRects, withShadow, text, measure, C, type Bitmap } from './gfx';
+import { bitmap, fromRects, withShadow, text, measure, fillPoly, C, type Bitmap } from './gfx';
 import { qr } from '../intake-art';
 
 const clampTo = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
@@ -149,55 +149,6 @@ function pile(w: number, h: number): Bitmap {
 }
 const PILE = pile(12, 7);
 
-// ---------- macro: the tape and the chips at about 7 px per mm ----------
-export const MACRO = { pitch: 28, h: 56, pockets: 14, hole: 12, pocket: 36, cover: [20, 52] as [number, number] };
-export const macroLength = MACRO.pockets * MACRO.pitch;
-export const macroPocketX = (i: number) => 14 + i * MACRO.pitch;
-/** The paper carrier: sprocket holes along one edge, a punched pocket per chip. */
-export function macroTape(): Bitmap {
-  const L = macroLength, H = MACRO.h;
-  const [c, g] = bitmap(L, H);
-  g.fillStyle = C.paper2; g.fillRect(0, 0, L, H);
-  g.fillStyle = C.bone; g.fillRect(0, 0, L, 2);
-  g.fillStyle = '#a9b0aa'; g.fillRect(0, H - 2, L, 2);
-  for (let i = 0; i < MACRO.pockets; i++) {
-    const x = macroPocketX(i);
-    // sprocket hole (1.5 mm): a pixel circle through to the dark behind
-    g.fillStyle = C.canvas;
-    for (let y = -5; y <= 5; y++) for (let dx = -5; dx <= 5; dx++) if (dx * dx + y * y <= 26) g.fillRect(x - 14 + dx, MACRO.hole + y, 1, 1);
-    // the pocket, a punched slot a little larger than the chip
-    g.fillStyle = '#5d6865'; g.fillRect(x - 5, MACRO.pocket - 8, 10, 16);
-    g.fillStyle = '#384543'; g.fillRect(x - 5, MACRO.pocket - 8, 10, 2);
-  }
-  return c;
-}
-/** The clear cover tape over the pockets: its edges, and a few glints. */
-export function macroCover(): Bitmap {
-  const L = macroLength, [a, b] = MACRO.cover;
-  const [c, g] = bitmap(L, MACRO.h);
-  g.fillStyle = C.bone; g.fillRect(0, a, L, 1); g.fillRect(0, b, L, 1);
-  for (let y = a + 1; y < b; y++) for (let x = (y % 2) * 2; x < L; x += 4) if ((x + y) % 8 < 2) g.fillRect(x, y, 1, 1);   // the film's sheen
-  for (let x = 9; x < L; x += 47) for (let k = 0; k < 6; k++) g.fillRect(x + k, a + 4 + k * 2, 1, 2);
-  return c;
-}
-/** An 0603 chip resistor, as it sits in the tape: tinned ends top and bottom, black top. */
-/** The chip on its edge, seen side on: the white ceramic between the tinned ends. */
-export function macroChipEdge(): Bitmap {
-  const [c, g] = bitmap(12, 4);
-  g.fillStyle = '#8c9690'; g.fillRect(0, 0, 3, 4); g.fillRect(9, 0, 3, 4);
-  g.fillStyle = SIDE; g.fillRect(3, 1, 6, 3);
-  g.fillStyle = TOP; g.fillRect(3, 0, 6, 1);
-  return c;
-}
-export function macroChip(): Bitmap {
-  const [c, g] = bitmap(7, 12);
-  g.fillStyle = '#8c9690'; g.fillRect(0, 0, 7, 3); g.fillRect(0, 9, 7, 3);
-  g.fillStyle = C.bone; g.fillRect(1, 0, 4, 1); g.fillRect(1, 9, 4, 1);
-  g.fillStyle = TOP; g.fillRect(0, 3, 7, 6);
-  g.fillStyle = '#27312f'; g.fillRect(1, 3, 5, 1);
-  return c;
-}
-
 /** A clear tube, front on (the screw cap is separate); `fill`: the chips are in. */
 export const TUBE_BODY = { w: 16, h: 40 };
 export function tube(fill: number, labelled: Bitmap | null): Bitmap {
@@ -208,18 +159,20 @@ export function tube(fill: number, labelled: Bitmap | null): Bitmap {
   if (fill > 0) g.drawImage(PILE, 2, H - 2 - PILE.height);
   g.fillStyle = '#384543'; g.fillRect(1, 0, 1, H - 2); g.fillRect(W - 2, 0, 1, H - 2);
   g.fillStyle = '#4a5754'; g.fillRect(3, 2, 1, H - 8);                             // highlight
+  g.fillStyle = '#5d6865'; g.fillRect(1, 0, W - 2, 1);                             // the open mouth's rim
   if (labelled) g.drawImage(labelled, 1, 14);
   return c;
 }
 
-export function cap(): Bitmap {
+/** The screw cap; `turn` (0 or 1) steps its grip ridges, so it can be seen screwed down. */
+export function cap(turn = 0): Bitmap {
   const W = 18, H = 9;
   const [c, g] = bitmap(W + 1, H + 1);
   g.fillStyle = C.shadow; g.fillRect(1, 1, W, H);
   g.fillStyle = C.paper2; g.fillRect(0, 0, W, H);
   g.fillStyle = C.bone; g.fillRect(0, 0, W, 2);
   g.fillStyle = '#8c9690';
-  for (let x = 1; x < W; x += 2) g.fillRect(x, 3, 1, H - 3);        // grip ridges
+  for (let x = 1 + turn; x < W; x += 2) g.fillRect(x, 3, 1, H - 3);        // grip ridges
   return c;
 }
 
@@ -253,26 +206,39 @@ export function labelBig(): Bitmap {
   return c;
 }
 
+/** The printed label at any width (px), from the close-up's art: area-averaged down, then each
+ *  pixel paper or ink, so it is pixel art at every size and grows legible as it grows. */
+const labelSizes = new Map<number, Bitmap>();
+let bigLabel: Bitmap | null = null;
+export function labelAt(w: number): Bitmap {
+  w = Math.max(4, Math.round(w));
+  let c = labelSizes.get(w);
+  if (c) return c;
+  bigLabel ??= labelBig();
+  const h = Math.max(3, Math.round(w * bigLabel.height / bigLabel.width));
+  const [t, tg] = bitmap(w, h);
+  tg.imageSmoothingEnabled = true; tg.imageSmoothingQuality = 'high';
+  tg.drawImage(bigLabel, 0, 0, w, h);
+  const img = tg.getImageData(0, 0, w, h), d = img.data;
+  // small: a dark tone reads as ink sooner, or thin type vanishes
+  const cut = w < 40 ? 200 : w < 80 ? 170 : 140;
+  for (let i = 0; i < d.length; i += 4) {
+    if (d[i + 3] < 128) { d[i + 3] = 0; continue; }
+    const ink = (d[i] + d[i + 1] + d[i + 2]) / 3 < cut;
+    d.set(ink ? [0x0d, 0x10, 0x10, 255] : [0xf1, 0xee, 0xe5, 255], i);
+  }
+  tg.putImageData(img, 0, 0);
+  labelSizes.set(w, t);
+  return t;
+}
+
 /** The same label at the desk's scale (about 32 x 27 mm), in the 4 x 6 font: too small to
  *  read, but it has the label's texture. */
 /** The same label at the desk's scale (about 15 x 12 mm, as on the rack model's tubes): too
  *  small for type, so its layout in marks — the dark tab, the part line, the package, the rule,
  *  two parameter lines, the QR code, the slot. */
 export function labelTiny(): Bitmap {
-  const W = 21, H = 16;
-  const [c, g] = bitmap(W, H);
-  g.fillStyle = C.bone; g.fillRect(0, 0, W, H); rounded(g, W, H, 2);
-  g.fillStyle = C.ink;
-  g.fillRect(1, 1, 8, 3);                                                   // tab
-  for (const [x, w] of [[1, 5], [7, 3], [11, 4]]) g.fillRect(x, 5, w, 2);  // RES 10K OHM...
-  g.fillRect(1, 8, 4, 1);                                                   // 0603
-  g.fillRect(1, 9, 10, 1);                                                  // rule
-  for (const [y, w] of [[11, 5], [13, 6]]) g.fillRect(1, y, w, 1);          // maker, value
-  ['######', '#..#.#', '#.##.#', '##.#..', '#...##', '######'].forEach((row, y) =>   // QR
-    [...row].forEach((ch, x) => { if (ch === '#') g.fillRect(13 + x, 8 + y, 1, 1); }));
-  g.fillStyle = C.bone; for (let x = 2; x < 9; x += 2) g.fillRect(x, 2, 1, 1);  // the tab's word
-  g.fillStyle = C.ink; g.fillRect(1, 15, 7, 1);                             // R1 - B3
-  return c;
+  return labelAt(21);
 }
 
 /** The label wrapped round a tube: the middle of it faces you, its sides curve away. `w`:
@@ -291,69 +257,80 @@ export function tubeBand(w = 14): Bitmap {
   return c;
 }
 
-/** The printer for the close-up, from above and in front (tops true to shape, upright faces
- *  shortened): the domed lid with the feed button and its light; under its front edge the
- *  lip, the slot and the base's face. One body: the faces hang from the lid's outline, so they
- *  follow its rounded corners. */
-export const PRINTER_ANGLED = { w: 250, h: 80, slot: 54, led: [92, 34] as [number, number] };
 export const LINER = '#d8d6b6';
-export function printerAngled(): Bitmap {
-  const { w: W, h: H, slot: SL } = PRINTER_ANGLED;
+/** A compact direct-thermal desktop label printer (after a photo of the user's, not copied: no
+ *  badge, our own proportions), its front to the left: a light grey body whose rounded nose
+ *  slopes down to the front, the label slot low in the front over the base band, a dark smoked
+ *  window domed over the roll at the back, a round teal feed button on the nose and a teal
+ *  release button on the side. */
+const PS = 1.7, PSIDE = { w: Math.round(64 * PS), h: Math.round(40 * PS), slot: Math.round(31 * PS), base: Math.round(34 * PS) };
+// its side, front left: the outline, as a polygon
+const PROFILE = ([[2, 39.9], [2, 22], [3, 18], [5, 14.5], [8, 12], [12, 10], [17, 9], [30, 9], [34, 6.5],
+  [40, 4.6], [47, 4.2], [53, 5.5], [57, 8], [60, 11], [61.9, 15], [61.9, 39.9]] as Array<[number, number]>).map(([x, y]): [number, number] => [Math.min(x * PS, 64 * PS - .1), Math.min(y * PS, 40 * PS - .1)]);
+const WINDOW = [Math.round(31 * PS), Math.round(57 * PS)];          // the smoked window, along the top
+function printerMask() {
+  const { w: W, h: H } = PSIDE;
   const [c, g] = bitmap(W, H);
-  const EDGE = 46, R = 16, LIP = SL - EDGE, BASE = 22;
-  const front = (x: number) => {                                    // the lid's front edge, per column
-    const d = Math.min(x, W - 1 - x);
-    return d >= R ? EDGE : EDGE - Math.round(R - Math.sqrt(R * R - (R - d - .5) * (R - d - .5)));
-  };
-  for (let x = 0; x < W; x++) {
-    const f = front(x), side = x < 6 || x >= W - 6, mid = x >= 36 && x < W - 36;
-    const col = (y0: number, y1: number, color: string) => { g.fillStyle = color; g.fillRect(x, y0, 1, y1 - y0); };
-    col(0, f, side ? '#5d6865' : mid ? '#7c8783' : '#6b7773');      // the top, its dome lit in the middle
-    if (mid) col(f - 6, f, '#6b7773');
-    col(f - 1, f, '#8c9690');                                        // the front edge
-    col(f, f + LIP, '#4a5754');                                      // the lip
-    const inSlot = x >= 55 && x < W - 55;
-    col(f + LIP, f + LIP + 2, inSlot ? C.ink : '#1d2422');           // the slot, the split line
-    col(f + LIP + 2, f + LIP + BASE, '#3d4a47');                     // the base
-    col(f + LIP + BASE, f + LIP + BASE + 2, '#27312f');
-  }
-  g.fillStyle = '#a9b2ab'; g.fillRect(64, 8, W - 128, 1); g.fillRect(80, 6, W - 160, 1);
-  g.fillStyle = '#27312f'; g.fillRect(105, 29, 40, 10); g.fillRect(106, 28, 38, 12);
-  g.fillStyle = '#4a5754'; g.fillRect(107, 29, 36, 1);
-  g.fillStyle = C.active; g.fillRect(PRINTER_ANGLED.led[0], PRINTER_ANGLED.led[1], 6, 2);
-  return c;
+  fillPoly(g, PROFILE, '#000');
+  const d = g.getImageData(0, 0, W, H).data;
+  const filled = (x: number, y: number) => x >= 0 && y >= 0 && x < W && y < H && d[(y * W + x) * 4 + 3] > 0;
+  const top = Array.from({ length: W }, (_, x) => { for (let y = 0; y < H; y++) if (filled(x, y)) return y; return H; });
+  return { c, filled, top };
 }
-
-/** A compact direct-thermal desktop label printer, seen from its side with its front to the
- *  left: a clamshell lid domed over the roll, hinged at the back, its split line running down
- *  to the label slot in the front; a feed button and a light on top; rubber feet; the cable. */
-export const PRINTER_SLOT = 23, PRINTER_LED: [number, number] = [16, 10];
-/** `s`: scale (the close-up draws it at 3); outlines stay one pixel. */
-export function printer(s = 1): Bitmap {
-  const W = 60 * s, H = 44 * s, S = (v: number) => Math.round(v * s);
-  const [c, g] = bitmap(W, H);
-  const front = S(2), back = W - 1, mid = S(36);
-  const top = (x: number) => x < mid ? S(4) + S(9) * Math.pow((mid - x) / (mid - front), 2) : S(4) + S(9) * Math.pow((x - mid) / (back - mid), 2);
-  const split = (x: number) => S(PRINTER_SLOT) - S(9) * Math.pow((x - front) / (back - front), 1.4);
-  for (let x = front; x <= back; x++) {
-    const y0 = Math.round(top(x)), ys = Math.round(split(x));
-    for (let y = y0; y < H - S(2); y++) {
-      const f = y === y0 ? '#a9b2ab' : y < y0 + S(3) ? '#7c8783' : y < ys ? '#6b7773' : y === ys ? '#1d2422' : y === ys + 1 ? '#5d6865' : y < H - S(3) ? '#3d4a47' : '#27312f';
-      g.fillStyle = f; g.fillRect(x, y, 1, 1);
+/** The printer turned a little toward the viewer and seen a little from above, for the bench:
+ *  its side, and behind it its width going back up and to the left, so the top (nose, window)
+ *  and the front with the slot across it show. Built by stacking the side's outline back across
+ *  the width: each step's top edge makes the top, its front edge the front.
+ *  Returns where the slot is: `o` its middle, `ax` one step across it toward the near side (one
+ *  pixel down, so rows of a label lying in it stay whole rows), `fwd` one pixel of label stock
+ *  coming out (to the left); the feed button (it lights while printing); `base`, the bottom row. */
+export function printerTop() {
+  const { w: W, h: H, slot: SLOT, base: BASE } = PSIDE, ACROSS = 75, DX = .7, DY = .45;
+  const { filled, top } = printerMask();
+  const ox = Math.ceil(ACROSS * DX) + 1, oy = Math.ceil(ACROSS * DY) + 1;
+  const [c, g] = bitmap(W + ox + 1, H + oy + 1);
+  const inWindow = (x: number) => x >= WINDOW[0] && x <= WINDOW[1];
+  // the top, by how steeply it falls toward the front: the nose a tone under the flat
+  const topShade = (x: number, far: boolean) => {
+    if (inWindow(x)) return far ? '#4a5754' : (x > 42 * PS && x < 47 * PS) ? '#3d4a47' : '#1d2422';
+    if (far) return '#e3e6e0';
+    const slope = Math.abs(top[Math.min(W - 1, x + 1)] - top[Math.max(2, x - 1)]) / 2;
+    return slope > 1.2 ? '#b8bfb9' : slope > .4 ? '#c8cec9' : '#d6dbd5';
+  };
+  const frontAt = (y: number, k: number) => y === SLOT && k > ACROSS * .15 && k < ACROSS * .85 ? C.ink
+    : y === BASE ? '#5d6865' : y > BASE ? '#8c9690' : '#b8bfb9';
+  for (let k = ACROSS; k >= 1; k--) {
+    const sx = ox - Math.round(k * DX), sy = oy - Math.round(k * DY), far = k === ACROSS;
+    for (let x = 3; x < W; x++) {
+      if (top[x] >= H) continue;
+      const y0 = top[x], y1 = Math.max(y0 + 1, Math.min(top[x - 1], H));
+      g.fillStyle = topShade(x, far); g.fillRect(sx + x, sy + y0, 1, y1 - y0 + 1);
     }
+    for (let y = top[2]; y < H; y++) { g.fillStyle = far ? '#a9b2ab' : frontAt(y, k); g.fillRect(sx + 2, sy + y, 1, 1); }
   }
-  // the front: the lid's lip over the slot, the base's face under it
-  g.fillStyle = '#8c9690'; g.fillRect(front, Math.round(top(front)) + 1, s, S(PRINTER_SLOT) - Math.round(top(front)) - 1);
-  g.fillStyle = C.ink; g.fillRect(front - 1, S(PRINTER_SLOT), S(6), s);
-  g.fillStyle = '#4a5754'; g.fillRect(front, S(PRINTER_SLOT + 1), S(2), H - S(3) - S(PRINTER_SLOT + 1));
-  // feed button and light on the top, near the front
-  g.fillStyle = '#27312f'; g.fillRect(S(8), Math.round(top(S(8))) - S(2), S(5), S(2));
-  g.fillStyle = '#a9b2ab'; g.fillRect(S(9), Math.round(top(S(8))) - S(2), S(3), 1);
-  g.fillStyle = C.active; g.fillRect(S(PRINTER_LED[0]), S(PRINTER_LED[1]), S(2), s);
-  // feet, the cable at the back
-  g.fillStyle = '#1d2422'; g.fillRect(S(6), H - S(2), S(8), S(2)); g.fillRect(W - S(14), H - S(2), S(8), S(2));
-  g.fillRect(back - S(2), S(32), S(3), S(5));
-  return withShadow(c);
+  // the near side
+  for (let x = 0; x < W; x++) for (let y = 0; y < H; y++) {
+    if (!filled(x, y)) continue;
+    const edge = y === top[x], win = inWindow(x) && y <= 11 * PS;
+    g.fillStyle = edge ? (win ? '#4a5754' : '#e3e6e0') : win ? '#27312f' : y === BASE ? '#5d6865' : y > BASE ? '#8c9690' : x <= 3 ? '#c3cac4' : '#a9b2ab';
+    g.fillRect(ox + x, oy + y, 1, 1);
+  }
+  // the release button on the side, the feed button on the nose (near the near side)
+  const disc = (cx: number, cy: number, rx: number, ry: number, fill: string, rim: string) => {
+    for (let y = -ry; y <= ry; y++) for (let x = -rx; x <= rx; x++) {
+      const d = (x / (rx + .5)) ** 2 + (y / (ry + .5)) ** 2;
+      if (d > 1) continue;
+      g.fillStyle = d > .55 ? rim : fill; g.fillRect(cx + x, cy + y, 1, 1);
+    }
+  };
+  disc(ox + Math.round(9 * PS), oy + Math.round(25 * PS), 3, 3, C.accent, C.active);
+  const kb = Math.round(ACROSS * .2), fx = Math.round(14 * PS), bx = ox - Math.round(kb * DX) + fx, by = oy - Math.round(kb * DY) + top[fx] + 2;
+  disc(bx, by, 5, 2, C.accent, C.active);
+  const o: [number, number] = [ox + 2 - .5 - ACROSS / 2 * DX, oy + SLOT + .5 - ACROSS / 2 * DY];
+  return {
+    art: withShadow(c), led: [bx - 1, by] as [number, number],
+    slot: { o, ax: [DX / DY, 1] as [number, number], fwd: [-1, 0] as [number, number] }, base: oy + H - 1,
+  };
 }
 
 /** A desk monitor; its screen is drawn live by the film. */

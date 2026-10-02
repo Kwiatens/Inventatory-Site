@@ -15,6 +15,9 @@
       "You just scan a label and the system handels the rest."
     ]
   },
+  "build": {
+    "title": "When you build a board, it finds every part for you."
+  },
   "workflow": {
     "headingLines": ["Everything after the scan."],
     "summary": "",
