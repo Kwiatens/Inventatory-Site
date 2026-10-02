@@ -1,0 +1,82 @@
+/* The page's pixel grid: one art pixel of the intake film, in CSS pixels. The film plays at
+   3x where it fits and 2x below that, so every pixel accent on the page follows it. */
+:root {
+  --px: 2px;
+  /* The lockup's half-pixel drop shadow, used for every hard shadow on the page. */
+  --drop: calc(var(--px) * 3);
+  --drop-color: #1f3d3a;
+  /* Shot change in the film: an ordered (Bayer) dither, sparse at the top, solid at the bottom. */
+  --dither-edge: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 8' shape-rendering='crispEdges'%3E%3Cpath d='M0 1h1v1h-1zM3 2h1v1h-1zM0 3h1v1h-1zM2 3h1v1h-1zM1 4h1v1h-1zM3 4h1v1h-1zM0 5h1v1h-1zM1 5h1v1h-1zM2 5h1v1h-1zM1 6h1v1h-1zM2 6h1v1h-1zM3 6h1v1h-1zM0 7h1v1h-1zM1 7h1v1h-1zM2 7h1v1h-1zM3 7h1v1h-1z'/%3E%3C/svg%3E");
+  /* The film's cursor (the lockup's prompt) and a pixel arrow for links that leave the site. */
+  --icon-go: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 3 5' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h1v1h-1zM1 1h1v1h-1zM2 2h1v1h-1zM1 3h1v1h-1zM0 4h1v1h-1z'/%3E%3C/svg%3E");
+  --icon-out: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 5 5' shape-rendering='crispEdges'%3E%3Cpath d='M0 4h1v1h-1zM1 3h1v1h-1zM2 2h1v1h-1zM3 1h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM4 0h1v1h-1zM4 1h1v1h-1zM4 2h1v1h-1z'/%3E%3C/svg%3E");
+  /* The film's dissolve in three steps (4x4 Bayer at 25, 50 and 75 %), for things that cut in. */
+  --dither-25: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 4' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h1v1h-1zM2 0h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1z'/%3E%3C/svg%3E");
+  --dither-50: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 4' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h1v1h-1zM2 0h1v1h-1zM1 1h1v1h-1zM3 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM1 3h1v1h-1zM3 3h1v1h-1z'/%3E%3C/svg%3E");
+  --dither-75: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 4' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h1v1h-1zM1 0h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM1 1h1v1h-1zM3 1h1v1h-1zM0 2h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM3 2h1v1h-1zM1 3h1v1h-1zM3 3h1v1h-1z'/%3E%3C/svg%3E");
+}
+@media (min-width: 78rem) { :root { --px: 3px; } }
+
+/* A band in the surface tone that dissolves out of the canvas above it, and back below. */
+.band { position: relative; background: var(--surface); }
+.band::before, .band::after {
+  content: ''; position: absolute; left: 0; right: 0; height: calc(var(--px) * 8);
+  background: var(--surface); pointer-events: none;
+  -webkit-mask: var(--dither-edge) 0 0 / calc(var(--px) * 4) 100% repeat-x;
+  mask: var(--dither-edge) 0 0 / calc(var(--px) * 4) 100% repeat-x;
+}
+.band::before { bottom: 100%; }
+.band::after { top: 100%; transform: scaleY(-1); }
+
+/* Pixel arrows after a link's text: › stays on the site, ↗ leaves it. */
+.go::after, .out::after {
+  content: ''; display: inline-block; margin-left: .5em; background: currentColor;
+  -webkit-mask: var(--icon-go) center / 100% 100% no-repeat; mask: var(--icon-go) center / 100% 100% no-repeat;
+  width: 6px; height: 10px; vertical-align: -1px;
+  transition: transform .12s steps(2);
+}
+.out::after { -webkit-mask-image: var(--icon-out); mask-image: var(--icon-out); width: 10px; }
+.go:hover::after { transform: translateX(4px); }
+.out:hover::after { transform: translate(2px, -2px); }
+
+/* The decode frame from the film's scan: four corner brackets, shown while a card is
+   hovered or focused. Put it on a positioned element. */
+.brackets::after {
+  --l: calc(var(--px) * 4); --t: var(--px); --c: var(--accent);
+  content: ''; position: absolute; inset: calc(var(--px) * -3); pointer-events: none; opacity: 0;
+  background:
+    linear-gradient(var(--c), var(--c)) 0 0 / var(--l) var(--t),
+    linear-gradient(var(--c), var(--c)) 0 0 / var(--t) var(--l),
+    linear-gradient(var(--c), var(--c)) 100% 0 / var(--l) var(--t),
+    linear-gradient(var(--c), var(--c)) 100% 0 / var(--t) var(--l),
+    linear-gradient(var(--c), var(--c)) 0 100% / var(--l) var(--t),
+    linear-gradient(var(--c), var(--c)) 0 100% / var(--t) var(--l),
+    linear-gradient(var(--c), var(--c)) 100% 100% / var(--l) var(--t),
+    linear-gradient(var(--c), var(--c)) 100% 100% / var(--t) var(--l);
+  background-repeat: no-repeat;
+  transition: opacity .1s steps(1);
+}
+.brackets:is(:hover, :focus-visible, :focus-within)::after { opacity: 1; }
+
+/* The one filled button: the accent with the lockup's hard shadow; pressing it sinks it
+   into its shadow. */
+.press {
+  display: inline-flex; align-items: center; min-height: 3rem; padding: 0 var(--space-6);
+  background: var(--accent); color: var(--canvas); font-weight: 600; font-stretch: 112%; text-decoration: none;
+  box-shadow: var(--drop) var(--drop) 0 var(--drop-color);
+  transition: transform .08s steps(1), box-shadow .08s steps(1), background .08s steps(1);
+}
+.press:hover { color: var(--canvas); background: var(--focus); }
+.press:active { transform: translate(var(--drop), var(--drop)); box-shadow: 0 0 0 transparent; }
+
+/* Cut in with the film's dissolve: a quarter, half, three quarters, then whole. */
+.dither-in {
+  -webkit-mask-size: calc(var(--px) * 4); mask-size: calc(var(--px) * 4);
+  animation: dither-in .3s step-end;
+}
+@keyframes dither-in {
+  0% { -webkit-mask-image: var(--dither-25); mask-image: var(--dither-25); }
+  33% { -webkit-mask-image: var(--dither-50); mask-image: var(--dither-50); }
+  66% { -webkit-mask-image: var(--dither-75); mask-image: var(--dither-75); }
+  100% { -webkit-mask-image: none; mask-image: none; }
+}

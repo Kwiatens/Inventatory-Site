@@ -1,0 +1,16 @@
+---
+/**
+ * Concept: the Scan R1's 128 x 64 LCD at a readable size. Frames come from the firmware's
+ * own display code (scripts/scan-r1-lcd); a player draws them into this canvas, each LCD
+ * pixel as a dot with a hairline gap like the real glass.
+ */
+interface Props { class?: string; label?: string }
+const { class: className, label = 'Scan R1 display' } = Astro.props;
+---
+<div class:list={['lcd-panel', className]}>
+  <canvas width="512" height="256" data-lcd-panel role="img" aria-label={label}></canvas>
+</div>
+<style>
+  .lcd-panel { padding: 4.5%; background: #141918; box-shadow: 10px 10px 0 #0a0c0c; }
+  canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; aspect-ratio: 2 / 1; background: #a9b6a4; }
+</style>

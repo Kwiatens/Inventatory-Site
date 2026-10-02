@@ -1,0 +1,38 @@
+---
+/**
+ * Concept: the Scan R1's 4 x 4 membrane keypad, face on, drawn from a photo of the part:
+ * black keys on a black frame, white legends, each key throwing a hard shadow. A pressed
+ * key drops into its shadow and its legend lights up.
+ */
+import { GLYPHS, PX } from '../../lib/pixel';
+const KEYS = ['123A', '456B', '789C', '*0#D'];
+const KW = 9, KH = 8, GAP = 3, PAD = 3;
+const size = (n: number, k: number) => PAD * 2 + n * k + (n - 1) * GAP;
+const W = size(4, KW), H = size(4, KH) + 1;
+---
+<svg class="keypad" viewBox={`0 0 ${(W + 1) * PX} ${(H + 1) * PX}`} role="img" aria-label="4 by 4 keypad: 1 2 3 A, 4 5 6 B, 7 8 9 C, * 0 # D" focusable="false">
+  <rect x={PX} y={PX} width={W * PX} height={H * PX} fill="#080a0a" />
+  <rect x="0" y="0" width={W * PX} height={H * PX} fill="#141918" />
+  {KEYS.flatMap((row, r) => [...row].map((key, c) => {
+    const x = (PAD + c * (KW + GAP)) * PX, y = (PAD + r * (KH + GAP)) * PX;
+    const gx = x + Math.floor((KW - GLYPHS[key][0].length) / 2) * PX, gy = y + 2 * PX;
+    return (
+      <g class="key" data-key={key}>
+        <rect class="key-shade" x={x + PX} y={y + PX} width={KW * PX} height={KH * PX} fill="#080a0a" />
+        <g class="key-cap">
+          <rect x={x} y={y} width={KW * PX} height={KH * PX} fill="#1d2422" />
+          <rect x={x} y={y} width={KW * PX} height={PX} fill="#27312f" />
+          <g class="legend" fill="#f1eee5">
+            {GLYPHS[key].flatMap((line, j) => [...line].map((ch, i) => ch === '#' ? <rect x={gx + i * PX} y={gy + j * PX} width={PX + .6} height={PX + .6} /> : null))}
+          </g>
+        </g>
+      </g>
+    );
+  }))}
+</svg>
+<style>
+  .keypad { display: block; width: 100%; height: auto; shape-rendering: crispEdges; }
+  .key-cap { transition: none; }
+  .key.pressed .key-cap { transform: translate(10px, 10px); }
+  .key.pressed .legend { fill: var(--accent); }
+</style>

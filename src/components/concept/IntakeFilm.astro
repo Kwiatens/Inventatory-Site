@@ -1,0 +1,140 @@
+---
+/**
+ * Concept: "One scan", the intake film (lib/film). A pixel-art canvas that plays like a short
+ * video: one take along the desk, cuts with a dither dissolve. Plays while on screen; pause and
+ * scrub below. With reduced motion it shows the last frame until played.
+ */
+const chapters = ['Scan', 'Confirm', 'Fill in', 'Tube', 'Label', 'Rack', 'Inventatory', 'Result'];
+---
+<figure class="film" data-film>
+  <div class="screen" data-screen>
+    <canvas data-canvas width="384" height="192" role="img"
+      aria-label="Animation: the Scan R1 reads a vendor bag's label; you press A once; Inventatory on the PC fills in the part from the vendor and reserves slot R1-B3; parts go into a tube, its label prints and wraps the tube, and the tube drops into the rack. One key pressed, ten fields filled."></canvas>
+  </div>
+  <figcaption class="bar">
+    <button type="button" class="play" data-play aria-label="Pause"><span data-icon></span></button>
+    <div class="time">
+      <div class="track" data-track role="slider" tabindex="0" aria-label="Position in the animation" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="fill" data-fill></div>
+        {chapters.map((_, i) => <span class="tick" data-tick={i}></span>)}
+      </div>
+      <ol class="chapters" aria-label="Chapters">
+        {chapters.map((name, i) => <li data-chapter={i}><button type="button" tabindex="-1">{name}</button></li>)}
+      </ol>
+    </div>
+  </figcaption>
+</figure>
+
+<script>
+  import { createFilm, LOOP, POSTER, CHAPTERS, W, H } from '../../lib/film/film';
+
+  const root = document.querySelector<HTMLElement>('[data-film]');
+  if (root) {
+    const canvas = root.querySelector<HTMLCanvasElement>('[data-canvas]')!;
+    const screen = root.querySelector<HTMLElement>('[data-screen]')!;
+    const track = root.querySelector<HTMLElement>('[data-track]')!;
+    const fill = root.querySelector<HTMLElement>('[data-fill]')!;
+    const play = root.querySelector<HTMLButtonElement>('[data-play]')!;
+    const bar = root.querySelector<HTMLElement>('.bar')!;
+    const film = createFilm(canvas);
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    // Whole-number scale when there is room, so every art pixel is the same size.
+    const fit = () => {
+      const avail = screen.clientWidth, dpr = devicePixelRatio || 1;
+      const k = Math.floor(avail * dpr / W);
+      const css = k >= 2 ? (k * W) / dpr : avail;
+      canvas.style.width = css + 'px';
+      canvas.style.height = css * H / W + 'px';
+      bar.style.width = css + 'px';
+    };
+    new ResizeObserver(fit).observe(screen);
+    root.querySelectorAll<HTMLElement>('[data-tick]').forEach((el, i) => { el.style.left = (CHAPTERS[i] / LOOP * 100) + '%'; });
+    // Chapter names sit under their ticks; the one playing is lit, and each jumps to its start.
+    const names = [...root.querySelectorAll<HTMLElement>('[data-chapter]')];
+    names.forEach((el, i) => {
+      el.style.left = (CHAPTERS[i] / LOOP * 100) + '%';
+      el.querySelector('button')!.addEventListener('click', () => { t = CHAPTERS[i]; film.render(t); });
+    });
+    let lit = -1;
+
+    let t = reduced.matches ? POSTER : 0, playing = !reduced.matches, visible = false, last = performance.now();
+    const setPlaying = (on: boolean) => {
+      playing = on;
+      play.setAttribute('aria-label', on ? 'Pause' : 'Play');
+      play.dataset.state = on ? 'playing' : 'paused';
+    };
+    play.addEventListener('click', () => setPlaying(!playing));
+    const seek = (clientX: number) => {
+      const r = track.getBoundingClientRect();
+      t = Math.max(0, Math.min(.999, (clientX - r.left) / r.width)) * LOOP;
+      film.render(t);
+    };
+    track.addEventListener('pointerdown', (e) => { seek(e.clientX); track.setPointerCapture(e.pointerId); });
+    track.addEventListener('pointermove', (e) => { if (track.hasPointerCapture(e.pointerId)) seek(e.clientX); });
+    track.addEventListener('keydown', (e) => {
+      const i = CHAPTERS.findLastIndex(c => c <= t);
+      if (e.key === 'ArrowRight') t = CHAPTERS[(i + 1) % CHAPTERS.length];
+      else if (e.key === 'ArrowLeft') t = CHAPTERS[Math.max(0, i - (t - CHAPTERS[i] < 800 ? 1 : 0))];
+      else if (e.key === ' ') setPlaying(!playing);
+      else return;
+      e.preventDefault(); film.render(t);
+    });
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: .3 }).observe(canvas);
+
+    const tick = (now: number) => {
+      if (playing && visible && !document.hidden) t = (t + Math.min(100, now - last)) % LOOP;
+      last = now;
+      film.render(t);
+      fill.style.width = (t / LOOP * 100) + '%';
+      const at = CHAPTERS.findLastIndex(c => c <= t);
+      if (at !== lit) { names[lit]?.classList.remove('on'); names[at]?.classList.add('on'); lit = at; }
+      track.setAttribute('aria-valuenow', String(Math.round(t / LOOP * 100)));
+      requestAnimationFrame(tick);
+    };
+    setPlaying(playing);
+    fit();
+    requestAnimationFrame(tick);
+  }
+</script>
+
+<style>
+  .film { margin: 0; }
+  .screen { display: flex; justify-content: center; }
+  canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
+  /* Controls on the film's own grid: one art pixel (--px) thick, no rounding. */
+  .bar { display: flex; align-items: flex-start; gap: var(--space-4); max-width: 100%; margin: var(--space-6) auto 0; }
+  .play { flex: none; width: 2rem; height: 2rem; display: grid; place-items: center; padding: 0; background: var(--raised); border: 0; cursor: pointer; box-shadow: var(--px) var(--px) 0 var(--canvas); transition: background .1s steps(1); }
+  .play:hover { background: var(--hover); }
+  /* Pixel icons: two bars to pause, a stepped triangle to play. */
+  .play [data-icon] { width: 10px; height: 10px; background:
+      linear-gradient(var(--secondary), var(--secondary)) 1px 0 / 3px 10px no-repeat,
+      linear-gradient(var(--secondary), var(--secondary)) 6px 0 / 3px 10px no-repeat; }
+  .play[data-state="paused"] [data-icon] { background:
+      linear-gradient(var(--secondary), var(--secondary)) 1px 0 / 2px 10px no-repeat,
+      linear-gradient(var(--secondary), var(--secondary)) 3px 1px / 2px 8px no-repeat,
+      linear-gradient(var(--secondary), var(--secondary)) 5px 2px / 2px 6px no-repeat,
+      linear-gradient(var(--secondary), var(--secondary)) 7px 4px / 2px 2px no-repeat; }
+  .time { flex: 1; min-width: 0; }
+  .track { position: relative; height: 2rem; cursor: pointer; touch-action: none; }
+  .track::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: var(--px); margin-top: calc(var(--px) / -2); background: var(--divider); }
+  .fill { position: absolute; left: 0; top: 50%; height: var(--px); margin-top: calc(var(--px) / -2); background: var(--accent); }
+  /* The playhead: one block, twice the line's height. */
+  .fill::after { content: ''; position: absolute; right: calc(var(--px) * -1); top: calc(var(--px) * -1.5); width: calc(var(--px) * 2); height: calc(var(--px) * 4); background: var(--focus); }
+  .tick { position: absolute; top: 50%; width: var(--px); height: calc(var(--px) * 3); margin-top: calc(var(--px) * -1.5); background: var(--muted); }
+  .track:focus-visible { outline-offset: 2px; }
+  .chapters { position: relative; height: 1.25rem; margin: 0; padding: 0; list-style: none; }
+  .chapters li { position: absolute; top: 0; margin: 0; }
+  .chapters button { padding: 0; background: none; border: 0; color: var(--muted); font: var(--text-xs)/1.25rem var(--font-mono); cursor: pointer; white-space: nowrap; transition: color .1s steps(1); }
+  .chapters button:hover, .chapters .on button { color: var(--text); }
+  /* Below the 3x film the names would run into each other: only the chapter that is playing. */
+  .time { container-type: inline-size; }
+  @container (max-width: 64rem) {
+    .chapters li { left: 0 !important; display: none; }
+    .chapters li.on { display: block; }
+  }
+  /* Phones: the film runs edge to edge, so it gets one more whole-number step of scale. */
+  @media (max-width: 40rem) {
+    .screen { margin-inline: calc(var(--gutter) * -1); }
+  }
+</style>

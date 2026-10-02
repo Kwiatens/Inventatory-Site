@@ -1,0 +1,316 @@
+---
+/**
+ * CONCEPT — brand direction study for the homepage. Not linked from anywhere.
+ * The pixel art is drawn on the lockup's grid. The Scan R1 and the racks are generated from
+ * models (scripts/pixel-art), and the scanner's screens come from its firmware
+ * (scripts/scan-r1-lcd).
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Lockup from '../components/Lockup.astro';
+import PixelArt from '../components/concept/PixelArt.astro';
+import PixelSprite from '../components/concept/PixelSprite.astro';
+import LcdPanel from '../components/concept/LcdPanel.astro';
+import IntakeFilm from '../components/concept/IntakeFilm.astro';
+import { order, board, history } from '../lib/feature-art';
+import { PX } from '../lib/pixel';
+import Keypad from '../components/concept/Keypad.astro';
+import Scanner from '../components/home/Scanner.astro';
+import PlatformInstallSelector from '../components/PlatformInstallSelector.astro';
+import art from '../data/pixel-art.json';
+import { hero, statement, steps, workflow } from '../data/home';
+import { url } from '../lib/url';
+
+// ---------- features: every plate on the film's grid (1 art pixel = --px) ----------
+const plates = { order: order(), board: board(), history: history() };
+const cols = (a: { width: number }) => a.width / PX + 1;   // + the one-pixel drop shadow
+/** The workspace each feature lives in, as the app's own tab bar names it. */
+const workspaces: Record<string, string> = { import: '3 Import', store: '2 Racks', build: '4 Projects', history: '5 History' };
+
+---
+<BaseLayout title="Concept">
+  <section class="hero wrap">
+    <h1 class="word"><Lockup tone="flat" cursor animate typo label="Inventatory" /></h1>
+    <div class="intro">
+      <p class="claim">{hero.title.join(' ')}</p>
+      <div class="side">
+        <p>{hero.summary}</p>
+        <div class="acts">
+          <a class="press" href="#homepage-download">{hero.primary}</a>
+          <a class="quiet go" href="#life">{hero.secondary}</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="bench band" aria-label="What one scan does">
+    <div class="wrap">
+      <p class="bench-title head">{statement.lines.at(-1)}</p>
+      <IntakeFilm />
+    </div>
+  </section>
+
+  <section id="life" class="life wrap" aria-labelledby="life-title">
+    <h2 id="life-title" class="head">{workflow.headingLines.join(' ')}</h2>
+    <div class="explorer" data-explorer>
+      <ol class="items" role="tablist" aria-orientation="vertical" aria-labelledby="life-title">
+        {steps.map((step, i) => (
+          <li class:list={['item', { on: i === 0 }]} data-item>
+            <button type="button" role="tab" id={`tab-${step.id}`} aria-selected={i === 0 ? 'true' : 'false'} aria-controls="feature-stage" tabindex={i === 0 ? 0 : -1}>
+              <span class="num">{String(i + 1).padStart(2, '0')}</span>{step.title}
+            </button>
+            <div class="desc"><div>
+              <p>{step.text}</p>
+              <a class="go" href={url(step.href)}>Read the guide</a>
+            </div></div>
+          </li>
+        ))}
+      </ol>
+      <div class="stage" id="feature-stage" role="tabpanel" aria-labelledby={`tab-${steps[0].id}`} data-stage>
+        <span class="workspace" data-workspace>{workspaces[steps[0].id]}</span>
+        <div class="art" data-art data-order style={{ '--w': cols(plates.order) }}><PixelArt art={plates.order} label="An order CSV, each row accepted or skipped" /></div>
+        <div class="art tower" data-art data-tower hidden style={{ '--w': art.tower.width + 1 }}>
+          <PixelSprite data={art.tower} class="frame on" label="A stack of Inventatory racks, one tube lifting out" />
+          <PixelSprite data={art.towerLift} class="frame" />
+        </div>
+        <div class="art" data-art data-board hidden style={{ '--w': cols(plates.board) }}><PixelArt art={plates.board} label="A circuit board, its BOM parts lighting up in turn" /></div>
+        <div class="art" data-art data-history hidden style={{ '--w': cols(plates.history) }}><PixelArt art={plates.history} label="Inventory history, restored to a checkpoint" /></div>
+      </div>
+    </div>
+  </section>
+
+  <Scanner>
+    <div slot="model" class="r1" data-r1>
+      <PixelSprite data={art.scanner} class="r1-art" label="Inventatory Scan R1" />
+      <div class="r1-face">
+        <LcdPanel label="Scan R1 display, as rendered by its firmware" />
+        <Keypad />
+      </div>
+    </div>
+  </Scanner>
+  <div class="wrap"><PlatformInstallSelector id="homepage-download" /></div>
+</BaseLayout>
+
+<script>
+  import { playScanR1 } from '../lib/scan-player';
+  import { ORDER_ROWS, HISTORY_CHECKPOINT } from '../lib/feature-art';
+
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const wait = (ms: number) => new Promise(r => setTimeout(r, ms));
+  const visibleWhile = (el: Element) => {
+    const state = { on: false };
+    new IntersectionObserver(([e]) => { state.on = e.isIntersecting; }).observe(el);
+    return state;
+  };
+  // Keys flash in the sprite's keypad (and on a face-on keypad, when there is one).
+  const press = (root: Element, key: string) => {
+    const caps = root.querySelectorAll(`.faces [data-tag="key-${CSS.escape(key)}"]`);
+    const face = root.querySelector(`[data-key="${CSS.escape(key)}"]`);
+    caps.forEach(el => el.classList.add('pressed')); face?.classList.add('pressed');
+    setTimeout(() => { caps.forEach(el => el.classList.remove('pressed')); face?.classList.remove('pressed'); }, 260);
+  };
+
+  // ---------- Scan R1 section: the device and its face, in the bench's pick flow ----------
+  const r1 = document.querySelector<HTMLElement>('[data-r1]');
+  if (r1) playScanR1(r1, {
+    scenes: ['boot', 'pick', 'pick'],
+    still: ['pick', 4200],
+    onEvent: (_, event) => { if (event.startsWith('key:')) press(r1, event.slice(4)); },
+  });
+
+  // ---------- features: four small loops on one clock, while the section is on screen ----------
+  const life = document.querySelector<HTMLElement>('#life');
+  const tags = (root: Element | null | undefined, prefix: string) => [...(root?.querySelectorAll(`[data-tag^="${prefix}"]`) ?? [])];
+  const row = (el: Element) => Number(el.getAttribute('data-tag')!.split('-')[1]);
+  if (!reduced && life) {
+    const seen = visibleWhile(life);
+    const frames = [...life.querySelectorAll('[data-tower] .frame')];
+    const parts = tags(life.querySelector('[data-board] .faces'), 'part-');
+    const orderEl = life.querySelector('[data-order]');
+    const cursor = tags(orderEl, 'cur-'), marks = tags(orderEl, 'ok-');
+    const historyEl = life.querySelector('[data-history]');
+    const sel = tags(historyEl?.querySelector('.faces'), 'bg-'), rows = tags(historyEl, 'row-');
+    const step = (n: number) => {
+      // Racks: a tube lifts out and drops back. Board: the BOM's parts light in turn.
+      if (n % 2 === 0) frames.forEach((f, i) => f.classList.toggle('on', i === (n / 2) % 2));
+      parts.forEach(p => p.classList.toggle('lit', row(p) === (n >> 1) % 10));
+      // Order: the cursor walks the rows; each gets its tick (or dash) as it is passed.
+      const o = n % (ORDER_ROWS + 4);
+      cursor.forEach(c => c.classList.toggle('on', row(c) === o));
+      marks.forEach(m => m.classList.toggle('gone', row(m) >= o));
+      // History: step down to the checkpoint, restore it (the newer commits fade), start over.
+      const h = n % 7;
+      sel.forEach(b => b.classList.toggle('sel', h < 6 && row(b) === Math.min(h, HISTORY_CHECKPOINT)));
+      rows.forEach(r => r.classList.toggle('dim', h >= 3 && h < 6 && row(r) < HISTORY_CHECKPOINT));
+    };
+    (async () => {
+      for (let n = 0; ; n++) {
+        if (seen.on && !document.hidden) step(n);
+        await wait(700);
+      }
+    })();
+  }
+
+  // ---------- features: the explorer. Steps through on its own, stops once someone picks ----------
+  const explorer = document.querySelector<HTMLElement>('[data-explorer]');
+  if (explorer) {
+    explorer.classList.add('live');
+    const items = [...explorer.querySelectorAll<HTMLElement>('[data-item]')];
+    const tabs = items.map(el => el.querySelector('button')!);
+    const arts = [...explorer.querySelectorAll<HTMLElement>('[data-art]')];
+    const stage = explorer.querySelector<HTMLElement>('[data-stage]')!;
+    const label = explorer.querySelector<HTMLElement>('[data-workspace]')!;
+    const names = ['3 Import', '2 Racks', '4 Projects', '5 History'];
+    const DWELL = 7000;
+    const seen = visibleWhile(explorer);
+    let open = 0, auto = !reduced, shown = 0, last = performance.now();
+    const show = (i: number) => {
+      items.forEach((el, k) => { el.classList.toggle('on', k === i); el.style.removeProperty('--p'); });
+      tabs.forEach((t, k) => { t.setAttribute('aria-selected', String(k === i)); t.tabIndex = k === i ? 0 : -1; });
+      arts.forEach((a, k) => {
+        a.hidden = k !== i;
+        a.classList.remove('dither-in');
+        if (k === i && !reduced) { void a.offsetWidth; a.classList.add('dither-in'); }
+      });
+      stage.setAttribute('aria-labelledby', tabs[i].id);
+      label.textContent = names[i];
+      open = i; shown = 0;
+    };
+    // The list keeps the height of its tallest state (spare room at the end), so the page
+    // doesn't move as it steps through.
+    const list = explorer.querySelector<HTMLElement>('.items')!;
+    const fit = () => {
+      const titles = tabs.reduce((h, t) => h + t.offsetHeight, 0);
+      const text = Math.max(...items.map(el => el.querySelector<HTMLElement>('.desc > div')!.scrollHeight));
+      list.style.minHeight = titles + text + 'px';
+    };
+    new ResizeObserver(fit).observe(list.parentElement!);
+    const pick = (i: number) => { auto = false; show(i); items[i].style.setProperty('--p', '1'); };
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => pick(i));
+      t.addEventListener('keydown', (e) => {
+        const d = e.key === 'ArrowDown' ? 1 : e.key === 'ArrowUp' ? -1 : 0;
+        if (!d) return;
+        e.preventDefault();
+        const k = (open + d + items.length) % items.length;
+        pick(k); tabs[k].focus();
+      });
+    });
+    // Pointing at the panel holds it, so nothing moves while it is being read.
+    let held = false;
+    explorer.addEventListener('pointerenter', () => { held = true; });
+    explorer.addEventListener('pointerleave', () => { held = false; });
+    if (auto) {
+      // A coarse clock: the rail fills in steps, like everything else that moves here.
+      const timer = setInterval(() => {
+        if (!auto) { clearInterval(timer); return; }
+        const now = performance.now();
+        if (seen.on && !document.hidden && !held) shown += now - last;
+        last = now;
+        items[open].style.setProperty('--p', String(Math.min(1, shown / DWELL)));
+        if (shown >= DWELL) show((open + 1) % items.length);
+      }, 100);
+    } else items[0].style.setProperty('--p', '1');
+  }
+</script>
+
+<style is:global>
+  @import '../styles/pixel.css';
+  /* Concept type: Archivo, one family across two widths. Expanded for display, the way the
+     ANSI wordmark is wide; normal width for reading. Plex Mono stays for data only. */
+  @import url('https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap');
+  :root { --font-body: 'Archivo', system-ui, sans-serif; }
+  /* The page's column is the film's width at 3x, so everything lines up with it. */
+  :root { --width: 72rem; }
+  body { font-stretch: 100%; }
+  /* Switchable pixels in generated sprites: gone (no part), lit (just placed), pressed (key). */
+  .pixel-sprite [data-tag].gone, .pixel-art [data-tag].gone { opacity: 0; }
+  .pixel-art [data-tag^="cur-"]:not(.on) { opacity: 0; }
+  .pixel-art [data-tag].dim { opacity: .3; }
+  .pixel-art .faces [data-tag].sel { fill: var(--selection); }
+  .pixel-sprite .faces [data-tag].lit, .pixel-art .faces [data-tag].lit { fill: var(--focus); }
+  .pixel-sprite .faces [data-tag].pressed { fill: var(--accent); }
+</style>
+
+<style>
+  /* ---------- hero: the wordmark is the headline ---------- */
+  /* Tight enough that the film starts on the first screen. The lockup's letter pixel is
+     18px (6 film pixels at 3x), so its blocks land on the page's grid. */
+  .hero { padding-block: clamp(3rem, 9vh, 6rem) var(--space-16); }
+  .word { width: min(100%, 972px); margin: 0; --lockup-word: var(--text); --lockup-mark: var(--accent); --lockup-shadow: #1f2826; }
+  .intro { display: grid; grid-template-columns: 1.25fr 1fr; gap: var(--space-12); align-items: end; margin-top: var(--space-12); }
+  .claim { color: var(--text); font-size: clamp(1.75rem, 3.2vw, 2.75rem); font-weight: 600; font-stretch: 118%; line-height: 1.05; letter-spacing: -.02em; text-wrap: balance; }
+  .side p { max-width: 34ch; font-size: var(--text-lead); line-height: 1.5; }
+  .acts { display: flex; align-items: center; gap: var(--space-6); margin-top: var(--space-6); }
+  .quiet { color: var(--secondary); font-weight: 500; text-decoration: none; }
+  .quiet:hover { color: var(--text); }
+
+  /* ---------- bench: the intake loop ---------- */
+  .bench { padding-block: var(--space-12) var(--space-16); }
+  .bench-title { margin-bottom: var(--space-8); }
+
+  /* ---------- section heads: one size and weight for every section ---------- */
+  .head { max-width: 30ch; color: var(--text); font-size: clamp(1.5rem, 2.6vw, 2.25rem); font-weight: 600; font-stretch: 118%; letter-spacing: -.02em; line-height: 1.1; text-wrap: balance; }
+
+  /* ---------- features: one explorer. A list on the left, the open feature's drawing on the
+     right in the scanner's decode frame; it steps through on its own until someone picks. */
+  .life { padding-block: var(--space-20); }
+  .life .head { margin-bottom: var(--space-12); }
+  .explorer { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-12); }
+  .items { list-style: none; margin: 0; padding: 0; }
+  /* Each item hangs off one rail; the open one's segment fills while it is on show. */
+  .item { position: relative; margin: 0; padding-left: calc(var(--px) * 8); border-left: var(--px) solid var(--divider); }
+  .item::before { content: ''; position: absolute; left: calc(var(--px) * -1); top: 0; width: var(--px); height: calc(var(--p, 0) * 100%); background: var(--accent); }
+  /* The film's cursor marks the open one. */
+  .item::after {
+    content: ''; position: absolute; left: calc(var(--px) * 2); top: calc(var(--space-4) + .8125rem - var(--px) * 2.5); width: calc(var(--px) * 3); height: calc(var(--px) * 5);
+    background: var(--accent); -webkit-mask: var(--icon-go) 0 0 / 100% 100%; mask: var(--icon-go) 0 0 / 100% 100%; visibility: hidden;
+  }
+  .item.on::after { visibility: visible; }
+  .item button {
+    display: flex; align-items: baseline; gap: var(--space-4); width: 100%; padding: var(--space-4) 0; background: none; border: 0; text-align: left; cursor: pointer;
+    color: var(--muted); font: 600 1.25rem/1.3 var(--font-body); font-stretch: 112%; letter-spacing: -.01em; transition: color .1s steps(1);
+  }
+  .item button:hover, .item.on button { color: var(--text); }
+  .num { flex: none; color: var(--muted); font: 400 var(--text-xs)/1 var(--font-mono); letter-spacing: .04em; }
+  .item.on .num { color: var(--accent); }
+  /* The open item's text; the others fold away (all of them stay open without JavaScript). */
+  .desc { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .22s cubic-bezier(.65, 0, .35, 1); }
+  .desc > div { overflow: hidden; padding-left: calc(1.5rem + var(--space-4)); }
+  .desc p { max-width: 44ch; font-size: .9375rem; line-height: 1.6; }
+  .desc a { display: inline-block; margin: var(--space-3) 0 var(--space-6); font-size: var(--text-sm); font-weight: 500; text-decoration: none; }
+  .explorer.live .item:not(.on) .desc { grid-template-rows: 0fr; }
+  .explorer.live .item:not(.on) .desc a { visibility: hidden; }
+
+  /* The stage: a surface panel in the scanner's decode frame, the drawing in the middle at the
+     film's pixel size. */
+  .stage { position: relative; display: grid; place-items: center; min-height: calc(var(--px) * 124); padding: calc(var(--px) * 14) calc(var(--px) * 8); background: var(--surface); }
+  .stage::after {
+    --l: calc(var(--px) * 5); --t: var(--px); --c: var(--active);
+    content: ''; position: absolute; inset: calc(var(--px) * -3); pointer-events: none;
+    background:
+      linear-gradient(var(--c), var(--c)) 0 0 / var(--l) var(--t), linear-gradient(var(--c), var(--c)) 0 0 / var(--t) var(--l),
+      linear-gradient(var(--c), var(--c)) 100% 0 / var(--l) var(--t), linear-gradient(var(--c), var(--c)) 100% 0 / var(--t) var(--l),
+      linear-gradient(var(--c), var(--c)) 0 100% / var(--l) var(--t), linear-gradient(var(--c), var(--c)) 0 100% / var(--t) var(--l),
+      linear-gradient(var(--c), var(--c)) 100% 100% / var(--l) var(--t), linear-gradient(var(--c), var(--c)) 100% 100% / var(--t) var(--l);
+    background-repeat: no-repeat;
+  }
+  .workspace { position: absolute; top: calc(var(--px) * 5); left: calc(var(--px) * 8); color: var(--muted); font: var(--text-xs)/1 var(--font-mono); letter-spacing: .04em; }
+  .art { grid-area: 1 / 1; }
+  .art[hidden] { display: none; }
+  .art > :global(svg) { width: calc(var(--px) * var(--w)); }
+  .tower { display: grid; }
+  .tower > :global(.frame) { grid-area: 1 / 1; visibility: hidden; }
+  .tower > :global(.frame.on) { visibility: visible; }
+
+  /* ---------- Scan R1 section: the device and its face ---------- */
+  .r1 { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--space-8); align-items: center; }
+  .r1-face { display: grid; gap: var(--space-6); justify-items: center; }
+  .r1-face > :global(*) { width: min(100%, 17rem); }
+
+  @media (max-width: 44rem) {
+    .intro { grid-template-columns: 1fr; gap: var(--space-8); }
+    .explorer { grid-template-columns: 1fr; gap: var(--space-8); }
+    .stage { order: -1; min-height: 0; }
+    .r1 { grid-template-columns: 1fr; }
+  }
+</style>
