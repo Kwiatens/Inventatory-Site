@@ -16,25 +16,18 @@
     ]
   },
   "workflow": {
-    "headingLines": [],
+    "headingLines": ["Everything after the scan."],
     "summary": "",
     "readGuideText": "Read the guide",
     "recordingPendingText": "Recording pending",
     "steps": [
       {
-        "id": "receive",
-        "title": "Automated part entry",
-        "text": "Scan a supported vendor label or import an order - Inventatory will automatically add the parts, fill in their electrical parameters, packages and datasheets to your inventory.",
-        "mediaCaption": "Stock workspace, part created from a label scan",
+        "id": "import",
+        "title": "Import a whole order",
+        "text": "Load a DigiKey order CSV and review it line by line: accept or skip each part, and Inventatory creates the accepted ones and fills in their details from DigiKey.",
+        "mediaCaption": "Import workspace",
         "href": "/docs/desktop/import/",
-        "media": {
-          "src": "/media/stock.png",
-          "alt": "Stock workspace with a capacitor created from a DigiKey code scan, showing its parameters, rack location, and links.",
-          "width": 1881,
-          "height": 970,
-          "position": "100% 0%",
-          "zoom": 1.9
-        }
+        "media": null
       },
       {
         "id": "store",
@@ -53,9 +46,9 @@
         "media": null
       },
       {
-        "id": "recover",
-        "title": "Build a hardware scanner",
-        "text": "Our scanner let's you keep track of your inventory, without having to go back and forth to your computer during PCB assembly. Instead you just scan the QR ID code, and type in the quantity change - no manual searching for the part in the software.",
+        "id": "history",
+        "title": "Undo anything",
+        "text": "Every change to your stock is recorded. See exactly what changed, set checkpoints, and restore or reverse a change, even after a restart.",
         "mediaCaption": "History workspace",
         "href": "/docs/desktop/history/",
         "media": null

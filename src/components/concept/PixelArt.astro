@@ -1,0 +1,14 @@
+---
+/** Concept: renders a Canvas from lib/pixel as an SVG with the lockup's drop shadow. */
+import { PX, type PixelRect } from '../../lib/pixel';
+interface Props { art: { faces: PixelRect[]; width: number; height: number }; label?: string; class?: string }
+const { art, label, class: className } = Astro.props;
+---
+<svg class:list={['pixel-art', className]} viewBox={`0 0 ${art.width + PX} ${art.height + PX}`} role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : 'true'} focusable="false">
+  <g class="shades">{art.faces.filter(f => f.shadow).map(f => <rect x={f.x + PX} y={f.y + PX} width={f.w} height={f.h} fill={f.shadow} data-tag={f.tag} />)}</g>
+  <g class="faces">{art.faces.map(f => <rect x={f.x} y={f.y} width={f.w} height={f.h} fill={f.fill} data-tag={f.tag} />)}</g>
+  <slot />
+</svg>
+<style>
+  .pixel-art { display: block; width: 100%; height: auto; overflow: visible; shape-rendering: crispEdges; }
+</style>

@@ -16,12 +16,14 @@ const external = (href: string) => /^https?:/.test(href);
         <p class="summary">{scanner.summary}</p>
       </div>
 
-      <div class="model" data-scanner-model>
-        <img class="still" src={url(model.media.src)} alt={model.media.alt} width={model.media.width} height={model.media.height} loading="lazy" decoding="async" />
-        <video data-scanner-video muted loop playsinline preload="none" poster={url(model.media.src)} aria-hidden="true">
-          <source src={url(model.media.video)} type="video/webm" />
-        </video>
-      </div>
+      <slot name="model">
+        <div class="model" data-scanner-model>
+          <img class="still" src={url(model.media.src)} alt={model.media.alt} width={model.media.width} height={model.media.height} loading="lazy" decoding="async" />
+          <video data-scanner-video muted loop playsinline preload="none" poster={url(model.media.src)} aria-hidden="true">
+            <source src={url(model.media.video)} type="video/webm" />
+          </video>
+        </div>
+      </slot>
     </div>
 
     <div class="routes">

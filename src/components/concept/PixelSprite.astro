@@ -1,0 +1,20 @@
+---
+/**
+ * Concept: a sprite generated from a model (scripts/pixel-art), with the lockup's drop
+ * shadow. Tagged pixels carry data-tag; LCD pixels carry their (u, v) on the glass so a
+ * player can paint the firmware's frames into them.
+ */
+import { sprite, PX, LCD_BG, hex, type SpriteData } from '../../lib/pixel';
+interface Props { data: SpriteData; label?: string; class?: string; }
+const { data, label, class: className } = Astro.props;
+const art = sprite(data);
+---
+<svg class:list={['pixel-sprite', className]} viewBox={`0 0 ${art.width + PX} ${art.height + PX}`} role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : 'true'} focusable="false">
+  <g class="shades">{art.faces.map(f => <rect x={f.x + PX} y={f.y + PX} width={f.w} height={f.h} fill={f.shadow} data-tag={f.tag} />)}</g>
+  <g class="faces">{art.faces.map(f => <rect x={f.x} y={f.y} width={f.w} height={f.h} fill={f.fill} data-tag={f.tag} />)}</g>
+  {art.lcd.length > 0 && <g class="lcd" data-lcd-pixels fill={hex(LCD_BG)}>{art.lcd.map(p => <rect x={p.x * PX} y={p.y * PX} width={PX + .6} height={PX + .6} data-u={p.u} data-v={p.v} />)}</g>}
+  <slot />
+</svg>
+<style>
+  .pixel-sprite { display: block; width: 100%; height: auto; overflow: visible; shape-rendering: crispEdges; }
+</style>

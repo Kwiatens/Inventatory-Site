@@ -15,3 +15,6 @@ AGENTS.md
 docs/asset-provenance.md
 docs/content-audit.md
 docs/validation.md
+
+# Python bytecode from the pixel-art scripts
+__pycache__/
