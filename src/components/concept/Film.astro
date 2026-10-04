@@ -114,9 +114,9 @@ const label = 'Animation: the Scan R1 reads a vendor bag\'s label; you press A o
   /* Under the picture: the controls on the film's own grid, one art pixel (--px) thick, no
      rounding. */
   .under { margin-top: var(--space-4); }
-  .bar { display: flex; align-items: flex-end; gap: var(--space-4); }
+  .bar { display: flex; align-items: center; gap: var(--space-4); }
   /* Play/pause is a key off the Scan R1's keypad. */
-  .play { flex: none; width: 2.25rem; min-height: 2.25rem; padding: 0; margin-bottom: calc((2rem - 2.25rem) / 2); }
+  .play { flex: none; width: 2.25rem; min-height: 2.25rem; padding: 0; }
   /* Pixel icons: two bars to pause, a stepped triangle to play. */
   .play [data-icon] { width: 10px; height: 10px; background:
       linear-gradient(var(--secondary), var(--secondary)) 1px 0 / 3px 10px no-repeat,
@@ -129,7 +129,7 @@ const label = 'Animation: the Scan R1 reads a vendor bag\'s label; you press A o
   /* The reel: one timeline for the whole film. */
   .reel { flex: 1; min-width: 0; }
   .track { position: relative; height: 2rem; cursor: pointer; touch-action: none; }
-  .seg { position: relative; }
+  .seg { position: relative; height: 100%; }
   .seg::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: var(--px); margin-top: calc(var(--px) / -2); background: var(--divider); }
   .fill { position: absolute; left: 0; top: 50%; height: var(--px); margin-top: calc(var(--px) / -2); background: var(--accent); }
   /* The playhead: one block, twice the line's height, on the open film's segment only. */
