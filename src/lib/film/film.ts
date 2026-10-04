@@ -9,28 +9,23 @@
 import art from '../../data/pixel-art.json';
 import { lcdFrameAt, frameBits, paintLcdCanvas } from '../scan-player';
 import { GLYPHS, type SpriteData } from '../pixel';
-import { bitmap, fromCodes, rotate, text, measure, dither, fillPoly, hull, line, drawAffine, drawRotated, C, type Bitmap } from './gfx';
+import { bitmap, fromCodes, text, measure, dither, fillPoly, hull, line, drawAffine, C, type Bitmap } from './gfx';
 import * as P from './props';
 import { getLockup, shadowOffset, CELL_W, CELL_H, TOP_ROW } from '../lockup';
 import { hero } from '../../data/home';
+import { say, SAY_X, SAY_BASE, SAY_FONT } from './say';
 
-export const W = 384, H = 192;
+// The picture ends at the desk: the canvas is cut there, and the page's scrubber runs under it.
 const DESK = 166;
+export const W = 384, H = DESK;
 // Each shot keeps its own clock. The scan runs on t; the close-up on t - FACE_SHIFT; the
 // shots after it on t - LATER_SHIFT.
 // The close-up's clock starts at 4800 and the later shots' at 11900, so trimming one shot
 // moves everything after it.
 const SCAN_END = 6400, FACE_SHIFT = SCAN_END - 4800, FACE_HOLD = 600, FACE_END = FACE_SHIFT + 12400 - FACE_HOLD, LATER_SHIFT = FACE_END - 11900;
-// Holds on the later shots' clock: [at, ms] freezes the picture at `at` (a still moment) so a
-// caption can be read, and moves everything after it.
-const HOLDS: Array<[number, number]> = [[14300, 1300], [19400, 500]];
-const later = (u: number) => u + LATER_SHIFT + HOLDS.reduce((a, [at, ms]) => a + (u >= at ? ms : 0), 0);
-/** The later shots' clock at film time t: holds taken out. */
-const unlater = (t: number) => {
-  let u = t - LATER_SHIFT;
-  for (const [at, ms] of HOLDS) { if (u < at) break; if (u < at + ms) return at; u -= ms; }
-  return u;
-};
+const later = (u: number) => u + LATER_SHIFT;
+/** The later shots' clock at film time t. */
+const unlater = (t: number) => t - LATER_SHIFT;
 // The bench (u 20000..BENCH_END) is one take; each beat is timed from the one before, and the
 // rack runs on u - BENCH_EXTRA.
 const OPEN = [20300, 20700], PULL = [20700, 21700], AWAY = [21100, 22700], HOIST = [21800, 22700];
@@ -38,7 +33,7 @@ const ZIN = [HOIST[1] + 200, HOIST[1] + 1400], PEEL = [ZIN[1] + 300, ZIN[1] + 21
 const TOSS = [PEEL[1] + 800, PEEL[1] + 2500], ZOUT = [TOSS[0] + 250, TOSS[0] + 1350];  // tape away, out
 const CAPON = [ZOUT[1] - 150, ZOUT[1] + 1000];
 const PAN = [CAPON[1] + 150, CAPON[1] + 1050], FEED = [PAN[1] - 200, PAN[1] + 1200];  // to the printer
-const UNPEEL = [FEED[1] + 250, FEED[1] + 950], PICK = [UNPEEL[1] + 100, UNPEEL[1] + 1100];
+const UNPEEL = [FEED[1] + 400, FEED[1] + 1900], PICK = [UNPEEL[1], UNPEEL[1] + 1150];   // peeled by a corner; lifted, turned over
 const BACK = [PICK[1] + 1900, PICK[1] + 2900], WRAP = [BACK[1] + 50, BACK[1] + 550];  // read, then on
 const BENCH_END = WRAP[1] + 1100, BENCH_EXTRA = BENCH_END - 28200;
 // The rack (its own clock, from 28200): the cursor walks the slots in fill order to the free
@@ -52,23 +47,18 @@ const SEATED = LOWER[1] + 70, RISE = [SEATED + 350, SEATED + 600];
 // The lockup first, then what it took (RESULT: the lockup moves up, the numbers come in).
 const SIGN = RISE[1] + 1100, RESULT = SIGN + 5000, SIGN_END = SIGN + 9600, PAUSE = 1000;   // then a blank second
 export const LOOP = later(SIGN_END + BENCH_EXTRA) + PAUSE;
+// In the reel the sign-off comes at the end of the finale (finale.ts); here, from SIGN, comes the
+// question instead: the slot's tag closes, the camera tilts up off the rack, and the cursor that
+// found the slot flies to the middle, turns into the prompt and types the question the finale
+// answers. The reel dissolves from it into the finale.
+const TAG_CLOSE = [120, 300], ASK_TILT = [450, 1250], ASK_FLY = [550, 1350], ASK_TYPE = 1650, DESK_LEN = 5400;
+export const QUESTION = 'But why is this useful?';
+/** Where the reel leaves this film, for the finale. */
+export const CUT = later(SIGN + DESK_LEN + BENCH_EXTRA);
 /** The frame to show still (reduced motion): the finished lockup. */
 export const POSTER = later(SIGN_END + BENCH_EXTRA) - 900;
 /** Chapter starts, for the scrubber. */
 export const CHAPTERS = [0, SCAN_END, FACE_END, ...[20000, PAN[0], BENCH_END, SIGN + BENCH_EXTRA, RESULT + BENCH_EXTRA].map(later)];
-const CAPTIONS: Array<[number, number, string]> = [
-  [400, SCAN_END - 300, 'Scan the label on the bag.'],
-  [SCAN_END + 200, FACE_SHIFT + 9100 - FACE_HOLD, 'The quantity came from the label.'],
-  [FACE_SHIFT + 9200 - FACE_HOLD, FACE_END - 200, 'Press A to add it.'],
-  ...([
-    [12000, 14300, 'The label fills in the part and quantity.'],
-    [14400, 19800, 'Inventatory asks the vendor for the rest.'],
-    [20200, PAN[0] - 100, 'Peel the tape; the parts drop in.'],
-    [PAN[0], BENCH_END - 200, 'Its label prints by itself.'],
-    [28400 + BENCH_EXTRA, SIGN - 100 + BENCH_EXTRA, 'And it already has a slot: R1-B3.'],
-  ] as Array<[number, number, string]>).map(([a, b, c]): [number, number, string] => [later(a), later(b), c]),
-];
-
 // ---------- timing helpers ----------
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const seg = (t: number, a: number, b: number) => clamp((t - a) / (b - a));
@@ -134,9 +124,9 @@ export function createFilm(canvas: HTMLCanvasElement) {
   const bandOf = (w: number) => { let b = bands.get(w); if (!b) { b = P.tubeBand(w); bands.set(w, b); } return b; };
   const monitor = P.monitor();
   const vendor = P.vendor();
-  // The part of the bag label the close-up quotes: its codes and the QTY box (P.bag layout).
+  // The bag label's QTY box, which the close-up marks (P.bag layout).
   const BL = P.BAG.label;
-  const QTY_CROP = { x: BL.x, y: BL.y + 29, w: 104, h: 37 }, QTY_BOX = { x: BL.x + 70, y: BL.y + 40, w: 31, h: 23 };
+  const QTY_BOX = { x: BL.x + 70, y: BL.y + 40, w: 31, h: 23 };
   const faceData = art.filmFace as unknown as Tagged;
   const face = fromCodes(faceData);
   // The glass the window shows, and the 128 x 64 dot area centred in it.
@@ -285,19 +275,6 @@ export function createFilm(canvas: HTMLCanvasElement) {
 
   let camX = 0;
   const draw = (b: Bitmap, x: number, y: number) => g.drawImage(b, R(x - camX), R(y));
-  // The caption bar: black, under a divider; things on the desk stand on its line. The picture
-  // above it is transparent.
-  const bar = () => {
-    g.fillStyle = C.canvas; g.fillRect(0, DESK, W, H - DESK);
-    g.fillStyle = C.divider; g.fillRect(0, DESK, W, 1);
-  };
-  const caption = (t: number) => {
-    const c = CAPTIONS.find(([a, b]) => t >= a && t < b);
-    if (!c) return;
-    const shown = R(seg(t, c[0], c[0] + c[2].length * 28) * c[2].length);
-    text(g, 'bold', c[2].slice(0, shown), 12, 184, C.text);
-  };
-
   // ---------- shots ----------
   // 1. The bag, label to the viewer; it turns to face the scanner, which is brought in and aims;
   //    light from the scan window, a decode flash and a beep; it turns its screen to the viewer.
@@ -376,6 +353,7 @@ export function createFilm(canvas: HTMLCanvasElement) {
   function shotFace(u: number) {
     camX = 0;
     // the held New part screen is cut short by FACE_HOLD (nothing moves there)
+    const w = u;
     if (u > 8400) u += FACE_HOLD;
     const down = easeInOut(seg(u, 9000, 9600)), up = easeInOut(seg(u, 10500, 11100));
     const fx = R((W - face.width) / 2) + 44, fy = -R(lerp(16, lerp(40, 16, up), down));
@@ -385,23 +363,37 @@ export function createFilm(canvas: HTMLCanvasElement) {
     let rec = u < 6800 ? u - 1900 : u < 9100 ? 3950 + (u - 6800 + 950) % 1200 : u - 3900;
     if (rec > 7000) rec += 1800;
     g.drawImage(lcdGlass(lcdFrameAt('intake', clamp(rec, 0, 12000))), fx + faceLcd[0], fy + faceLcd[1]);
-    // where the quantity came from: the bag label's QTY box, a dotted line to the screen, and
-    // brackets on the field
-    if (u > 6100 && u < 9400) {
-      const reveal = seg(u, 6100, 6400) * (1 - seg(u, 9150, 9400)), qy = fy + faceLcd[1] + 44;
-      const cx = 18, cy = qy - (QTY_BOX.y - QTY_CROP.y + QTY_BOX.h / 2);
-      // the piece of label opens from its middle row, with the props' drop shadow
-      const h = R(QTY_CROP.h * easeInOut(reveal)), top = R((QTY_CROP.h - h) / 2), y = R(cy);
-      if (h > 0) {
-        g.fillStyle = C.shadow; g.fillRect(cx + 1, y + top + 1, QTY_CROP.w, h);
-        g.drawImage(bag.art, QTY_CROP.x, QTY_CROP.y + top, QTY_CROP.w, h, cx, y + top, QTY_CROP.w, h);
-      }
-      const from = cx + QTY_BOX.x - QTY_CROP.x + QTY_BOX.w + 2, to = fx + gx0 - 2;   // to the glass; the bracket marks the field
-      const reach = R(lerp(from, to, easeInOut(seg(u, 6300, 6800)) * (1 - seg(u, 9000, 9200))));
-      if (reach > from) { g.fillStyle = C.accent; g.fillRect(from, qy, reach - from, 1); }
+    // Where the quantity came from (w: the clock before the held screen is cut). The bag slides
+    // in beside the screen, the scanner's brackets close on the label's QTY box (the one thing
+    // read from it), a line runs from it to the field, and the value types itself in.
+    const qy = fy + faceLcd[1] + 44, gl = fx + gx0 - 2;
+    const fx0 = fx + faceLcd[0] + 75, fy0 = fy + faceLcd[1] + 37;       // the field's corner on the glass
+    const typed = R(seg(w, 7550, 8000) * 3);
+    if (typed < 3) {                                                    // the field is empty until the value lands
+      g.fillStyle = '#a9b6a4'; g.fillRect(fx0 + 2 + typed * 7, fy0 - 1, 31 - typed * 7, 16);
     }
-    if (u > 6700 && u < 9400 && (u > 7200 || Math.floor((u - 6700) / 150) % 2 === 0)) {
-      const x0 = fx + faceLcd[0] + 75, y0 = fy + faceLcd[1] + 37, x1 = x0 + 25, y1 = y0 + 14, L = 4;
+    const slide = easeOut(seg(w, 6100, 6600)) * (1 - easeIn(seg(w, 8100, 8350)));
+    if (slide > 0) {
+      const bx0 = R(lerp(-bag.art.width, -9, slide)), by0 = R(qy - (BL.y + 40 + QTY_BOX.h / 2));
+      g.drawImage(bag.art, bx0, by0);
+      const bx = bx0 + BL.x + 70, by = by0 + BL.y + 40;                 // the QTY box on the label
+      if (w > 6700 && w < 8100) {
+        // decode: the box flashes twice, then brackets hold it, like the code in the first shot
+        if (w < 7000 && Math.floor((w - 6700) / 80) % 2 === 0) {
+          g.globalCompositeOperation = 'lighten'; g.fillStyle = C.accent; g.fillRect(bx, by, QTY_BOX.w, QTY_BOX.h); g.globalCompositeOperation = 'source-over';
+        }
+        const a = 2, L = 5, x1 = bx + QTY_BOX.w - 1, y1 = by + QTY_BOX.h - 1;
+        for (const [px, py, sx, sy] of [[bx - a, by - a, 1, 1], [x1 + a, by - a, -1, 1], [x1 + a, y1 + a, -1, -1], [bx - a, y1 + a, 1, -1]]) {
+          line(g, [px, py], [px + sx * L, py], C.accent); line(g, [px, py], [px, py + sy * L], C.accent);
+        }
+      }
+      // the line from the box to the screen's edge, drawn out and drawn back
+      const from = bx + QTY_BOX.w + 4, run = easeInOut(seg(w, 7000, 7550)) * (1 - seg(w, 8100, 8350));
+      if (gl > from && run > 0) { g.fillStyle = C.accent; g.fillRect(from, qy, R((gl - from) * run), 1); }
+    }
+    // the field's brackets, once the value is in
+    if (w > 7550 && w < 8350 && (w > 7750 || Math.floor((w - 7550) / 150) % 2 === 0)) {
+      const x0 = fx0, y0 = fy0, x1 = x0 + 25, y1 = y0 + 14, L = 4;
       for (const [cx, cy, sx, sy] of [[x0, y0, 1, 1], [x1, y0, -1, 1], [x1, y1, -1, -1], [x0, y1, 1, -1]]) {
         line(g, [cx, cy], [cx + sx * L, cy], C.accent); line(g, [cx, cy], [cx, cy + sy * L], C.accent);
       }
@@ -416,16 +408,6 @@ export function createFilm(canvas: HTMLCanvasElement) {
       const ox = fx + k.x + Math.floor((k.w - (glyph[0].length * 2 - 0)) / 2), oy = fy + k.y + on + Math.floor((k.h - 10) / 2);
       g.fillStyle = on ? C.accent : C.secondary;
       glyph.forEach((row, j) => [...row].forEach((ch, i) => { if (ch === '#') g.fillRect(ox + i * 2, oy + j * 2, 2, 2); }));
-    }
-    // the press: a ring off the key
-    if (u > 9900 && u < 10300) {
-      const a = faceKeys.find(k => k.key === 'A');
-      if (a) {
-        const k = seg(u, 9900, 10300), r = R(14 + k * 12);
-        g.fillStyle = C.focus; g.globalAlpha = 1 - k;
-        for (let i = 0; i < 32; i++) g.fillRect(R(fx + a.x + a.w / 2 + Math.cos(i / 32 * 6.283) * r), R(fy + a.y + a.h / 2 + Math.sin(i / 32 * 6.283) * r * .8), 1, 1);
-        g.globalAlpha = 1;
-      }
     }
   }
 
@@ -571,22 +553,22 @@ export function createFilm(canvas: HTMLCanvasElement) {
   const T = { x: 300, y: DESK - P.TUBE_BODY.h };
   const BAG0 = 14, BAG_Y = DESK - P.BAG.h, TAPE_Y = BAG_Y + 46;
   const HANG: Pt = [T.x + 9, T.y - 8 - TL];                  // the held end, the strip over the mouth
-  const ZM = 3.6;                                            // in on the tape's end
+  const ZM = 3;                                              // in on the tape's end: the whole peel and the tube's mouth in frame
   const TAG_W = labelTiny.width, TAG_H = labelTiny.height, ZL = 128 / TAG_W;   // read at 128 px wide
   const printer = P.printerTop();
   // the printer stands right of the tube, out of the picture until the camera moves on
   const PR: Pt = [T.x + 8 + 240, R(DESK - 1 - printer.base)];   // its liner too
   const SLOT: Pt = [PR[0] + printer.slot.o[0], PR[1] + printer.slot.o[1]];
   const LABEL_AT: Pt = [T.x + 8 + 160, 40];                  // held up to the camera (its top left)
-  const LABEL_ON: Pt = [Math.floor(T.x + 8 - TAG_W / 2), T.y + 14];   // on the tube, flat
+  const LABEL_ON: Pt = [Math.floor(T.x + 8 - 19), T.y + 8];   // on the tube, flat (TUBE_LABEL_W wide)
   type Cam = { c: Pt; z: number };
   const CAMS = {
     bag: { c: [BAG0 + P.BAG.w / 2, HALF[1]] as Pt, z: 1 },
     tube: { c: [T.x + 8, HALF[1]] as Pt, z: 1 },
     // the tape's last pockets and the tube's mouth under them
-    macro: { c: [T.x + 8, T.y - 14] as Pt, z: ZM },
+    macro: { c: [T.x + 8, T.y - 20] as Pt, z: ZM },
     print: { c: [PR[0] + printer.art.width / 2 - 40, HALF[1]] as Pt, z: 1 },
-    peel: { c: [0, 0] as Pt, z: 2.2 },                     // in on the liner (set below)
+    peel: { c: [0, 0] as Pt, z: 3.2 },                       // in on the liner (set below)
   };
   // From one framing to another, keeping still on screen the one world point both share: the
   // zoom moves in equal ratios, the centre by how much of the view's width has gone.
@@ -612,124 +594,163 @@ export function createFilm(canvas: HTMLCanvasElement) {
       : u < ZOUT[0] ? zoom(CAMS.tube, CAMS.macro, easeInOut(seg(u, ZIN[0], ZIN[1])))
         : u < PAN[0] ? zoom(CAMS.macro, CAMS.tube, easeInOut(seg(u, ZOUT[0], ZOUT[1])))
           : u < FEED[1] ? zoom(CAMS.tube, CAMS.print, easeInOut(seg(u, PAN[0], PAN[1])))
-            : u < PICK[0] ? zoom(CAMS.print, CAMS.peel, easeInOut(seg(u, FEED[1], UNPEEL[1])))
+            : u < PICK[0] ? zoom(CAMS.print, CAMS.peel, easeInOut(seg(u, FEED[1], UNPEEL[0] + 100)))
               : follow(u);
 
   // The bag: pulled one way while the tape is pulled the other, and on out of the picture.
   const bagX = (u: number) => BAG0 - 90 * easeInOut(seg(u, PULL[0], AWAY[1]));
   // The tape, by its held (right) end: out of the zip, then lifted so the strip swings down to
   // hang from it, its free end staying at the desk's height while it can (sin dir = rise /
-  // length), until it hangs straight over the mouth. Emptied, it is thrown away up and right,
-  // turning over.
+  // length), until it hangs straight over the mouth. Emptied, it is drawn away: straight up,
+  // gathering speed, out of the picture.
   const tapePose = (u: number): { held: Pt; dir: number } => {
-    if (u >= TOSS[0]) {
-      const k = seg(u, TOSS[0], TOSS[1]);
-      // up out of the close view first, then an arc off to the right, end over end
-      return { held: [HANG[0] + 220 * k ** 2.2, HANG[1] - 46 * Math.sin(Math.PI * Math.min(1, k * 1.25)) + 140 * Math.max(0, k - .6) ** 2], dir: Math.PI / 2 - 3.4 * k * k };
-    }
+    if (u >= TOSS[0]) return { held: [HANG[0], HANG[1] - 180 * seg(u, TOSS[0], TOSS[0] + 900) ** 2], dir: Math.PI / 2 };
     const held: Pt = [lerp(BAG0 + P.BAG.zip, HANG[0], easeInOut(seg(u, PULL[0], HOIST[1]))), lerp(TAPE_Y, HANG[1], easeInOut(seg(u, HOIST[0], HOIST[1])))];
     const settle = seg(u, HOIST[0] + 300, HOIST[1]), hang = settle * settle * (3 - 2 * settle) * Math.PI / 2;
     return { held, dir: Math.PI - Math.max(Math.asin(clamp((TAPE_Y - held[1]) / TL, 0, 1)), hang) };
   };
   // The peel, at the tape's own scale: the cover comes off from the free end, up past the last
-  // six pockets; each chip drops once its pocket is open, and falls into the tube.
-  const PEEL_PX = 30, CHIPS = 6, GRAVITY = .00038;             // px per ms², the desk's scale
+  // six pockets; each chip drops once its pocket is open (its cover peeled past it), and falls
+  // into the tube.
+  const PEEL_PX = 34, CHIPS = 6, GRAVITY = .00038;             // px per ms², the desk's scale
   const peelPx = (u: number) => R(PEEL_PX * seg(u, PEEL[0], PEEL[1]));
   const dropAt = (k: number) => PEEL[0] + (PEEL[1] - PEEL[0]) * (5 * k + 7) / PEEL_PX;
   const goneAt = (u: number) => Array.from({ length: CHIPS }, (_, k) => k).filter(k => u >= dropAt(k)).length;
   const PILE_Y = T.y + P.TUBE_BODY.h - 9;                     // where the chips land on the heap
   const landed = dropAt(CHIPS - 1) + Math.sqrt(2 * (PILE_Y - (HANG[1] + 78 - 5 * (CHIPS - 1))) / GRAVITY);
-  // The cut tape in each state, turned whole (gfx.drawRotated); its shadow stays down and to
-  // the right. It hangs from its right end, so the strip is drawn turned end for end.
-  const tapes = new Map<string, [Bitmap, Bitmap]>();
-  const tapeArt = (peel: number, gone: number) => {
-    const key = peel + ':' + gone;
-    let t = tapes.get(key);
-    if (!t) {
-      const art = rotate(rotate(P.tape(peel / TL, gone, false))), [c, cg] = bitmap(art.width, art.height);
-      cg.drawImage(art, 0, 0); cg.globalCompositeOperation = 'source-in'; cg.fillStyle = C.shadow; cg.fillRect(0, 0, c.width, c.height);
-      t = [art, c]; tapes.set(key, t);
-    }
-    return t;
+  // a few degrees off flat or upright only shows as a stray step: snap those
+  const tapeTurn = (dir: number) => {
+    const a = dir - Math.PI;
+    return Math.abs(a) < 3 * Math.PI / 180 ? 0 : Math.abs(a + Math.PI / 2) < 2.5 * Math.PI / 180 ? -Math.PI / 2 : a;
   };
+  // Hanging straight, the tape is drawn over the scaled bench at its size on screen
+  // (tapeOnScreen); turned, it is the desk-scale art turned whole.
+  const upright = (u: number) => u > PULL[0] && u < TOSS[1] && tapeTurn(tapePose(u).dir) === -Math.PI / 2;
   const drawTape = (u: number) => {
-    const { held, dir } = tapePose(u);
-    // a few degrees off flat or upright only shows as a stray step: snap those
-    let a = dir - Math.PI;
-    if (Math.abs(a) < 3 * Math.PI / 180) a = 0;
-    if (Math.abs(a + Math.PI / 2) < 2.5 * Math.PI / 180) a = -Math.PI / 2;
-    const c: Pt = [held[0] - camX + Math.cos(a + Math.PI) * TL / 2, held[1] + Math.sin(a + Math.PI) * TL / 2];
-    const peel = peelPx(u), [art, shadow] = tapeArt(peel, goneAt(u));
-    drawRotated(g, shadow, c[0] + 1, c[1] + 1, a);
-    drawRotated(g, art, c[0], c[1], a);
-    // the peeled cover: clear film from the peel line, folded back down and away to the right;
-    // it goes with the tape when it is thrown (turned with it about the held end)
-    if (peel > 0) {
-      const turn = a + Math.PI / 2, ct = Math.cos(turn), st = Math.sin(turn);
-      const P0: Pt = [held[0], held[1]], at = (x: number, y: number): Pt => [P0[0] - camX + x * ct - y * st, P0[1] + x * st + y * ct];
-      const y0 = TL + 1 - peel, dx = Math.sin(.45) * peel, dy = Math.cos(.45) * peel;
-      const film: Pt[] = [at(-4, y0), at(1, y0), at(1 + dx, y0 + dy), at(-4 + dx, y0 + dy)];
-      line(g, film[0], film[3], C.bone); line(g, film[1], film[2], C.paper2); line(g, film[2], film[3], C.bone);
-    }
+    const { held, dir } = tapePose(u), a = tapeTurn(dir);
+    P.carrierTurned(g, held[0] - camX + Math.cos(a + Math.PI) * TL / 2, held[1] + Math.sin(a + Math.PI) * TL / 2, a);
   };
-  // The chips on their way down: a chip is 2 x 4 px, turning over as it falls.
-  const chipArt = (() => {
-    const make = (w: number, h: number, px: Array<[number, number, string]>) => { const [c, cg] = bitmap(w, h); for (const [x, y, f] of px) { cg.fillStyle = f; cg.fillRect(x, y, 1, 1); } return c; };
-    const E = C.paper2, K = C.ink;
-    return [
-      make(2, 4, [[0, 0, E], [1, 0, E], [0, 1, K], [1, 1, K], [0, 2, K], [1, 2, K], [0, 3, E], [1, 3, E]]),
-      make(3, 3, [[0, 0, E], [1, 0, K], [0, 1, K], [1, 1, K], [2, 1, K], [1, 2, K], [2, 2, E]]),
-      make(4, 2, [[0, 0, E], [1, 0, K], [2, 0, K], [3, 0, E], [0, 1, E], [1, 1, K], [2, 1, K], [3, 1, E]]),
-    ];
-  })();
-  const drawChips = (u: number) => {
+
+  // The chips on their way down, at their size on screen: 1.6 x 0.8 mm, tumbling as they
+  // fall, gone from sight into the tube's mouth.
+  const chipsOnScreen = (u: number, S: (p: Pt) => Pt, z: number) => {
+    const mm = P.TAPE_PX_MM * z, mouth = S([0, T.y + 1])[1];
+    g.save(); g.beginPath(); g.rect(0, 0, W, mouth); g.clip();
     for (let k = 0; k < CHIPS; k++) {
       const d = u - dropAt(k);
       if (d < 0) continue;
       const y = HANG[1] + 78 - 5 * k + .5 * GRAVITY * d * d;
       if (y > PILE_Y) continue;
-      const b = chipArt[Math.floor(d / 70 + k) % 3];
-      g.drawImage(b, R(HANG[0] - 2 + ((k * 5) % 7 - 3) * .004 * d - camX - (b.width - 2) / 2), R(y));
+      const [cx, cy] = S([HANG[0] - 1.5 + ((k * 5) % 7 - 3) * .004 * d, y]);
+      const th = d / 110 * (k % 2 ? 1 : -1), co = Math.cos(th), si = Math.sin(th);
+      const part = (x0: number, x1: number, color: string) => fillPoly(g, ([[x0, -.4], [x1, -.4], [x1, .4], [x0, .4]] as Pt[])
+        .map(([x, v]): Pt => [cx + (x * co - v * si) * mm, cy + (x * si + v * co) * mm]), color);
+      // in the light, falling: the top a dark grey and the tin bright, or a black chip is lost
+      // against the dark
+      part(-.8, .8, '#56625d');
+      if (mm >= 2.5) { part(-.8, -.5, C.paper2); part(.5, .8, C.paper2); }
     }
+    g.restore();
   };
-  // The cap: brought in from above, over the tube, pushed on a pixel too far, back, screwed down.
-  const caps = [P.cap(0), P.cap(1)];
+  // The hanging tape at its size on screen: the strip (and its shadow), its cover peeled off.
+  const hung = new Map<string, [Bitmap, Bitmap]>();
+  const tapeOnScreen = (u: number, S: (p: Pt) => Pt, z: number) => {
+    const { held } = tapePose(u), peel = peelPx(u), mm = P.TAPE_PX_MM * z;
+    const key = mm.toFixed(3) + ':' + peel + ':' + goneAt(u);
+    let t = hung.get(key);
+    if (!t) {
+      if (hung.size > 64) hung.clear();
+      const art = P.hanging(P.carrier(mm, peel / P.TAPE_PX_MM, goneAt(u))), [c, cg] = bitmap(art.width, art.height);
+      cg.drawImage(art, 0, 0); cg.globalCompositeOperation = 'source-in'; cg.fillStyle = C.shadow; cg.fillRect(0, 0, c.width, c.height);
+      t = [art, c]; hung.set(key, t);
+    }
+    const [x, y] = S([held[0] - P.TAPE_MM.w * P.TAPE_PX_MM / 2, held[1]]), off = Math.max(1, R(z));
+    g.drawImage(t[1], R(x) + off, R(y) + off);
+    g.drawImage(t[0], R(x), R(y));
+  };
+  // The cover tape, peeled off toward the camera: a clear ribbon as wide as the cover, lifted at
+  // the peel line, falling back down in front of the pockets already open and curving away to
+  // the left. It is clear, so a faint tint with bright edges; the chips fall out behind it.
+  const filmOnScreen = (u: number, S: (p: Pt) => Pt) => {
+    const { held } = tapePose(u), len = peelPx(u);
+    if (len <= 0) return;
+    const cx = -1.56, y0 = TL - len, edgeL: Pt[] = [], edgeR: Pt[] = [];
+    let x = cx, y = y0;
+    for (let d = 0; d <= len; d += .5) {
+      const k = d / len, phi = .55 * Math.pow(Math.max(0, (k - .25) / .75), 1.3), w = 3.06 * (1 + .3 * k);
+      edgeL.push(S([held[0] + x - Math.cos(phi) * w, held[1] + y - Math.sin(phi) * w]));
+      edgeR.push(S([held[0] + x + Math.cos(phi) * w, held[1] + y + Math.sin(phi) * w]));
+      x -= Math.sin(phi) * .5; y += Math.cos(phi) * .5;
+    }
+    g.globalAlpha = .3; fillPoly(g, [...edgeL, ...[...edgeR].reverse()], C.focus); g.globalAlpha = 1;
+    for (let i = 1; i < edgeL.length; i++) { line(g, edgeL[i - 1], edgeL[i], C.bone); line(g, edgeR[i - 1], edgeR[i], C.paper2); }
+    line(g, edgeL[edgeL.length - 1], edgeR[edgeR.length - 1], C.bone);
+  };
+  // The cap: brought in from above, over the tube, and pressed on: it snaps (a pixel too far
+  // as it clicks home, back up as it seats), with a few sparks off the rim for the click.
+  const cap = P.cap(0), SNAP = CAPON[0] + 740;
   const capAt = (u: number): Pt | null => {
     if (u < CAPON[0]) return null;
     const k = easeInOut(seg(u, CAPON[0], CAPON[0] + 600)), over: Pt = [T.x - 1, T.y - 18];
     if (k < 1) return [lerp(T.x + 70, over[0], k), lerp(T.y - 170, over[1], k) - Math.sin(Math.PI * k) * 8];
-    return [over[0], lerp(over[1], T.y - 6, easeIn(seg(u, CAPON[0] + 600, CAPON[0] + 760))) - easeOut(seg(u, CAPON[0] + 760, CAPON[0] + 860))];
+    return [over[0], lerp(over[1], T.y - 5, easeIn(seg(u, CAPON[0] + 600, SNAP))) - easeOut(seg(u, SNAP, SNAP + 120))];
   };
-  // The label: out of the printer on its liner, fed sideways (its rows lie across the slot, so
-  // each stays a whole row), peeled off it from its leading end, picked up and turned square to
-  // the camera, held there, then carried to the tube and wrapped round it. Its pose, in world
-  // pixels per pixel of the desk-sized label: the top left, and one pixel across and down.
-  const LEAD = 3, FEED_LEN = LEAD + TAG_W + 5, LINER_W = TAG_H + 4;
-  const { ax: SAX, fwd: SFW } = printer.slot;
-  // a point on the liner: `a` rows across the slot from its middle, `b` pixels out of it
-  const at = (o: Pt, a: number, b: number): Pt => [o[0] + SAX[0] * a + SFW[0] * b, o[1] + SAX[1] * a + SFW[1] * b];
-  const CURL = .7;                                           // a peeled part is bent up off the liner
-  // the label on its liner in the middle, the printer's front beside it
-  CAMS.peel.c = [at(SLOT, 0, FEED_LEN - LEAD - TAG_W / 2)[0] + 14, SLOT[1] - 4];
-  const outAt = (u: number) => R(seg(u, FEED[0], FEED[1]) * FEED_LEN);
-  const labelPose = (u: number): { o: Pt; ax: Pt; ay: Pt } => {
-    const flat = at(SLOT, -TAG_H / 2, outAt(u) - LEAD);           // its leading end, far side
-    if (u < PICK[0]) return { o: flat, ax: [1, 0], ay: SAX };
-    const k = easeInOut(seg(u, PICK[0], PICK[0] + .6 * (PICK[1] - PICK[0])));
-    if (u < BACK[0]) {
-      const from: Pt = [flat[0] + TAG_W * (1 - CURL), flat[1] - 3];
-      return { o: [lerp(from[0], LABEL_AT[0], k), lerp(from[1], LABEL_AT[1], k) - Math.sin(Math.PI * k) * 10], ax: [lerp(CURL, 1, k), 0], ay: [lerp(SAX[0], 0, k), lerp(SAX[1], 1, k)] };
+  // The click: short ticks fly off each side of the rim, then a second, fainter ring further out.
+  const clickAt = (u: number, lift: number) => {
+    const d = u - SNAP;
+    if (d < 0 || d > 260) return;
+    const cx = T.x - 1 - camX, rim = T.y - 6 + cap.height - 3 - lift, w = cap.width;
+    const ring = d < 130 ? 0 : 1, a = ring ? 7 : 3, len = ring ? 2 : 3;
+    g.fillStyle = ring ? C.paper2 : C.bone;
+    const mid = rim - 2;                                                // the cap's middle height
+    for (const [side, x0] of [[-1, cx - 1], [1, cx + w]] as Array<[number, number]>) {
+      for (let i = 0; i < len; i++) g.fillRect(x0 + side * (a + i), mid, 1, 1);                 // level
+      for (let i = 0; i < len - 1; i++) for (const v of [-1, 1]) g.fillRect(x0 + side * (a + i), mid + v * (2 + i), 1, 1);   // up and down, fanning out
     }
-    const b = easeInOut(seg(u, BACK[0], BACK[1]));
-    return { o: [lerp(LABEL_AT[0], LABEL_ON[0], b), lerp(LABEL_AT[1], LABEL_ON[1], b) - Math.sin(Math.PI * b) * 8], ax: [1, 0], ay: [0, 1] };
   };
-  const peelAt = (u: number) => R(TAG_W * easeInOut(seg(u, UNPEEL[0], UNPEEL[1])));
-  // columns a..b of the label at width n
-  const colCache = new Map<string, Bitmap>();
-  const cols = (n: number, a: number, b: number) => {
-    const key = n + ':' + a + ':' + b;
-    let c = colCache.get(key);
-    if (!c) { const src = P.labelAt(n), [r, rg] = bitmap(b - a, src.height); rg.drawImage(src, a, 0, b - a, src.height, 0, 0, b - a, src.height); c = r; colCache.set(key, c); }
+  // The label: out of the printer's slot on its liner, which hangs down over the front (as the
+  // real stock droops out of it), peeled off from the bottom, picked up and held to the camera,
+  // then carried to the tube and wrapped round it. As on the real roll its text runs across the
+  // liner and it comes out bottom first, header last. At the printer's own scale the real label
+  // (about 44 x 36 mm) is the desk-sized label itself, so it faces the camera the whole way and
+  // only moves and grows: the same proportions hanging, peeled, held up and on the tube. Its
+  // pose: the top left, and one label pixel across and down, in world pixels.
+  const LEAD = 3, FEED_LEN = LEAD + TAG_H + 3, LINER_W = TAG_W + 4;
+  // a point on the hanging liner: `a` pixels across from the slot's middle, `b` down out of it
+  const at = (o: Pt, a: number, b: number): Pt => [o[0] + a, o[1] + 1 + b];
+  // the label on its liner in the middle, the printer's front beside it
+  const LABEL_MID = at(SLOT, 0, FEED_LEN - LEAD - TAG_H / 2);
+  CAMS.peel.c = [LABEL_MID[0] - 6, LABEL_MID[1] - 1];
+  const outAt = (u: number) => R(seg(u, FEED[0], FEED[1]) * FEED_LEN);
+  // Off the liner the label is lifted and turned over while the camera closes in on it: it keeps
+  // its size and only turns about its vertical axis, from the back (the peel folded it over, so
+  // it starts K of its width, tilted) through edge-on to its face.
+  const K = .62, YAW0 = Math.acos(K);
+  const yaw = (u: number) => lerp(YAW0, Math.PI, easeInOut(seg(u, PICK[0], PICK[1])));
+  /** Which face is to the camera once peeled: its back until the turn passes edge-on. */
+  const showsBack = (u: number) => Math.cos(yaw(u)) > 0;
+  // On the tube the label is 3/4 of its height (the real label is 44 x 36 mm), so it grows to
+  // that as it is carried over, while the camera pulls out.
+  const TUBE_LABEL_W = P.TUBE_LABEL_W, TUBE_LABEL_H = P.labelAt(TUBE_LABEL_W).height;
+  const labelPose = (u: number): { o: Pt; ax: Pt; ay: Pt } => {
+    const hung = at(SLOT, -TAG_W / 2, outAt(u) - LEAD - TAG_H);   // its top left (header), at the slot
+    if (u < PICK[0]) return { o: hung, ax: [1, 0], ay: [0, 1] };
+    if (u < BACK[0]) {
+      const k = easeInOut(seg(u, PICK[0], PICK[1])), c = Math.cos(yaw(u)), wd = Math.abs(c);
+      // its middle, from where the peel left it (left of the liner, K wide) to the reading spot
+      const cx = lerp(hung[0] - TAG_W * K / 2, LABEL_AT[0] + TAG_W / 2, k), cy = lerp(hung[1] + TAG_H / 2, LABEL_AT[1] + TAG_H / 2, k) - Math.sin(Math.PI * k) * 10;
+      return { o: [cx - wd * TAG_W / 2, cy - TAG_H / 2], ax: [wd, 0], ay: [0, 1] };
+    }
+    const b = easeInOut(seg(u, BACK[0], BACK[1])), sc = lerp(1, TUBE_LABEL_W / TAG_W, b);
+    const cx = lerp(LABEL_AT[0] + TAG_W / 2, LABEL_ON[0] + TUBE_LABEL_W / 2, b), cy = lerp(LABEL_AT[1] + TAG_H / 2, LABEL_ON[1] + TUBE_LABEL_H / 2, b) - Math.sin(Math.PI * b) * 8;
+    return { o: [cx - sc * TAG_W / 2, cy - sc * TAG_H / 2], ax: [sc, 0], ay: [0, sc] };
+  };
+  // rows a..b (of the desk-sized label) of the label drawn n px wide
+  const rowCache = new Map<string, Bitmap>();
+  const rows = (n: number, a: number, b: number) => {
+    const src = P.labelAt(n), ky = TAG_H / src.height, r0 = R(a / ky), r1 = Math.max(r0 + 1, R(b / ky)), key = n + ':' + r0 + ':' + r1;
+    let c = rowCache.get(key);
+    if (!c) { const [r, rg] = bitmap(src.width, r1 - r0); rg.drawImage(src, 0, r0, src.width, r1 - r0, 0, 0, src.width, r1 - r0); c = r; rowCache.set(key, c); }
     return c;
   };
 
@@ -743,52 +764,108 @@ export function createFilm(canvas: HTMLCanvasElement) {
     const out = outAt(u), w = (p: Pt): Pt => [p[0] - camX, p[1]];
     if (out > 0) {
       const l0 = at(SLOT, -LINER_W / 2, 0), l1 = at(SLOT, LINER_W / 2, 0), l2 = at(SLOT, LINER_W / 2, out), l3 = at(SLOT, -LINER_W / 2, out);
+      // its hard shadow on the printer's front, so it hangs in front of it
+      fillPoly(g, [l0, l1, l2, l3].map(p => w([p[0] + 1, p[1] + 1])), C.shadow);
       fillPoly(g, [l0, l1, l2, l3].map(w), P.LINER);
       line(g, w(l1), w(l2), '#b9b79a'); line(g, w(l2), w(l3), '#b9b79a');
     }
-    // where the label has been peeled off, the liner in its shade
-    if (u >= UNPEEL[0] && u < PICK[0] && peelAt(u) > 0) {
-      const { o, ay } = labelPose(u), p = peelAt(u);
-      fillPoly(g, ([[o[0], o[1]], [o[0] + p, o[1]], [o[0] + p + ay[0] * TAG_H, o[1] + ay[1] * TAG_H], [o[0] + ay[0] * TAG_H, o[1] + ay[1] * TAG_H]] as Pt[]).map(w), '#a3a189');
+    // the slot's mouth, the liner coming out of it
+    if (u > FEED[0] - 300) {
+      const m = w(at(SLOT, -LINER_W / 2 - 1, -1));
+      g.fillStyle = C.ink; g.fillRect(R(m[0]), R(m[1]), LINER_W + 2, 1);
     }
     // the tube, filled once the chips are in, labelled once the label is round it; the chips
     // on their way into it
     draw(tubeOf(u >= landed ? FILL : 0, u >= WRAP[1]), T.x, T.y - lift);
-    if (u >= PEEL[0] && u < landed + 100) drawChips(u);
     // wrapping: the label's sides turn away round the tube, evenly; what faces you stays put
     if (u >= WRAP[0] && u < WRAP[1]) {
-      const bw = R(lerp(TAG_W, 14, easeInOut(seg(u, WRAP[0], WRAP[1]))));
-      g.drawImage(bw < TAG_W ? bandOf(bw) : labelTiny, Math.floor(T.x + 8 - bw / 2) - camX, LABEL_ON[1] - lift);
+      const bw = R(lerp(TUBE_LABEL_W, 14, easeInOut(seg(u, WRAP[0], WRAP[1]))));
+      g.drawImage(bw < TUBE_LABEL_W ? bandOf(bw) : P.labelAt(TUBE_LABEL_W), Math.floor(T.x + 8 - bw / 2) - camX, LABEL_ON[1] - lift);
     }
     const cp = capAt(u);
     if (cp) {
-      const turn = u > CAPON[0] + 860 && u < CAPON[1] ? Math.floor((u - CAPON[0] - 860) / 70) % 2 : 0;
-      draw(caps[turn], R(cp[0]), R(cp[1]) - (u >= CAPON[0] + 600 ? lift : 0));
+      const held = u >= CAPON[0] + 600 ? lift : 0;
+      draw(cap, R(cp[0]), R(cp[1]) - held);
+      clickAt(u, held);
     }
     // the bag: opened at the zip, the tape coming out between its front and back
     if (u < AWAY[1]) {
       const bx = R(bagX(u) - camX), open = easeOut(seg(u, OPEN[0], OPEN[1]));
       for (let d = bag.back.length; d >= 1; d--) g.drawImage(bag.back[d - 1], R(bx + .8 * d), R(BAG_Y - .8 * d));
       bagOpenBack(bx, BAG_Y, open);
-      if (u > PULL[0]) drawTape(u);
+      if (u > PULL[0] && !upright(u)) drawTape(u);
       bagOpenFront(bx, BAG_Y, open);
-    } else if (u < TOSS[1]) drawTape(u);
+    } else if (u < TOSS[1] && !upright(u)) drawTape(u);
   }
 
-  // The label, drawn at the size it is on screen: on the liner (the part out of the slot), being
-  // peeled (the part off the liner bent up), then whole.
+  // The label, drawn at the size it is on screen: coming out on the liner, peeled by a corner,
+  // lifted off with its back to the camera, then turned over to be read.
+  const BACK_TONE = [0xea, 0xe6, 0xd6], FOLD_TONE = [0xc4, 0xc0, 0xa4], LINER_TONE = [0xa3, 0xa1, 0x89];
+  const srcData = new Map<number, ImageData>();
+  const peelBuf = bitmap(4, 4);
+  /** The corner peel, one pixel at a time (a clip or a rotation would blur it). The label's lower
+   *  right corner lifts and folds back over itself along a crease that starts diagonal and
+   *  straightens as it sweeps across; the folded part shows the label's back and is foreshortened
+   *  to K of its length, as a part lifted toward the camera is; it throws a hard shadow on what
+   *  is still stuck. Where it has come off, the liner shows in its shade. At the end the whole
+   *  label has been turned over to the left of where it was: the lift's first pose. */
+  function peelOnScreen(u: number, toScreen: (p: Pt) => Pt, z: number) {
+    const { o } = labelPose(u), n = Math.max(4, R(TAG_W * z)), src = P.labelAt(n), h = src.height;
+    let img = srcData.get(n);
+    if (!img) { img = src.getContext('2d')!.getImageData(0, 0, n, h); srcData.set(n, img); }
+    const e = .5 - .5 * Math.cos(Math.PI * seg(u, UNPEEL[0], UNPEEL[1])), sm = clamp(e / .8), th = .62 * (1 - sm * sm * (3 - 2 * sm));
+    const cs = Math.cos(th), sn = Math.sin(th), s = e * n, M = Math.ceil(K * n) + 3, cw = n + 2 * M, ch = h + 2 * M;
+    if (peelBuf[0].width !== cw || peelBuf[0].height !== ch) { peelBuf[0].width = cw; peelBuf[0].height = ch; }
+    const bg = peelBuf[0].getContext('2d')!, out = bg.createImageData(cw, ch), px = out.data;
+    // the folded part at q (on screen, label-local), or null: [source x, source y, distance past the crease]
+    const flapAt = (qx: number, qy: number): [number, number, number] | null => {
+      const tq = (n - qx) * cs + (h - qy) * sn;
+      if (tq < s) return null;
+      const d = tq - s, tp = s - d / K;
+      if (tp < 0) return null;
+      const sx = qx + (tq - tp) * cs, sy = qy + (tq - tp) * sn;
+      return sx >= 0 && sx < n && sy >= 0 && sy < h ? [sx, sy, d] : null;
+    };
+    for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
+      const qx = x - M + .5, qy = y - M + .5, i = (y * cw + x) * 4, inside = qx > 0 && qx < n && qy > 0 && qy < h;
+      let c: number[] | null = null;
+      const f = flapAt(qx, qy);
+      if (f) {
+        const [sx, sy, d] = f, edge = sx < 1.2 || sy < 1.2 || sx > n - 1.2 || sy > h - 1.2;
+        c = d < 2.5 ? FOLD_TONE : edge ? [0xff, 0xfd, 0xf2] : BACK_TONE;
+      } else if (inside) {
+        const tq = (n - qx) * cs + (h - qy) * sn;
+        if (tq < s) c = LINER_TONE;
+        else {
+          const k = (Math.floor(qy) * n + Math.floor(qx)) * 4;
+          c = [img.data[k], img.data[k + 1], img.data[k + 2]];
+          // the fold's hard shadow, two pixels down and right, in a checker
+          if (flapAt(qx - 2, qy - 2) && (x + y) % 2 === 0) c = [c[0] * .55, c[1] * .55, c[2] * .55];
+        }
+      }
+      if (c) { px[i] = c[0]; px[i + 1] = c[1]; px[i + 2] = c[2]; px[i + 3] = 255; }
+    }
+    bg.putImageData(out, 0, 0);
+    const [ox, oy] = toScreen(o);
+    g.drawImage(peelBuf[0], R(ox) - M, R(oy) - M);
+  }
   function labelOnScreen(u: number, toScreen: (p: Pt) => Pt, z: number) {
     const { o, ax, ay } = labelPose(u);
-    const n = Math.max(TAG_W, R(Math.hypot(ax[0], ax[1]) * z * TAG_W)), src = P.labelAt(n), kx = TAG_W / n, ky = TAG_H / src.height;
+    const n = Math.max(4, R(Math.hypot(ax[0], ax[1]) * z * TAG_W)), src = P.labelAt(n), kx = TAG_W / n, ky = TAG_H / src.height;
     const sx = (v: Pt): Pt => [v[0] * z * kx, v[1] * z * kx], sy = (v: Pt): Pt => [v[0] * z * ky, v[1] * z * ky];
-    const col = (c: number) => R(c / kx);                          // a column of the desk label, at width n
+    const row = (r: number): Pt => [o[0] + ay[0] * r, o[1] + ay[1] * r];      // the start of row r
     if (u < UNPEEL[0]) {
-      const m = clamp(outAt(u) - LEAD, 0, TAG_W);
-      if (m > 0) drawAffine(g, cols(n, 0, col(m)), toScreen(o), sx(ax), sy(ay));
-    } else if (u < PICK[0]) {
-      const p = peelAt(u), up = R(3 * seg(u, UNPEEL[0], UNPEEL[0] + 200));
-      if (p < TAG_W) drawAffine(g, cols(n, col(p), n), toScreen([o[0] + p, o[1]]), sx(ax), sy(ay));
-      if (p > 0) drawAffine(g, cols(n, 0, col(p)), toScreen([o[0] + p * (1 - CURL), o[1] - up]), sx([CURL, 0]), sy(ay));
+      // the rows out of the slot so far: the bottom ones
+      const r0 = clamp(TAG_H - (outAt(u) - LEAD), 0, TAG_H);
+      if (r0 < TAG_H) drawAffine(g, rows(n, r0, TAG_H), toScreen(row(r0)), sx(ax), sy(ay));
+    } else if (u < PICK[0]) peelOnScreen(u, toScreen, z);
+    else if (showsBack(u)) {
+      // the back, flat and plain: a card with a hard shadow
+      const wd = R(ax[0] * TAG_W * z), ht = R(TAG_H * z), [x0, y0] = toScreen(o).map(Math.round);
+      if (wd > 0) {
+        g.fillStyle = C.shadow; g.fillRect(x0 + 1, y0 + 1, wd, ht);
+        g.fillStyle = `rgb(${BACK_TONE})`; g.fillRect(x0, y0, wd, ht);
+      }
     } else drawAffine(g, src, toScreen(o), sx(ax), sy(ay));
   }
 
@@ -802,6 +879,10 @@ export function createFilm(canvas: HTMLCanvasElement) {
     benchWorld(u);
     g = screen;
     g.drawImage(benchBuf, c[0] - HALF[0] / z - ox, c[1] - HALF[1] / z, W / z, DESK / z, 0, 0, W, DESK);
+    const S = (p: Pt): Pt => [(p[0] - c[0]) * z + HALF[0], (p[1] - c[1]) * z + HALF[1]];
+    if (upright(u)) tapeOnScreen(u, S, z);
+    if (u >= PEEL[0] && u < landed + 100) chipsOnScreen(u, S, z);
+    if (upright(u)) filmOnScreen(u, S);
     if (u > FEED[0] && u < WRAP[0]) labelOnScreen(u, p => [(p[0] - c[0]) * z + HALF[0], (p[1] - c[1]) * z + HALF[1]], z);
   }
 
@@ -890,10 +971,18 @@ export function createFilm(canvas: HTMLCanvasElement) {
     chevron(p[0], p[1], size, turn, C.accent);
   };
 
+  // The rack's label plate (props.ts rackPlate), hung on its front. The front runs down to the
+  // right along the view's slope (.4), so the plate is sheared to sit on it.
+  /** Rack n's plate; (x, y) is the rack sprite's top left on screen, z the sprite's scale. */
+  const drawPlate = (x: number, y: number, n: number, z = 1, hot = false, ctx = g) => {
+    drawAffine(ctx, P.rackPlate(n, hot), [x + 24 * z, y + 57 * z], [z, .4 * z], [0, z]);
+  };
+
   function shotRack(t: number, withCursor = true) {
     camX = CAM_RACK;
     const placed = t >= SEATED;
     draw(placed ? rackFull : rackEmpty, RACK.x, RACK.y);
+    drawPlate(RACK.x - camX, RACK.y, 1);
     const [bx, by] = slotTop['B3'] ?? [60, 40];
     // the walk: a ring on each taken slot once the cursor is over it; on the free one, the ring
     // stays (the app's 700 ms blink) until the tube is in, then flashes
@@ -910,21 +999,51 @@ export function createFilm(canvas: HTMLCanvasElement) {
     }
     if (placed && t < SEATED + 600 && Math.floor((t - SEATED) / 150) % 2 === 0) ring('B3', C.focus);
     // the slot's name, pinned beside it: the leader draws out from the cursor, then the tag
-    if (t > TAG_AT && t < SIGN + 450) {
+    // after the hold it closes the way it opened, backwards: the tag to its middle, the leader in
+    if (t > TAG_AT && t < SIGN + TAG_CLOSE[1]) {
       const tx = R(RACK.x + bx + TAG_X - camX), ty = R(RACK.y + by - 14), x0 = R(RACK.x + bx + 6 - camX);
-      const reach = R(lerp(x0, tx, easeOut(seg(t, TAG_AT, TAG_AT + 200))));
+      const reach = R(lerp(x0, tx, easeOut(seg(t, TAG_AT, TAG_AT + 200)) * (1 - easeIn(seg(t, SIGN + TAG_CLOSE[0], SIGN + TAG_CLOSE[1])))));
       g.fillStyle = C.focus;
       for (let x = x0; x < reach; x += 2) g.fillRect(x, ty + 6, 1, 1);
-      if (reach >= tx) {
-        const w = measure('bold', P.PART.slot) + 6, k = easeOut(seg(t, TAG_AT + 200, TAG_AT + 320)), h = Math.max(2, R(12 * k)), y = ty + R((12 - h) / 2);
+      const shut = easeIn(seg(t, SIGN, SIGN + TAG_CLOSE[0]));
+      if (reach >= tx && shut < 1) {
+        const w = measure('bold', P.PART.slot) + 6, k = easeOut(seg(t, TAG_AT + 200, TAG_AT + 320)) * (1 - shut), h = Math.max(2, R(12 * k)), y = ty + R((12 - h) / 2);
         g.fillStyle = C.shadow; g.fillRect(tx + 1, y + 1, w, h);
         g.fillStyle = C.focus; g.fillRect(tx, y, w, h);
-        if (k >= 1) text(g, 'bold', P.PART.slot, tx + 3, ty + 10, C.ink);
+        if (k >= 1 && shut === 0) text(g, 'bold', P.PART.slot, tx + 3, ty + 10, C.ink);
       }
     }
     if (withCursor) { const c = cursorAt(t); if (c) cursor(c.p, c.size); }
   }
 
+
+  // The racks' projection, for the finale's drawer to stand on the same desk.
+  const rackPose = art.filmRackFull as unknown as Pose;
+
+  // ---------- 6b'. The question ----------
+  // The cursor stays where it was as the rack goes (it is not on the desk: it is Inventatory);
+  // it lands exactly where the typed line's prompt is drawn (say.ts), so the hand-over is seamless.
+  const ASK_W = 3 * 3 + 7 + measure(SAY_FONT, QUESTION) + 11;
+  const ASK_DX = R((W - ASK_W) / 2) - SAY_X, ASK_DY = R(DESK / 2 - 4) - SAY_BASE;
+  const ASK_AT: Pt = [SAY_X + 4.5 + ASK_DX, SAY_BASE - 12 + 7.5 + ASK_DY];      // the prompt's middle
+  function shotAsk(s: number) {
+    camX = CAM_RACK;
+    g.save(); g.translate(0, R(easeInOut(seg(s, ASK_TILT[0], ASK_TILT[1])) * (DESK + 10)));
+    shotRack(SIGN + Math.min(s, TAG_CLOSE[1]), false);
+    g.restore();
+    const from = cursorAt(SIGN - 1)?.p ?? ASK_AT;
+    if (s < ASK_FLY[1]) {
+      // up and over, turning from pointing down to the prompt early, while it is still rising
+      const k = easeInOut(seg(s, ASK_FLY[0], ASK_FLY[1])), turn = 1 - easeInOut(seg(s, ASK_FLY[0], ASK_FLY[0] + 300));
+      cursor([lerp(from[0], ASK_AT[0], k), lerp(from[1], ASK_AT[1], k) - Math.sin(k * Math.PI) * 10], CURSOR, turn);   // (chevron() snaps it)
+      return;
+    }
+    // it waits a moment as the prompt, then types
+    if (s < ASK_TYPE) { cursor(ASK_AT, CURSOR, 0); return; }
+    g.save(); g.translate(ASK_DX, ASK_DY);
+    say(g, [{ text: QUESTION, at: ASK_TYPE, until: Infinity }], s);
+    g.restore();
+  }
 
   // ---------- 7. Sign-off: the ›iNVENTATORY lockup, put together from the film ----------
   // Straight after the drop the camera tilts up off the rack; the B3 cursor stays with it, turns
@@ -959,13 +1078,15 @@ export function createFilm(canvas: HTMLCanvasElement) {
   const CARET = { y: LY + (4 - TOP_ROW) * PX, w: 3 * PX, end: LX + LW + PX };
   const TAGLINE = hero.title.join(' ');
   const TAG_Y = LY + 7 * PX + 26, LIFT = Math.min(...cells.map(c => c.y)) - 14;
-  function shotSign(t: number) {
+  /** `scene`: the picture the camera tilts up off (the rack, here); `from`: where the cursor is as
+   *  it starts; `tally`: whether the numbers come in under the lockup. */
+  function shotSign(t: number, scene = () => shotRack(SIGN + 399, false), from0?: Pt, tally = true) {
     const L = t - SIGN;
     camX = CAM_RACK;
     // the camera tilts up off the rack, all but the cursor that found the slot
     if (L < TILT[1]) {
       g.save(); g.translate(0, R(easeInOut(seg(L, TILT[0], TILT[1])) * (DESK + 10)));
-      shotRack(SIGN + 399, false);
+      scene();
       g.restore();
     }
     const prompt = cells.filter(c => c.part === 'prompt');
@@ -975,12 +1096,12 @@ export function createFilm(canvas: HTMLCanvasElement) {
       g.fillStyle = c.shadow; g.fillRect(c.x + SH[0] + dx, c.y + SH[1] + dy, c.w, c.h);
     };
     // after it is complete, the lockup (and its line) moves up to make room for the numbers
-    const up = R(easeInOut(seg(t, RESULT, RESULT + 600)) * LIFT), shift = shiftAt(t);
+    const up = tally ? R(easeInOut(seg(t, RESULT, RESULT + 600)) * LIFT) : 0, shift = shiftAt(t);
     g.save(); g.translate(shift, -up);
     // 1. the cursor's flight: from above B3 to the middle, turning back into ›, growing in
     //    whole-pixel steps and taking on the lockup's colours and shadow
     if (L < FLY[1]) {
-      const from = cursorAt(SIGN + 399)?.p ?? home;
+      const from = from0 ?? cursorAt(SIGN + 399)?.p ?? home;
       const k = easeInOut(seg(L, FLY[0], FLY[1]));
       const size = Math.max(CURSOR, R(lerp(CURSOR, PX, k)));
       const x = lerp(from[0] - shift, home[0], k), y = lerp(from[1], home[1], k) - Math.sin(k * Math.PI) * 12;
@@ -1030,7 +1151,7 @@ export function createFilm(canvas: HTMLCanvasElement) {
     }
     // 6. what it took, under the lockup: each number counts up, its words typed beneath it
     const rows: Array<[number, string, string]> = [[1, 'key pressed', C.text], [FILLED, 'fields filled in', C.text], [0, 'typed by hand', C.accent]];
-    rows.forEach(([n, label, color], i) => {
+    if (tally) rows.forEach(([n, label, color], i) => {
       const at = RESULT + 650 + i * 350;
       if (t < at) return;
       const shown = n ? Math.max(1, Math.min(n, Math.ceil(seg(t, at, at + 400) * n))) : 0;
@@ -1042,7 +1163,7 @@ export function createFilm(canvas: HTMLCanvasElement) {
   }
 
   function render(time: number) {
-    const t = ((time % LOOP) + LOOP) % LOOP;
+    const t = time;                                   // the reel owns the loop: this film runs as long as the reel needs it
     g.clearRect(0, 0, W, H);
     const u = unlater(t);
     if (t < SCAN_END) shotScan(t);
@@ -1050,16 +1171,23 @@ export function createFilm(canvas: HTMLCanvasElement) {
     else if (u < 20000) shotPc(u);
     else if (u < BENCH_END) shotTake(u);
     else if (u - BENCH_EXTRA < SIGN) shotRack(u - BENCH_EXTRA);
+    else if (u - BENCH_EXTRA < SIGN + DESK_LEN) shotAsk(u - BENCH_EXTRA - SIGN);
     else if (u - BENCH_EXTRA < SIGN_END) shotSign(u - BENCH_EXTRA);
     // dissolves between shots, and into and out of the loop
     const cuts: Array<[number, number, number]> = [[0, 500, -1], [SCAN_END - 400, SCAN_END, 1], [SCAN_END, SCAN_END + 300, -1],
       [FACE_END - 300, FACE_END, 1], [FACE_END, FACE_END + 300, -1],
       ...([[19600, 20000, 1], [20000, 20300, -1], [BENCH_END - 300, BENCH_END, 1], [BENCH_END, BENCH_END + 300, -1], [SIGN_END - 600 + BENCH_EXTRA, SIGN_END + BENCH_EXTRA, 1]] as Array<[number, number, number]>)
         .map(([a, b, d]): [number, number, number] => [later(a), later(b), d])];
-    for (const [a, b, dir] of cuts) if (t >= a && t < b) dither(g, dir > 0 ? seg(t, a, b) : 1 - seg(t, a, b), DESK);
-    bar();
-    caption(t);
+    for (const [a, b, dir] of cuts) if (t >= a && t < b) dither(g, dir > 0 ? seg(t, a, b) : 1 - seg(t, a, b));
   }
 
-  return { render };
+  // What the finale (finale.ts) borrows: the rack's plate, the CAD projection, the cursor, and
+  // the sign-off.
+  const kit = {
+    plate: drawPlate,
+    axis: (v: V3) => linear(rackPose, v),
+    chevron: (cx: number, cy: number, size: number, turn: number, color: string) => chevron(cx, cy, size, turn, color),
+    sign: (L: number, scene: () => void, from: Pt) => { g = screenG; camX = CAM_RACK; shotSign(SIGN + L, scene, from, false); },
+  };
+  return { render, kit };
 }

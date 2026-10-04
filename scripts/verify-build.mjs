@@ -55,15 +55,15 @@ const homepage = documents.get(base + '/')?.$;
 if (!homepage) {
   errors.push('Homepage missing from production output.');
 } else {
-  const steps = homepage('[data-track] [data-step]');
-  if (steps.length < 3) errors.push('Homepage must contain at least three workflow steps in its no-JavaScript HTML.');
-  steps.each((index, element) => {
-    const step = homepage(element);
-    const heading = step.find('h3');
-    if (!heading.text().trim() || step.attr('aria-labelledby') !== heading.attr('id')) errors.push('Workflow step ' + (index + 1) + ' must have an associated heading.');
-    if (!step.find('.text > p').text().trim()) errors.push('Workflow step ' + (index + 1) + ' must have explanatory text.');
-    if (step.find('figure.media').length !== 1) errors.push('Workflow step ' + (index + 1) + ' must have one media area.');
-  });
+  // The workflow is told by one pixel-art film with one timeline; without JavaScript its canvas
+  // label says it.
+  const reel = homepage('figure[data-reel]');
+  if (reel.length !== 1) errors.push('Homepage must include the film reel.');
+  const canvas = reel.find('canvas#film-reel[role="img"]');
+  if (canvas.length !== 1) errors.push('Homepage must include the film.');
+  else if (!(canvas.attr('aria-label') ?? '').trim()) errors.push('The film must describe itself in its canvas label.');
+  if (reel.find('[data-track][role="slider"]').length !== 1) errors.push('The film must have one timeline.');
+  if (reel.find('canvas').length !== 1) errors.push('The reel must be one film on one canvas.');
   if (homepage('[data-feature-carousel], [data-feature-slide], [data-carousel-controls]').length) errors.push('Homepage must not retain the retired carousel.');
   if (homepage('.hero .eyebrow, .hero-caption').length) errors.push('Homepage hero must not contain the removed eyebrow or screenshot caption.');
   const homepageText = homepage.text();
@@ -82,16 +82,8 @@ if (!homepage) {
   if (homepage('section[aria-labelledby="features-heading"]').length) errors.push('Homepage must not include the connected workflow section.');
   if (homepage('.scanner-copy > .eyebrow').text().trim() === 'Scan R1') errors.push('Scanner section must not include its eyebrow label.');
   verifyInstallSelector(homepage, '#homepage-download', 'Homepage');
-  const scannerVideo = homepage('video[data-scanner-video]');
-  if (scannerVideo.length !== 1) errors.push('Homepage must include one scanner preview video.');
-  else {
-    // Playback starts from script only while the stage is on screen, so there is no autoplay attribute.
-    for (const attribute of ['muted', 'loop', 'playsinline', 'poster']) {
-      if (!scannerVideo.is('[' + attribute + ']')) errors.push('Scanner preview must include ' + attribute + '.');
-    }
-    if (scannerVideo.is('[controls]')) errors.push('Scanner preview must not expose controls.');
-    if (scannerVideo.find('source[src$=".webm"]').length !== 1) errors.push('Scanner preview must use one local WebM source.');
-  }
+  // The Scan R1 section shows the device as pixel art, its screen played from the firmware.
+  if (homepage('#scanner [data-r1]').length !== 1) errors.push('Homepage must show the Scan R1 model in its section.');
   const scripts = homepage('script');
   scripts.each((_, element) => {
     const src = homepage(element).attr('src');

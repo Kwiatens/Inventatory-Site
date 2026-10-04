@@ -153,12 +153,24 @@ def box(x0, x1, y0, y1, z0, z1):
 
 def despeckle(rows):
     """Lone pixels on a silhouette's edge: a pixel whose neighbours above and below agree with
-    each other but not with it, and that matches neither side, takes their code."""
+    each other but not with it, and that matches neither side, takes their code; so does a lone
+    shade between two flat areas in a stepped corner, and a one-pixel bump on a straight edge."""
     rows = [list(r) for r in rows]
     for y in range(1, len(rows) - 1):
         for x in range(len(rows[y])):
             c, up, dn = rows[y][x], rows[y - 1][x], rows[y + 1][x]
             l = rows[y][x - 1] if x > 0 else "."; rr = rows[y][x + 1] if x + 1 < len(rows[y]) else "."
             if c != "." and up == dn and up not in (".", c) and c not in (l, rr):
+                rows[y][x] = up
+            # a lone shade in a stepped corner where two flat areas meet (the keypad pad's top
+            # corners): its four neighbours are those two codes, twice each, never its own
+            elif c != "." and "." not in (up, dn, l, rr) and c not in (up, dn, l, rr) \
+                    and len({up, dn, l, rr}) == 2 and [up, dn, l, rr].count(up) == 2:
+                rows[y][x] = up
+            # a one-pixel bump on a straight vertical edge: the rows above and below stop a
+            # pixel short of it (the keypad pad's right side, from a near-vertical edge)
+            elif c != "." and up == dn != c and up != "." and any(
+                    side == up and 0 <= x - d < len(rows[y]) and rows[y - 1][x - d] == c == rows[y + 1][x - d]
+                    for side, d in ((rr, 1), (l, -1))):
                 rows[y][x] = up
     return ["".join(r) for r in rows]

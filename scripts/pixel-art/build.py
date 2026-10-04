@@ -5,7 +5,7 @@ import json, math, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import scan_r1, rack
 from pixelize import despeckle
-FACE_LENS = float(os.environ.get("FACE_LENS", 260))
+FACE_LENS = float(os.environ.get("FACE_LENS", 1200))
 
 out = {}
 scanner, lcd = scan_r1.build(os.environ["PIXEL_ART_FCSTD"])
@@ -30,12 +30,12 @@ frame = full.render(*FILM_RACK)["bounds"]
 out["filmRackEmpty"] = rack.build(empty=empty, lit=filled, **opts).render(*FILM_RACK, bounds=frame)
 out["filmRackFull"] = full.render(*FILM_RACK, bounds=frame)
 out["filmTube"] = rack.build(empty=[], only="1B3", **opts).render(*FILM_RACK, bounds=frame)
-# Build film: Find in racks walks R1 and the picked tubes are lifted out in pick order. The
+# Finale (src/lib/film/finale.ts): the picked tubes are lifted out of R1 in pick order. The
 # film depth-tests each rising tube against the rack, so it needs depth (toward the viewer, in
 # half millimetres, two base-36 digits per pixel from z0, ".." where empty): the full rack's,
 # and, as patches over filmRackFull ([x, y, code, depth]), the pixels that change as each
 # tube leaves (cumulative); and each picked tube alone, cropped to its box.
-PICKS = ["1A2", "1A4", "1B3", "1C1", "1D1"]
+PICKS = ["1B3", "1C1", "1C2", "1B4", "1B2", "1B1"]          # the comparator, in pick order: the 10K (the part the intake film put away) first, then the BOM's order: 100nF, LED, 100K, 4.7K, 1K
 base = [s for s in empty if s != "1B3"]
 full_d = full.render(*FILM_RACK, bounds=frame, depth=True)
 variants = [rack.build(empty=base + PICKS[:k], lit=filled + ["1B3"], **opts).render(*FILM_RACK, bounds=frame, depth=True)
@@ -77,8 +77,9 @@ out["filmScanner"] = [scanner.render(az, 30, width, plane=lcd, bounds=union) for
 # Close-up: square to the sloped screen (its normal is (0.53, 0, 0.85)). The ERC12864's dots
 # sit at a 0.43 mm pitch, smaller than the case window (59.2 x 29.2 mm), so at 2.47 px/mm the
 # firmware's 128 x 64 frame is drawn 1:1 with glass showing around it, as on the real unit.
-# A short lens in front of the screen, so the keypad below it, nearer the camera, comes up a
-# little larger and its keys show their sides; the glass keeps its 2.47 px/mm.
+# A long lens in front of the screen: the keys still show a sliver of their sides, but the case
+# walls stay straight (a short 260 mm lens flared the case outward toward the keypad, which
+# read as the scanner swelling while the camera tilted down). The glass keeps its 2.47 px/mm.
 x0, x1, _, _ = scanner.extent(90, 58.06)
 face = scanner.render(90, 58.06, 0, plane=lcd, persp=(FACE_LENS, [-35.88, 0, 19.75]), px_per_mm=183 / (x1 - x0))
 face["rows"] = despeckle(face["rows"])

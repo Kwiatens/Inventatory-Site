@@ -1,6 +1,6 @@
 // Concept film: the props, drawn as pixel art from photos of the real things.
 import { Canvas, dataMatrix } from '../pixel';
-import { bitmap, fromRects, withShadow, text, measure, fillPoly, C, type Bitmap } from './gfx';
+import { bitmap, fromRects, withShadow, text, measure, fillPoly, line, C, type Bitmap } from './gfx';
 import { qr } from '../intake-art';
 
 const clampTo = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
@@ -102,33 +102,98 @@ export function bag(): { art: Bitmap; back: Bitmap[]; dm: { x: number; y: number
 }
 
 // ---------- the parts: 0603 resistors on 8 mm paper tape, then loose in the tube ----------
-// Drawn near true scale (about 1.3 px per mm): a chip is a black top between two tinned ends.
+// A chip is a black top between two tinned ends.
 const END = '#cad0ca', TOP = '#0d1010', SIDE = '#f1eee5';
 
-/** Cut tape: paper carrier with sprocket holes and one pocket per part, under a clear cover
- *  tape. `peeled` (0..1): how much of the cover is off, from the right end; `gone`: parts
- *  already out, from the right end. */
-export const TAPE = { pockets: 16, pitch: 5, h: 10 };
-export const tapeLength = TAPE.pockets * TAPE.pitch + 4;
-export const pocketX = (i: number) => 4 + i * TAPE.pitch;
-export function tape(peeled: number, gone: number, shadow = true): Bitmap {
-  const L = tapeLength, H = TAPE.h;
+/** Cut tape, drawn from the real thing in millimetres (EIA-481 8 mm paper tape for 0603):
+ *  sprocket holes 1.5 mm on a 4 mm pitch, 1.75 mm in from one edge; one oblong pocket per part
+ *  (1.1 mm along the tape, 1.9 mm across), 3.5 mm from the holes and 2 mm along from each;
+ *  the 1.6 x 0.8 mm chip lies across the tape in it; a clear cover tape is sealed over the
+ *  pockets along two lines. On the desk it is 1.25 px per mm (`TAPE_PX_MM`); close up it is drawn
+ *  at its size on screen, so it gains detail as the camera comes in, rather than being swapped.
+ *  The strip lies along x with its free end at x = 0 and the holes along the bottom edge.
+ *  `peelMm`: how much of the cover is off, from the free end; `gone`: pockets already
+ *  emptied, from the free end. */
+export const TAPE_PX_MM = 1.25;
+export const TAPE_MM = { w: 8, pockets: 16, pitch: 4, hole: 1.5, holeY: 6.25, pocketY: 2.75, pocketA: 1.1, pocketB: 1.9, cover: [0.3, 5.2] as const };
+export const tapeLength = 84;                                   // desk pixels, 67.2 mm
+const TAPE_LEN_MM = tapeLength / TAPE_PX_MM;
+/** The middle of pocket k, from the free end, in mm. */
+export const pocketMm = (k: number) => 4 + k * TAPE_MM.pitch;
+/** Where each feature of the tape is, in mm (along from the free end, across from the top
+ *  edge): the sprocket holes, and the pockets (and chips) from the free end. */
+export const tapeHoles = () => { const r: number[] = []; for (let mm = 2; mm < TAPE_LEN_MM - 1; mm += TAPE_MM.pitch) r.push(mm); return r; };
+export function carrier(pxPerMm: number, peelMm: number, gone: number): Bitmap {
+  const T = TAPE_MM, X = (mm: number) => Math.round(mm * pxPerMm);
+  const L = X(TAPE_LEN_MM), H = X(T.w);
   const [c, g] = bitmap(L, H);
+  // every feature of one kind is the same whole number of pixels, placed on whole pixels, so a
+  // row of them stays even at any scale
+  const size = (mm: number) => Math.max(1, Math.round(mm * pxPerMm));
+  const box = (u: number, v: number, du: number, dv: number, color: string): [number, number, number, number] => {
+    const w = size(du), h = size(dv), x = Math.round(u * pxPerMm - w / 2), y = Math.round(v * pxPerMm - h / 2);
+    g.fillStyle = color; g.fillRect(x, y, w, h);
+    return [x, y, w, h];
+  };
   g.fillStyle = C.paper2; g.fillRect(0, 0, L, H);
   g.fillStyle = C.bone; g.fillRect(0, 0, L, 1);
   g.fillStyle = C.muted; g.fillRect(0, H - 1, L, 1);
-  g.fillStyle = C.canvas;
-  for (let x = 2; x < L - 1; x += TAPE.pitch) g.fillRect(x, 1, 2, 2);            // sprocket holes
-  for (let i = 0; i < TAPE.pockets; i++) {
-    const x = pocketX(i) - 2;
-    g.fillStyle = '#384543'; g.fillRect(x, 4, 4, 4);                                 // pocket
-    if (i >= TAPE.pockets - gone) continue;
-    g.fillStyle = END; g.fillRect(x, 5, 1, 2); g.fillRect(x + 3, 5, 1, 2);
-    g.fillStyle = TOP; g.fillRect(x + 1, 5, 2, 2);
+  // sprocket holes: punched through, so the desk shows through them; one round stamp
+  const d = size(T.hole), hole: Array<[number, number]> = [];
+  for (let y = 0; y < d; y++) for (let x = 0; x < d; x++) if ((x + .5 - d / 2) ** 2 + (y + .5 - d / 2) ** 2 <= (d / 2) ** 2 + .25) hole.push([x, y]);
+  for (const mm of tapeHoles()) {
+    const x0 = Math.round(mm * pxPerMm - d / 2), y0 = Math.round(T.holeY * pxPerMm - d / 2);
+    for (const [x, y] of hole) g.clearRect(x0 + x, y0 + y, 1, 1);
   }
-  const edge = Math.round(L * (1 - peeled));                                         // cover tape
-  if (edge > 0) { g.fillStyle = C.bone; g.fillRect(0, 3, edge, 1); g.fillRect(0, 8, edge, 1); }
-  return shadow ? withShadow(c) : c;
+  // pockets, the far wall in shade; a chip in each one not yet emptied: a black top between
+  // two tinned ends, lying across the tape
+  for (let k = 0; k < T.pockets; k++) {
+    const m = pocketMm(k);
+    const [px, py, pw, ph] = box(m, T.pocketY, T.pocketA, T.pocketB, C.divider);
+    if (ph >= 4) { g.fillStyle = C.hover; g.fillRect(px, py, pw, 1); }
+    if (k < gone) continue;
+    const [cx, cy, cw, ch] = box(m, T.pocketY, .8, 1.6, C.ink);
+    if (pxPerMm >= 2.5) {
+      const e = size(.3);                                                    // tin, darker than the paper
+      g.fillStyle = C.muted; g.fillRect(cx, cy, cw, e); g.fillRect(cx, cy + ch - e, cw, e);
+    }
+  }
+  // the clear cover over what is left of it: only its two seal lines show, and its edge where
+  // it has been peeled back to (a tint over it read as noise on the chips)
+  const from = Math.max(0, Math.min(TAPE_LEN_MM, peelMm));
+  if (from < TAPE_LEN_MM) {
+    const x0 = X(from), y0 = X(T.cover[0]), y1 = X(T.cover[1]);
+    g.fillStyle = C.bone; g.fillRect(x0, y0, L - x0, 1); g.fillRect(x0, y1 - 1, L - x0, 1);
+    if (from > 0) g.fillRect(x0, y0, 1, y1 - y0);
+  }
+  return c;
+}
+/** The whole strip at the desk's scale, turned by `a` about its middle (cx, cy), drawn as
+ *  shapes rather than a sheared bitmap (shearing broke its pockets into offset steps): its
+ *  shadow, the paper, the edges, the holes, the pockets and chips. Nothing is peeled yet. */
+export function carrierTurned(g: CanvasRenderingContext2D, cx: number, cy: number, a: number) {
+  const k = TAPE_PX_MM, co = Math.cos(a), si = Math.sin(a), L = TAPE_LEN_MM, T = TAPE_MM;
+  const at = (u: number, v: number): [number, number] => { const x = (u - L / 2) * k, y = (v - T.w / 2) * k; return [cx + x * co - y * si, cy + x * si + y * co]; };
+  const quad = (u0: number, u1: number, v0: number, v1: number): Array<[number, number]> => [at(u0, v0), at(u1, v0), at(u1, v1), at(u0, v1)];
+  fillPoly(g, quad(0, L, 0, T.w).map(([x, y]) => [x + 1, y + 1] as [number, number]), C.shadow);
+  fillPoly(g, quad(0, L, 0, T.w), C.paper2);
+  line(g, at(0, .2), at(L, .2), C.bone);
+  line(g, at(0, T.w - .2), at(L, T.w - .2), C.muted);
+  g.fillStyle = C.canvas;
+  for (const mm of tapeHoles()) { const [x, y] = at(mm, T.holeY); g.fillRect(Math.round(x - 1), Math.round(y - 1), 2, 2); }
+  for (let i = 0; i < T.pockets; i++) {
+    // a chip filling its pocket: two pixels across the tape, as the upright strip has them
+    g.fillStyle = C.ink;
+    for (const v of [-.4, .4]) { const [x, y] = at(pocketMm(i), T.pocketY + v); g.fillRect(Math.round(x - .5), Math.round(y - .5), 1, 1); }
+  }
+}
+/** The same strip hanging from its held end: turned a quarter so that end is at the top and
+ *  the holes run down the right side. */
+export function hanging(b: Bitmap): Bitmap {
+  const [c, g] = bitmap(b.height, b.width);
+  g.setTransform(0, -1, 1, 0, 0, b.width);
+  g.drawImage(b, 0, 0);
+  return c;
 }
 
 /** Loose chips at the bottom of the tube, at the desk's scale (a chip is about 2 x 1 px):
@@ -160,7 +225,7 @@ export function tube(fill: number, labelled: Bitmap | null): Bitmap {
   g.fillStyle = '#384543'; g.fillRect(1, 0, 1, H - 2); g.fillRect(W - 2, 0, 1, H - 2);
   g.fillStyle = '#4a5754'; g.fillRect(3, 2, 1, H - 8);                             // highlight
   g.fillStyle = '#5d6865'; g.fillRect(1, 0, W - 2, 1);                             // the open mouth's rim
-  if (labelled) g.drawImage(labelled, 1, 14);
+  if (labelled) g.drawImage(labelled, 1, 8);
   return c;
 }
 
@@ -242,9 +307,30 @@ export function labelTiny(): Bitmap {
 }
 
 /** The label wrapped round a tube: the middle of it faces you, its sides curve away. `w`:
- *  how much of it still faces you (21 flat .. 14 wrapped), so the wrap can be drawn. */
+ *  how much of it still faces you (38 flat .. 14 wrapped), so the wrap can be drawn. The label
+ *  is 38 x 30 here: three quarters of the tube's height, as the real one is. */
+export const TUBE_LABEL_W = 38;
+
+// The rack's label plate, hung on its front as on the real racks: a bone card with a dark
+// header strip, a rule for the title and a dark pill for the rack's number, drawn as marks
+// (too small to read). `hot`: the card lit, as the app's blink lights a slot.
+const plates = new Map<string, Bitmap>();
+export function rackPlate(n: number, hot = false): Bitmap {
+  const key = n + (hot ? 'h' : '');
+  let b = plates.get(key);
+  if (!b) {
+    const w = 20, [c, cg] = bitmap(w, 11);
+    cg.fillStyle = hot ? C.focus : C.bone; cg.fillRect(0, 0, w, 11);
+    cg.fillStyle = C.ink; cg.fillRect(0, 0, w, 2); cg.fillRect(2, 4, w - 4, 1);
+    cg.fillRect(4, 7, w - 8, 3);
+    cg.fillStyle = hot ? C.focus : C.bone;
+    for (let i = 0; i < n; i++) cg.fillRect(6 + i * 2, 8, 1, 1);        // the pill's tally: one mark per rack number
+    b = c; plates.set(key, b);
+  }
+  return b;
+}
 export function tubeBand(w = 14): Bitmap {
-  const src = labelTiny();
+  const src = labelAt(TUBE_LABEL_W);
   const [c, g] = bitmap(w, src.height);
   g.drawImage(src, Math.round((src.width - w) / 2), 0, w, src.height, 0, 0, w, src.height);
   // the edge columns turn away from the light: paper one tone darker, ink unchanged
@@ -258,15 +344,15 @@ export function tubeBand(w = 14): Bitmap {
 }
 
 export const LINER = '#d8d6b6';
-/** A compact direct-thermal desktop label printer (after a photo of the user's, not copied: no
- *  badge, our own proportions), its front to the left: a light grey body whose rounded nose
- *  slopes down to the front, the label slot low in the front over the base band, a dark smoked
- *  window domed over the roll at the back, a round teal feed button on the nose and a teal
- *  release button on the side. */
-const PS = 1.7, PSIDE = { w: Math.round(64 * PS), h: Math.round(40 * PS), slot: Math.round(31 * PS), base: Math.round(34 * PS) };
-// its side, front left: the outline, as a polygon
-const PROFILE = ([[2, 39.9], [2, 22], [3, 18], [5, 14.5], [8, 12], [12, 10], [17, 9], [30, 9], [34, 6.5],
-  [40, 4.6], [47, 4.2], [53, 5.5], [57, 8], [60, 11], [61.9, 15], [61.9, 39.9]] as Array<[number, number]>).map(([x, y]): [number, number] => [Math.min(x * PS, 64 * PS - .1), Math.min(y * PS, 40 * PS - .1)]);
+/** A compact direct-thermal desktop label printer (after the user's Zebra TLP 2824 Plus, about
+ *  102 x 210 x 152 mm, not copied: no badge), its front to the left: a warm light grey body, the
+ *  front upright below the label slot and the upper cover leaning back to a rounded shoulder, a
+ *  near-flat top, a dark smoked window domed over the roll at the back; the slot at the seam
+ *  over the base, a round teal feed button on top and a teal release button on the side. */
+const PS = 1.7, PSIDE = { w: Math.round(64 * PS), h: Math.round(46 * PS), slot: Math.round(32 * PS), base: Math.round(34 * PS) };
+// its side, front left: the outline, as a polygon (64 deep, 46 high: the real one's 210 x 152)
+const PROFILE = ([[1, 45.9], [1, 30], [2.5, 22], [4, 15.5], [5.5, 12.5], [8, 10.5], [11, 9.3], [15, 8.8], [29, 8.3], [32, 6.8],
+  [37, 4.8], [43, 4.1], [49, 4.3], [54, 5.8], [58, 8.5], [61, 12], [62.4, 16], [62.4, 45.9]] as Array<[number, number]>).map(([x, y]): [number, number] => [Math.min(x * PS, 64 * PS - .1), Math.min(y * PS, 46 * PS - .1)]);
 const WINDOW = [Math.round(31 * PS), Math.round(57 * PS)];          // the smoked window, along the top
 function printerMask() {
   const { w: W, h: H } = PSIDE;
@@ -277,45 +363,50 @@ function printerMask() {
   const top = Array.from({ length: W }, (_, x) => { for (let y = 0; y < H; y++) if (filled(x, y)) return y; return H; });
   return { c, filled, top };
 }
-/** The printer turned a little toward the viewer and seen a little from above, for the bench:
- *  its side, and behind it its width going back up and to the left, so the top (nose, window)
- *  and the front with the slot across it show. Built by stacking the side's outline back across
- *  the width: each step's top edge makes the top, its front edge the front.
- *  Returns where the slot is: `o` its middle, `ax` one step across it toward the near side (one
- *  pixel down, so rows of a label lying in it stay whole rows), `fwd` one pixel of label stock
- *  coming out (to the left); the feed button (it lights while printing); `base`, the bottom row. */
+/** The printer at three quarters, its front to the camera (as in the user's photos) and seen a
+ *  little from above: its depth recedes up and to the right, so the front with the slot faces
+ *  the viewer, the top shows the shoulder and the dome, and the right side shows the profile.
+ *  Built from the side's outline: one cross-section per pixel of depth, stacked back to front,
+ *  each as wide as the printer and as tall as the profile there; their top edges make the top,
+ *  their right edges the side, the frontmost the front.
+ *  Returns where the slot is (`o`, its middle: the stock comes out of it and hangs down over the
+ *  front, square to the camera; at this scale the real 44 x 36 mm label is the desk-sized label),
+ *  the feed button (it lights while printing) and `base`, the bottom row. */
 export function printerTop() {
-  const { w: W, h: H, slot: SLOT, base: BASE } = PSIDE, ACROSS = 75, DX = .7, DY = .45;
-  const { filled, top } = printerMask();
-  const ox = Math.ceil(ACROSS * DX) + 1, oy = Math.ceil(ACROSS * DY) + 1;
-  const [c, g] = bitmap(W + ox + 1, H + oy + 1);
-  const inWindow = (x: number) => x >= WINDOW[0] && x <= WINDOW[1];
-  // the top, by how steeply it falls toward the front: the nose a tone under the flat
-  const topShade = (x: number, far: boolean) => {
-    if (inWindow(x)) return far ? '#4a5754' : (x > 42 * PS && x < 47 * PS) ? '#3d4a47' : '#1d2422';
-    if (far) return '#e3e6e0';
-    const slope = Math.abs(top[Math.min(W - 1, x + 1)] - top[Math.max(2, x - 1)]) / 2;
-    return slope > 1.2 ? '#b8bfb9' : slope > .4 ? '#c8cec9' : '#d6dbd5';
-  };
-  const frontAt = (y: number, k: number) => y === SLOT && k > ACROSS * .15 && k < ACROSS * .85 ? C.ink
-    : y === BASE ? '#5d6865' : y > BASE ? '#8c9690' : '#b8bfb9';
-  for (let k = ACROSS; k >= 1; k--) {
-    const sx = ox - Math.round(k * DX), sy = oy - Math.round(k * DY), far = k === ACROSS;
-    for (let x = 3; x < W; x++) {
-      if (top[x] >= H) continue;
-      const y0 = top[x], y1 = Math.max(y0 + 1, Math.min(top[x - 1], H));
-      g.fillStyle = topShade(x, far); g.fillRect(sx + x, sy + y0, 1, y1 - y0 + 1);
-    }
-    for (let y = top[2]; y < H; y++) { g.fillStyle = far ? '#a9b2ab' : frontAt(y, k); g.fillRect(sx + 2, sy + y, 1, 1); }
+  const { w: D, h: H, slot: SLOT, base: BASE } = PSIDE;
+  const FW = Math.round(102 / 210 * D), DX = .42, DY = .29;            // the front 102 mm wide; depth at half
+  const { top } = printerMask();
+  const ox = 1, oy = Math.ceil(D * DY) + 1;
+  const [c, g] = bitmap(FW + Math.ceil(D * DX) + 3, H + oy + 1);
+  const inWindow = (k: number) => k >= WINDOW[0] && k <= WINDOW[1];
+  const front = top.findIndex(t => t < H);
+  const box = (x: number, y: number, w: number, h: number, color: string) => { g.fillStyle = color; g.fillRect(x, y, w, h); };
+  // back to front: each cross-section at its depth k
+  for (let k = D - 1; k >= front; k--) {
+    if (top[k] >= H) continue;
+    const x = ox + Math.round(k * DX), y = oy - Math.round(k * DY), t = top[k];
+    const win = inWindow(k);
+    // the side (seen past the next section's right edge): the cover, the window high up at the
+    // back, the seam and the base band under it
+    box(x, y + t, FW, H - t, '#aca89f');
+    if (win) box(x, y + t, FW, Math.max(0, Math.round(11 * PS) - t), '#27312f');
+    box(x, y + BASE, FW, 1, '#6b665e'); box(x, y + BASE + 1, FW, H - BASE - 1, '#958f86');
+    // the top: shaded by how steeply it falls toward the front (measured over a few sections)
+    const slope = Math.abs(top[Math.min(D - 1, k + 3)] - top[Math.max(front, k - 3)]) / 6;
+    const tone = win ? ((k > 42 * PS && k < 47 * PS) ? '#3d4a47' : '#1d2422') : slope > 1.2 ? '#c1bdb4' : slope > .4 ? '#d0ccc3' : '#ddd9d0';
+    // down to where the next section's top starts, so a steep run (the leaning front) is solid
+    const nk = Math.max(front, k - 1), next = oy - Math.round(nk * DY) + top[nk];
+    box(x, y + t, FW - 1, Math.max(2, next - (y + t) + 1), tone);
+    box(x + FW - 1, y + t, 1, 1, win ? '#4a5754' : '#e8e4db');                       // the lit top right edge
   }
-  // the near side
-  for (let x = 0; x < W; x++) for (let y = 0; y < H; y++) {
-    if (!filled(x, y)) continue;
-    const edge = y === top[x], win = inWindow(x) && y <= 11 * PS;
-    g.fillStyle = edge ? (win ? '#4a5754' : '#e3e6e0') : win ? '#27312f' : y === BASE ? '#5d6865' : y > BASE ? '#8c9690' : x <= 3 ? '#c3cac4' : '#a9b2ab';
-    g.fillRect(ox + x, oy + y, 1, 1);
-  }
-  // the release button on the side, the feed button on the nose (near the near side)
+  // the front: the cover a shade under the top, the slot across it, the seam and the base band
+  const fx = ox + Math.round(front * DX), fy = oy - Math.round(front * DY), ft = top[front];
+  box(fx, fy + ft, FW, BASE - ft, '#c6c2b9');
+  box(fx, fy + ft, FW, 1, '#e8e4db');
+  box(fx, fy + BASE, FW, 1, '#6b665e'); box(fx, fy + BASE + 1, FW, H - BASE - 1, '#a7a299');
+  box(fx + Math.round(FW * .2), fy + SLOT, Math.round(FW * .6), 1, C.ink);
+  box(fx + Math.round(FW * .2), fy + SLOT + 1, Math.round(FW * .6), 1, '#8f8a81');
+  // the release button on the side, the feed button on top near the front, toward the right
   const disc = (cx: number, cy: number, rx: number, ry: number, fill: string, rim: string) => {
     for (let y = -ry; y <= ry; y++) for (let x = -rx; x <= rx; x++) {
       const d = (x / (rx + .5)) ** 2 + (y / (ry + .5)) ** 2;
@@ -323,14 +414,12 @@ export function printerTop() {
       g.fillStyle = d > .55 ? rim : fill; g.fillRect(cx + x, cy + y, 1, 1);
     }
   };
-  disc(ox + Math.round(9 * PS), oy + Math.round(25 * PS), 3, 3, C.accent, C.active);
-  const kb = Math.round(ACROSS * .2), fx = Math.round(14 * PS), bx = ox - Math.round(kb * DX) + fx, by = oy - Math.round(kb * DY) + top[fx] + 2;
-  disc(bx, by, 5, 2, C.accent, C.active);
-  const o: [number, number] = [ox + 2 - .5 - ACROSS / 2 * DX, oy + SLOT + .5 - ACROSS / 2 * DY];
-  return {
-    art: withShadow(c), led: [bx - 1, by] as [number, number],
-    slot: { o, ax: [DX / DY, 1] as [number, number], fwd: [-1, 0] as [number, number] }, base: oy + H - 1,
-  };
+  const sk = Math.round(10 * PS);
+  disc(ox + Math.round(sk * DX) + FW + 1, oy - Math.round(sk * DY) + Math.round(24 * PS), 1, 3, C.accent, C.active);
+  const bk = Math.round(16 * PS), bx = ox + Math.round(bk * DX) + Math.round(FW * .72), by = oy - Math.round(bk * DY) + top[bk] + 1;
+  disc(bx, by, 4, 2, C.accent, C.active);
+  const o: [number, number] = [fx + FW / 2, fy + SLOT];
+  return { art: withShadow(c), led: [bx - 1, by] as [number, number], slot: { o }, base: oy + H - 1 };
 }
 
 /** A desk monitor; its screen is drawn live by the film. */

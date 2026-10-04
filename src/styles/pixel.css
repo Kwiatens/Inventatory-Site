@@ -1,3 +1,9 @@
+/* Headings in the Scan R1's own bitmap fonts (U8g2 helvB12 / helvB08, built by
+   scripts/pixel-font/webfont.mjs). The em is the font's height in its pixels, so a size of
+   --px x height lands every glyph pixel on the page grid. */
+@font-face { font-family: 'Inventatory Pixel Head'; src: url('../assets/fonts/pixel-head.otf') format('opentype'); font-display: block; }
+@font-face { font-family: 'Inventatory Pixel Sub'; src: url('../assets/fonts/pixel-sub.otf') format('opentype'); font-display: block; }
+
 /* The page's pixel grid: one art pixel of the intake film, in CSS pixels. The film plays at
    3x where it fits and 2x below that, so every pixel accent on the page follows it. */
 :root {
@@ -16,6 +22,20 @@
   --dither-75: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 4' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h1v1h-1zM1 0h1v1h-1zM2 0h1v1h-1zM3 0h1v1h-1zM1 1h1v1h-1zM3 1h1v1h-1zM0 2h1v1h-1zM1 2h1v1h-1zM2 2h1v1h-1zM3 2h1v1h-1zM1 3h1v1h-1zM3 3h1v1h-1z'/%3E%3C/svg%3E");
 }
 @media (min-width: 78rem) { :root { --px: 3px; } }
+/* The lockup's stepped corner, two pixels in one at a time. Shapes are drawn as stacked
+   background rectangles, not clip paths: boxes paint snapped to device pixels, so the steps stay
+   crisp even where the layout lands on half pixels. */
+:root { --n1: var(--px); --n2: calc(var(--px) * 2); }
+
+/* Pixel headings. Sizes are whole multiples of the grid; the shadow is one grid pixel, down
+   and right, in the lockup's shadow colour. */
+.px-head, .px-sub {
+  font-weight: 400; letter-spacing: 0; color: var(--text); text-wrap: balance;
+  text-shadow: var(--px) var(--px) 0 var(--drop-color);
+  -webkit-font-smoothing: none; font-smooth: never;
+}
+.px-head { font-family: 'Inventatory Pixel Head', var(--font-body); font-size: calc(var(--px) * 20); line-height: calc(var(--px) * 20); }
+.px-sub { font-family: 'Inventatory Pixel Sub', var(--font-body); font-size: calc(var(--px) * 13); line-height: calc(var(--px) * 13); }
 
 /* A band in the surface tone that dissolves out of the canvas above it, and back below. */
 .band { position: relative; background: var(--surface); }
@@ -58,16 +78,73 @@
 }
 .brackets:is(:hover, :focus-visible, :focus-within)::after { opacity: 1; }
 
-/* The one filled button: the accent with the lockup's hard shadow; pressing it sinks it
-   into its shadow. */
+/* The one filled button: the accent in the notched shape over the lockup's hard shadow (::after,
+   the same shape) and under its label (::before); pressing it sinks it into its shadow. --c is
+   the shape's colour. */
 .press {
+  --c: var(--accent);
+  position: relative; isolation: isolate;
   display: inline-flex; align-items: center; min-height: 3rem; padding: 0 var(--space-6);
-  background: var(--accent); color: var(--canvas); font-weight: 600; font-stretch: 112%; text-decoration: none;
-  box-shadow: var(--drop) var(--drop) 0 var(--drop-color);
-  transition: transform .08s steps(1), box-shadow .08s steps(1), background .08s steps(1);
+  color: var(--canvas); font-weight: 600; text-decoration: none;
+  transition: transform .08s steps(1);
 }
-.press:hover { color: var(--canvas); background: var(--focus); }
-.press:active { transform: translate(var(--drop), var(--drop)); box-shadow: 0 0 0 transparent; }
+.press::before, .press::after {
+  content: ''; position: absolute; inset: 0;
+  background:
+    linear-gradient(var(--c), var(--c)) center / calc(100% - var(--n2) * 2) 100% no-repeat,
+    linear-gradient(var(--c), var(--c)) center / calc(100% - var(--n1) * 2) calc(100% - var(--n1) * 2) no-repeat,
+    linear-gradient(var(--c), var(--c)) center / 100% calc(100% - var(--n2) * 2) no-repeat;
+}
+.press::before { z-index: -1; }
+.press::after { --c: var(--drop-color); z-index: -2; transform: translate(var(--drop), var(--drop)); }
+.press:hover { --c: var(--focus); color: var(--canvas); }
+.press:active { transform: translate(var(--drop), var(--drop)); }
+.press:active::after { transform: none; }
+
+/* A panel on the grid: a one-pixel outline whose corners step in like the lockup's, no
+   rounding. --frame sets the outline, --fill the inside. */
+.frame {
+  --frame: var(--divider); --fill: var(--surface);
+  background:
+    linear-gradient(var(--fill), var(--fill)) center / calc(100% - var(--n2) * 2) calc(100% - var(--n1) * 2) no-repeat,
+    linear-gradient(var(--fill), var(--fill)) center / calc(100% - var(--n1) * 2) calc(100% - var(--n2) * 2) no-repeat,
+    linear-gradient(var(--frame), var(--frame)) center / calc(100% - var(--n2) * 2) 100% no-repeat,
+    linear-gradient(var(--frame), var(--frame)) center / calc(100% - var(--n1) * 2) calc(100% - var(--n1) * 2) no-repeat,
+    linear-gradient(var(--frame), var(--frame)) center / 100% calc(100% - var(--n2) * 2) no-repeat;
+}
+
+/* Tabs on the grid: notched top corners; the open one is lit and joins the panel under it. */
+.tabs { display: flex; gap: calc(var(--px) * 2); }
+.tab {
+  --c: var(--raised);
+  padding: calc(var(--px) * 4) calc(var(--px) * 8) calc(var(--px) * 3);
+  border: 0; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer;
+  background:
+    linear-gradient(var(--c), var(--c)) top / calc(100% - var(--n2) * 2) 100% no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom / calc(100% - var(--n1) * 2) calc(100% - var(--n1)) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom / 100% calc(100% - var(--n2)) no-repeat;
+  transition: color .08s steps(1);
+}
+.tab:hover { --c: var(--hover); color: var(--text); }
+.tab[aria-selected="true"] { --c: var(--accent); color: var(--canvas); }
+
+/* A key off the Scan R1's keypad: a dark notched cap standing on its shadow. Pressed, or
+   selected (.on / a checked radio before it), it sinks into the shadow and its legend lights. */
+.key {
+  --c: var(--raised);
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--space-2);
+  padding: 0 var(--space-4); min-height: 2.75rem; border: 0;
+  color: var(--secondary); font: inherit; cursor: pointer; user-select: none;
+  background:
+    linear-gradient(var(--c), var(--c)) center / calc(100% - var(--n2) * 2) 100% no-repeat,
+    linear-gradient(var(--c), var(--c)) center / calc(100% - var(--n1) * 2) calc(100% - var(--n1) * 2) no-repeat,
+    linear-gradient(var(--c), var(--c)) center / 100% calc(100% - var(--n2) * 2) no-repeat;
+  filter: drop-shadow(0 calc(var(--px) * 2) 0 #080a0a);
+  transition: transform .06s steps(1), filter .06s steps(1), color .06s steps(1);
+}
+.key:hover { --c: var(--hover); color: var(--text); }
+.key:active, .key.on, :checked + .key { transform: translateY(calc(var(--px) * 2)); filter: none; color: var(--accent); }
+:checked + .key { --c: var(--active-soft); }
 
 /* Cut in with the film's dissolve: a quarter, half, three quarters, then whole. */
 .dither-in {

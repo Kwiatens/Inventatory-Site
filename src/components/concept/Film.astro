@@ -1,125 +1,122 @@
 ---
 /**
- * Concept: a pixel-art film (lib/film) that plays like a short video: one take along the desk,
- * cuts with a dither dissolve. Plays while on screen; pause and scrub below, chapter names
- * under the scrubber. With reduced motion it shows its poster frame until played.
- * `film`: "intake" (one scan puts a part away) or "build" (a BOM takes parts out).
+ * Concept: the pixel-art film (lib/film/reel) as one player. One scan puts a part away; then a
+ * board's BOM shows what the exact slot is for (see reel.ts). Under the picture: one timeline
+ * (click or drag to scrub, arrow keys step chapters). Plays while on screen; with reduced
+ * motion it shows a poster frame until played.
  */
-interface Props { film: 'intake' | 'build' }
-const { film } = Astro.props;
-const chapters = film === 'intake'
-  ? ['Scan', 'Confirm', 'Fill in', 'Tube', 'Label', 'Rack', 'Inventatory', 'Result']
-  : ['KiCad', 'Compare', 'Find in racks', 'Rack', 'Build', 'Stock'];
-const label = film === 'intake'
-  ? 'Animation: the Scan R1 reads a vendor bag\'s label; you press A once; Inventatory on the PC fills in the part from the vendor and reserves slot R1-B3; parts go into a tube, its label prints and wraps the tube, and the tube drops into the rack. One key pressed, ten fields filled.'
-  : 'Animation: a board is laid out in KiCad and its BOM exported; Inventatory matches every line to stock; Find in racks lights slots A2, A4, B3, C1 and D1 of rack 1; those five tubes are lifted out of the rack; the parts go on the board; one key subtracts the 14 pieces from stock.';
+const label = 'Animation: the Scan R1 reads a vendor bag\'s label; you press A once; Inventatory on the PC fills in the part from the vendor and reserves slot R1-B3; parts go into a tube, its label prints and wraps the tube, and the tube drops into the rack. The cursor asks: But why is this useful? A circuit board\'s parts list prints out. The usual answer, Drawer 12 for every part, points into one drawer of identical bags; the cursor searches them, shakes its head and gives up. Inventatory gives every part its own slot in rack 1; the cursor goes straight to each one and nods. The six tubes are lifted out one by one, the 10K from R1-B3 first, and stand in a row as each line of the list is ticked. The cursor becomes the Inventatory logo.';
 ---
-<figure class="film" data-film={film}>
+<figure class="film" data-reel>
   <div class="screen" data-screen>
-    <canvas data-canvas width="384" height="192" role="img" aria-label={label}></canvas>
+    <canvas id="film-reel" role="img" aria-label={label} width="384" height="166"></canvas>
   </div>
-  <figcaption class="bar">
-    <button type="button" class="play" data-play aria-label="Pause"><span data-icon></span></button>
-    <div class="time">
-      <div class="track" data-track role="slider" tabindex="0" aria-label="Position in the animation" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-        <div class="fill" data-fill></div>
-        {chapters.map((_, i) => <span class="tick" data-tick={i}></span>)}
+  <figcaption class="under" data-fit>
+    <div class="bar">
+      <button type="button" class="play key" data-play aria-label="Pause"><span data-icon></span></button>
+      <div class="reel">
+        <div class="track" data-track role="slider" tabindex="0" aria-label="Position in the animation" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="seg"><div class="fill" data-fill></div></div>
+        </div>
       </div>
-      <ol class="chapters" aria-label="Chapters">
-        {chapters.map((name, i) => <li data-chapter={i}><button type="button" tabindex="-1">{name}</button></li>)}
-      </ol>
     </div>
   </figcaption>
 </figure>
 
 <script>
-  import * as intake from '../../lib/film/film';
-  import * as build from '../../lib/film/build';
+  import { createReel, W, H, LOOP, POSTER, CHAPTERS } from '../../lib/film/reel';
 
-  const FILMS = {
-    intake: { create: intake.createFilm, LOOP: intake.LOOP, POSTER: intake.POSTER, CHAPTERS: intake.CHAPTERS },
-    build: { create: build.createBuildFilm, LOOP: build.LOOP, POSTER: build.POSTER, CHAPTERS: build.CHAPTERS },
-  };
-  const { W, H } = intake;
-
-  for (const root of document.querySelectorAll<HTMLElement>('[data-film]')) {
-    const { create, LOOP, POSTER, CHAPTERS } = FILMS[root.dataset.film as keyof typeof FILMS];
-    const canvas = root.querySelector<HTMLCanvasElement>('[data-canvas]')!;
+  for (const root of document.querySelectorAll<HTMLElement>('[data-reel]')) {
+    const canvas = root.querySelector<HTMLCanvasElement>('canvas')!;
+    const film = createReel(canvas);
     const screen = root.querySelector<HTMLElement>('[data-screen]')!;
     const track = root.querySelector<HTMLElement>('[data-track]')!;
     const fill = root.querySelector<HTMLElement>('[data-fill]')!;
     const play = root.querySelector<HTMLButtonElement>('[data-play]')!;
-    const bar = root.querySelector<HTMLElement>('.bar')!;
-    const film = create(canvas);
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-    // Whole-number scale when there is room, so every art pixel is the same size.
+    // Whole-number scale when there is room, so every art pixel is the same size; the bar
+    // takes the film's width.
     const fit = () => {
       const avail = screen.clientWidth, dpr = devicePixelRatio || 1;
       const k = Math.floor(avail * dpr / W);
       const css = k >= 2 ? (k * W) / dpr : avail;
-      canvas.style.width = css + 'px';
-      canvas.style.height = css * H / W + 'px';
-      bar.style.width = css + 'px';
+      canvas.style.width = css + 'px'; canvas.style.height = css * H / W + 'px';
+      root.style.setProperty('--film-w', css + 'px');
     };
     new ResizeObserver(fit).observe(screen);
-    root.querySelectorAll<HTMLElement>('[data-tick]').forEach((el, i) => { el.style.left = (CHAPTERS[i] / LOOP * 100) + '%'; });
-    // Chapter names sit under their ticks; the one playing is lit, and each jumps to its start.
-    const names = [...root.querySelectorAll<HTMLElement>('[data-chapter]')];
-    names.forEach((el, i) => {
-      el.style.left = (CHAPTERS[i] / LOOP * 100) + '%';
-      el.querySelector('button')!.addEventListener('click', () => { t = CHAPTERS[i]; film.render(t); });
-    });
-    let lit = -1;
 
     let t = reduced.matches ? POSTER : 0, playing = !reduced.matches, visible = false, last = performance.now();
+    const draw = () => {
+      film.render(t);
+      fill.style.width = t / LOOP * 100 + '%';
+      track.setAttribute('aria-valuenow', String(Math.round(t / LOOP * 100)));
+    };
     const setPlaying = (on: boolean) => {
       playing = on;
       play.setAttribute('aria-label', on ? 'Pause' : 'Play');
       play.dataset.state = on ? 'playing' : 'paused';
     };
     play.addEventListener('click', () => setPlaying(!playing));
+    // The pointer picks the moment under it.
     const seek = (clientX: number) => {
       const r = track.getBoundingClientRect();
       t = Math.max(0, Math.min(.999, (clientX - r.left) / r.width)) * LOOP;
-      film.render(t);
+      draw();
     };
     track.addEventListener('pointerdown', (e) => { seek(e.clientX); track.setPointerCapture(e.pointerId); });
     track.addEventListener('pointermove', (e) => { if (track.hasPointerCapture(e.pointerId)) seek(e.clientX); });
+    // Arrow keys step chapters.
     track.addEventListener('keydown', (e) => {
       const i = CHAPTERS.findLastIndex(c => c <= t);
-      if (e.key === 'ArrowRight') t = CHAPTERS[(i + 1) % CHAPTERS.length];
+      if (e.key === 'ArrowRight') t = CHAPTERS[Math.min(CHAPTERS.length - 1, i + 1)];
       else if (e.key === 'ArrowLeft') t = CHAPTERS[Math.max(0, i - (t - CHAPTERS[i] < 800 ? 1 : 0))];
       else if (e.key === ' ') setPlaying(!playing);
       else return;
-      e.preventDefault(); film.render(t);
+      e.preventDefault(); draw();
     });
-    new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { threshold: .3 }).observe(canvas);
+
+    // 0.5s persistence check: pause when out of view, resume when scrolled back in view
+    let visibilityTimer: ReturnType<typeof setTimeout> | null = null;
+    new IntersectionObserver(([e]) => {
+      if (visibilityTimer) clearTimeout(visibilityTimer);
+      const inView = e.isIntersecting;
+      visibilityTimer = setTimeout(() => {
+        if (visible !== inView) {
+          visible = inView;
+          last = performance.now();
+        }
+      }, 500);
+    }, { threshold: .25 }).observe(screen);
 
     const tick = (now: number) => {
-      if (playing && visible && !document.hidden) t = (t + Math.min(100, now - last)) % LOOP;
+      if (playing && visible && !document.hidden) {
+        t += Math.min(100, now - last);
+        if (t >= LOOP) t -= LOOP;
+        draw();
+      }
       last = now;
-      film.render(t);
-      fill.style.width = (t / LOOP * 100) + '%';
-      const at = CHAPTERS.findLastIndex(c => c <= t);
-      if (at !== lit) { names[lit]?.classList.remove('on'); names[at]?.classList.add('on'); lit = at; }
-      track.setAttribute('aria-valuenow', String(Math.round(t / LOOP * 100)));
       requestAnimationFrame(tick);
     };
     setPlaying(playing);
     fit();
+    draw();
     requestAnimationFrame(tick);
   }
 </script>
 
 <style>
   .film { margin: 0; }
+  .film [data-fit] { width: var(--film-w, 100%); max-width: 100%; margin-inline: auto; }
   .screen { display: flex; justify-content: center; }
   canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
-  /* Controls on the film's own grid: one art pixel (--px) thick, no rounding. */
-  .bar { display: flex; align-items: flex-start; gap: var(--space-4); max-width: 100%; margin: var(--space-6) auto 0; }
-  .play { flex: none; width: 2rem; height: 2rem; display: grid; place-items: center; padding: 0; background: var(--raised); border: 0; cursor: pointer; box-shadow: var(--px) var(--px) 0 var(--canvas); transition: background .1s steps(1); }
-  .play:hover { background: var(--hover); }
+  canvas[hidden] { display: none; }
+  /* Under the picture: the controls on the film's own grid, one art pixel (--px) thick, no
+     rounding. */
+  .under { margin-top: var(--space-4); }
+  .bar { display: flex; align-items: flex-end; gap: var(--space-4); }
+  /* Play/pause is a key off the Scan R1's keypad. */
+  .play { flex: none; width: 2.25rem; min-height: 2.25rem; padding: 0; margin-bottom: calc((2rem - 2.25rem) / 2); }
   /* Pixel icons: two bars to pause, a stepped triangle to play. */
   .play [data-icon] { width: 10px; height: 10px; background:
       linear-gradient(var(--secondary), var(--secondary)) 1px 0 / 3px 10px no-repeat,
@@ -129,24 +126,15 @@ const label = film === 'intake'
       linear-gradient(var(--secondary), var(--secondary)) 3px 1px / 2px 8px no-repeat,
       linear-gradient(var(--secondary), var(--secondary)) 5px 2px / 2px 6px no-repeat,
       linear-gradient(var(--secondary), var(--secondary)) 7px 4px / 2px 2px no-repeat; }
-  .time { flex: 1; min-width: 0; }
+  /* The reel: one timeline for the whole film. */
+  .reel { flex: 1; min-width: 0; }
   .track { position: relative; height: 2rem; cursor: pointer; touch-action: none; }
-  .track::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: var(--px); margin-top: calc(var(--px) / -2); background: var(--divider); }
+  .seg { position: relative; }
+  .seg::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: var(--px); margin-top: calc(var(--px) / -2); background: var(--divider); }
   .fill { position: absolute; left: 0; top: 50%; height: var(--px); margin-top: calc(var(--px) / -2); background: var(--accent); }
-  /* The playhead: one block, twice the line's height. */
-  .fill::after { content: ''; position: absolute; right: calc(var(--px) * -1); top: calc(var(--px) * -1.5); width: calc(var(--px) * 2); height: calc(var(--px) * 4); background: var(--focus); }
-  .tick { position: absolute; top: 50%; width: var(--px); height: calc(var(--px) * 3); margin-top: calc(var(--px) * -1.5); background: var(--muted); }
+  /* The playhead: one block, twice the line's height, on the open film's segment only. */
+  .open .fill::after { content: ''; position: absolute; right: calc(var(--px) * -1); top: calc(var(--px) * -1.5); width: calc(var(--px) * 2); height: calc(var(--px) * 4); background: var(--focus); }
   .track:focus-visible { outline-offset: 2px; }
-  .chapters { position: relative; height: 1.25rem; margin: 0; padding: 0; list-style: none; }
-  .chapters li { position: absolute; top: 0; margin: 0; }
-  .chapters button { padding: 0; background: none; border: 0; color: var(--muted); font: var(--text-xs)/1.25rem var(--font-mono); cursor: pointer; white-space: nowrap; transition: color .1s steps(1); }
-  .chapters button:hover, .chapters .on button { color: var(--text); }
-  /* Below the 3x film the names would run into each other: only the chapter that is playing. */
-  .time { container-type: inline-size; }
-  @container (max-width: 64rem) {
-    .chapters li { left: 0 !important; display: none; }
-    .chapters li.on { display: block; }
-  }
   /* Phones: the film runs edge to edge, so it gets one more whole-number step of scale. */
   @media (max-width: 40rem) {
     .screen { margin-inline: calc(var(--gutter) * -1); }
