@@ -63,8 +63,7 @@
     "summary": "A custom, DiY-able hardware scanner that's directly integrated with Inventatory. It can read vendor labels, modify your stock and print labels for new parts automatically.",
     "open": {
       "title": "Build it yourself",
-      "text": "The firmware, schematics and instructions that are needed to build the scanner are open-source and available for free. You can design and print your own enclosure.",
-      "cost": "Free",
+      "text": "Everything the scanner needs is open source: the firmware, the schematics and the build docs. You can build one without paying me a cent. Design your own enclosure, print it in any material you like, or use one the community shares.",
       "links": [
         {
           "label": "Firmware on GitHub",
@@ -77,11 +76,11 @@
       ]
     },
     "bundle": {
-      "title": "Pre-designed CAD bundle",
-      "text": "If you don't feel like designing it yourself, this bundle includes ready to use .STEP and .3MF files for the enclosure and charging dock for the scanner. Your purchase supports my projects, thank you!",
-      "price": "9.99€",
-      "delivery": "Digital download",
-      "cta": "Get the bundle",
+      "title": "Official CAD files",
+      "text": "If Inventatory is useful to you and you want to support my work, this is my thank-you: the enclosure and charging dock I designed and tested, ready to print.",
+      "pricing": "Pay what you want",
+      "delivery": "You set the price · digital download",
+      "cta": "Get the CAD files",
       "href": "#",
       "contents": [
         { "item": "Scanner enclosure", "note": ".STEP" },

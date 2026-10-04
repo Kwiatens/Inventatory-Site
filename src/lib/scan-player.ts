@@ -80,7 +80,14 @@ export function playScanR1(root: HTMLElement, options: PlayerOptions) {
   }
 
   let visible = false;
-  new IntersectionObserver(([e]) => { visible = e.isIntersecting; }, { rootMargin: '100px' }).observe(root);
+  let visibilityTimer: ReturnType<typeof setTimeout> | null = null;
+  new IntersectionObserver(([e]) => {
+    if (visibilityTimer) clearTimeout(visibilityTimer);
+    const inView = e.isIntersecting;
+    visibilityTimer = setTimeout(() => {
+      visible = inView;
+    }, 500);
+  }, { threshold: .2 }).observe(root);
   const wait = (ms: number) => new Promise(r => setTimeout(r, ms));
   (async () => {
     show(frameAt(...options.still));

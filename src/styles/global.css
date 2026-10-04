@@ -1,5 +1,6 @@
 @import './fonts.css';
 @import './tokens.css';
+@import './pixel.css';
 * { box-sizing: border-box; }
 html { background: var(--canvas); scroll-padding-top: calc(var(--header-height) + var(--space-8)); }
 body { margin: 0; color: var(--text); font: var(--text-base)/1.7 var(--font-body); }

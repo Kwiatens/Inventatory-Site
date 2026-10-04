@@ -10,14 +10,21 @@ import Lockup from './Lockup.astro';
       <p class="byline">by <a href="https://github.com/Kwiatens">Kwiatens</a></p>
     </div>
     <nav aria-label="Footer links">
-      <a href={url('/docs/resources/')}>Contribute</a>
-      <a href={site.repository + '/issues'}>Report an issue</a>
-      <a href={site.repository + '/blob/main/LICENSE.md'}>GPL-3.0-only</a>
+      <a class="go" href={url('/docs/resources/')}>Contribute</a>
+      <a class="out" href={site.repository + '/issues'}>Report an issue</a>
+      <a class="out" href={site.repository + '/blob/main/LICENSE.md'}>GPL-3.0-only</a>
     </nav>
   </div>
 </footer>
 <style>
-  .site-footer { border-top: var(--border) solid var(--divider); background: var(--canvas); }
+  /* A band in the surface tone that dissolves out of the page above, as the film's band does. */
+  .site-footer { position: relative; margin-top: calc(var(--px) * 8); background: var(--surface); }
+  .site-footer::before {
+    content: ''; position: absolute; left: 0; right: 0; bottom: 100%; height: calc(var(--px) * 8);
+    background: var(--surface); pointer-events: none;
+    -webkit-mask: var(--dither-edge) 0 0 / calc(var(--px) * 4) 100% repeat-x;
+    mask: var(--dither-edge) 0 0 / calc(var(--px) * 4) 100% repeat-x;
+  }
   .footer-inner {
     display: flex;
     justify-content: space-between;
@@ -36,10 +43,11 @@ import Lockup from './Lockup.astro';
   }
   .footer-wordmark:hover { --lockup-mark: var(--active); }
   .byline { margin-top: var(--space-1); color: #4f5a57; font: inherit; letter-spacing: .04em; }
-  .byline a { color: inherit; text-decoration: none; transition: color .18s ease; }
+  .byline a { color: inherit; text-decoration: none; transition: color .08s steps(1); }
   .byline a:hover { color: var(--muted); }
   nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-6); }
-  nav a { color: var(--muted); text-decoration: none; transition: color 180ms ease; }
+  nav a { color: var(--muted); text-decoration: none; transition: color .08s steps(1); }
+  nav a::after { margin-left: .4em; }
   nav a:hover { color: var(--focus); }
   @media (max-width: 40rem) {
     .footer-inner { flex-direction: column; align-items: flex-start; gap: var(--space-6); padding-block: var(--space-8); }
