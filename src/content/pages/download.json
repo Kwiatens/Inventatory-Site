@@ -1,8 +1,8 @@
 {
   "metaTitle": "Download",
-  "metaDescription": "Install the Inventatory public beta on Windows x64 or Ubuntu Linux x86-64 with verified release packages.",
+  "metaDescription": "Install the Inventatory public beta on Windows x64 or Linux x86-64 with verified release packages.",
   "heading": "Download Inventatory",
-  "lead": "Choose Windows or Ubuntu Linux to see the matching installer. Inventatory keeps your inventory on your own computer, and a scanner is optional.",
+  "lead": "Choose Windows or Linux to see the matching installer. Inventatory keeps your inventory on your own computer, and a scanner is optional.",
   "notes": [
     {
       "heading": "Already installed?",
