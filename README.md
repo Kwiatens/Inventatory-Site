@@ -15,6 +15,8 @@ npm run dev
 
 Open `http://127.0.0.1:4321/Inventatory-Site/` in your browser.
 
+Website UI rules (layout, colour, motion and what to avoid) are in [docs/website-ui.md](docs/website-ui.md). Read it before changing a page.
+
 ### Build and verify
 
 ```bash

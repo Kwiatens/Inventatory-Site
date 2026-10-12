@@ -6,16 +6,7 @@ import { release, site } from './site';
 export const firmwareRepository = 'https://github.com/Kwiatens/Inventatory-Firmware';
 
 export const hero = content.hero;
-export const statement = content.statement;
-export const build = content.build;
-export const workflow = content.workflow;
-/** A step's screenshot or recording; none of them has one at the moment. */
-export interface StepMedia { src: string; alt: string; width: number; height: number; position?: string; zoom?: number }
-type RawStep = (typeof content.workflow.steps)[number];
-export const steps = content.workflow.steps as Array<Omit<RawStep, 'media'> & { media: StepMedia | null }>;
+export const highlights = content.highlights.items;
 export const scanner = content.scanner;
-export const nextSteps = content.nextSteps;
-
-export type Step = (typeof steps)[number];
 
 export { site, release };

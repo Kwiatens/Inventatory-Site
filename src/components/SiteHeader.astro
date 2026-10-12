@@ -1,78 +1,39 @@
 ---
-/** Shared primary navigation; it stays visible on narrow screens without JavaScript. */
+/** Shared primary navigation. A plain bar that stays at the top on every screen size. */
 import { nav } from '../data/site';
 import { url, isCurrent } from '../lib/url';
 import BrandMark from './BrandMark.astro';
-
-const pages = nav.filter(item => !item.href.startsWith('https:'));
-const external = nav.filter(item => item.href.startsWith('https:'));
 ---
 <header class="site-header">
   <div class="wrap header-inner">
     <BrandMark class="header-brand" />
     <nav aria-label="Primary navigation">
-      {pages.map(item => <a href={url(item.href)} aria-current={isCurrent(Astro.url.pathname, item.href) ? 'page' : undefined}>{item.label}</a>)}
+      {nav.map(item => <a href={url(item.href)} aria-current={isCurrent(Astro.url.pathname, item.href) ? 'page' : undefined}>{item.label}</a>)}
     </nav>
-    <div class="header-meta">
-      {external.map(item => <a class="external out frame" href={item.href}>{item.label}</a>)}
-    </div>
   </div>
 </header>
 <style>
   .site-header {
-    position: sticky; top: 0; z-index: 20;
-    background: var(--surface);
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    height: var(--header-height);
+    background: var(--canvas);
+    border-bottom: var(--border) solid var(--divider);
   }
-  /* The bar's lower edge dissolves into the page in the films' dither, as the bands do. */
-  .site-header::after {
-    content: ''; position: absolute; left: 0; right: 0; top: 100%; height: calc(var(--px) * 8);
-    background: var(--surface); pointer-events: none; transform: scaleY(-1);
-    -webkit-mask: var(--dither-edge) 0 0 / calc(var(--px) * 4) 100% repeat-x;
-    mask: var(--dither-edge) 0 0 / calc(var(--px) * 4) 100% repeat-x;
-  }
-  /* Equal side columns keep the nav centred on the page. */
-  .header-inner { min-height: var(--header-height); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--space-4); }
-  /* A quiet graphite mark; on wide screens with a mouse it unfolds into the wordmark. */
-  .header-brand { justify-self: start; --h: 1.5rem; --lockup-word: var(--muted); --lockup-mark: #5d6865; }
-  .header-brand:is(:hover, :focus-visible) { --lockup-mark: var(--accent); }
-  nav { display: flex; justify-content: center; gap: var(--space-1); min-width: 0; }
+  .header-inner { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); }
+  .header-brand { --h: 1.375rem; --lockup-word: var(--text); --lockup-mark: var(--accent); }
+  nav { display: flex; align-items: center; gap: var(--space-8); font: var(--text-sm)/1 var(--font-mono); }
   nav a {
-    position: relative; padding: var(--space-2) var(--space-4);
-    color: var(--secondary); text-decoration: none; font: var(--text-sm)/1.5 var(--font-mono);
-    transition: color .08s steps(1);
+    padding-block: var(--space-2);
+    border-bottom: var(--border) solid transparent;
+    color: var(--secondary);
+    text-decoration: none;
+    transition: color .12s;
   }
   nav a:hover { color: var(--text); }
-  nav a[aria-current] { color: var(--text); }
-  /* Active page (and hover): a row of pixel dashes on the grid, like the slots in the mark. */
-  nav a[aria-current]::after, nav a:hover::after {
-    content: ''; position: absolute; left: var(--space-4); right: var(--space-4); bottom: 2px; height: var(--px);
-    background: linear-gradient(90deg, var(--muted) 50%, transparent 0) 0 0 / calc(var(--px) * 2) 100% repeat-x;
-  }
-  nav a[aria-current]::after { background-image: linear-gradient(90deg, var(--accent) 50%, transparent 0); }
-  .header-meta { justify-self: end; display: flex; align-items: center; gap: var(--space-4); font: var(--text-xs)/1.5 var(--font-mono); }
-  .external {
-    --fill: var(--surface);
-    display: inline-flex; align-items: center; min-height: 2.125rem; padding: 0 var(--space-3);
-    color: var(--secondary); text-decoration: none; font-size: var(--text-sm);
-    transition: color .08s steps(1);
-  }
-  .external:hover { --frame: var(--accent); color: var(--focus); }
-  .external::after { margin-left: .4em; }
-  /* Wide screens with a pointer: room kept for the unfolded wordmark so nothing moves. */
-  @media (min-width: 64rem) { .header-inner { gap: var(--space-6); } }
-  @media (min-width: 64rem) and (hover: hover) {
-    .header-brand { min-width: calc(var(--h) * var(--expanded)); }
-  }
-  @media (max-width: 48rem) {
-    nav { gap: 0; }
-    nav a { padding: var(--space-2) var(--space-3); font-size: var(--text-xs); }
-    nav a:is([aria-current], :hover)::after { left: var(--space-3); right: var(--space-3); }
-    .external { min-height: 2rem; font-size: var(--text-xs); }
-  }
-  /* Phones: logo and GitHub on top, the page links on their own row. */
-  @media (max-width: 32rem) {
-    .site-header { position: static; }
-    .header-inner { grid-template-columns: 1fr auto; row-gap: 0; padding-block: var(--space-2) 0; }
-    nav { grid-row: 2; grid-column: 1 / -1; justify-content: flex-start; margin-left: calc(-1 * var(--space-3)); padding-block: var(--space-1); }
+  nav a[aria-current] { color: var(--text); border-bottom-color: var(--accent); }
+  @media (max-width: 30rem) {
+    nav { gap: var(--space-4); font-size: var(--text-xs); }
   }
 </style>

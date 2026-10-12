@@ -37,17 +37,6 @@
 .px-head { font-family: 'Inventatory Pixel Head', var(--font-body); font-size: calc(var(--px) * 20); line-height: calc(var(--px) * 20); }
 .px-sub { font-family: 'Inventatory Pixel Sub', var(--font-body); font-size: calc(var(--px) * 13); line-height: calc(var(--px) * 13); }
 
-/* A band in the surface tone that dissolves out of the canvas above it, and back below. */
-.band { position: relative; background: var(--surface); }
-.band::before, .band::after {
-  content: ''; position: absolute; left: 0; right: 0; height: calc(var(--px) * 8);
-  background: var(--surface); pointer-events: none;
-  -webkit-mask: var(--dither-edge) 0 0 / calc(var(--px) * 4) 100% repeat-x;
-  mask: var(--dither-edge) 0 0 / calc(var(--px) * 4) 100% repeat-x;
-}
-.band::before { bottom: 100%; }
-.band::after { top: 100%; transform: scaleY(-1); }
-
 /* Pixel arrows after a link's text: › stays on the site, ↗ leaves it. */
 .go::after, .out::after {
   content: ''; display: inline-block; margin-left: .5em; background: currentColor;
@@ -58,25 +47,6 @@
 .out::after { -webkit-mask-image: var(--icon-out); mask-image: var(--icon-out); width: 10px; }
 .go:hover::after { transform: translateX(4px); }
 .out:hover::after { transform: translate(2px, -2px); }
-
-/* The decode frame from the film's scan: four corner brackets, shown while a card is
-   hovered or focused. Put it on a positioned element. */
-.brackets::after {
-  --l: calc(var(--px) * 4); --t: var(--px); --c: var(--accent);
-  content: ''; position: absolute; inset: calc(var(--px) * -3); pointer-events: none; opacity: 0;
-  background:
-    linear-gradient(var(--c), var(--c)) 0 0 / var(--l) var(--t),
-    linear-gradient(var(--c), var(--c)) 0 0 / var(--t) var(--l),
-    linear-gradient(var(--c), var(--c)) 100% 0 / var(--l) var(--t),
-    linear-gradient(var(--c), var(--c)) 100% 0 / var(--t) var(--l),
-    linear-gradient(var(--c), var(--c)) 0 100% / var(--l) var(--t),
-    linear-gradient(var(--c), var(--c)) 0 100% / var(--t) var(--l),
-    linear-gradient(var(--c), var(--c)) 100% 100% / var(--l) var(--t),
-    linear-gradient(var(--c), var(--c)) 100% 100% / var(--t) var(--l);
-  background-repeat: no-repeat;
-  transition: opacity .1s steps(1);
-}
-.brackets:is(:hover, :focus-visible, :focus-within)::after { opacity: 1; }
 
 /* The one filled button: the accent in the notched shape over the lockup's hard shadow (::after,
    the same shape) and under its label (::before); pressing it sinks it into its shadow. --c is
@@ -101,33 +71,6 @@
 .press:active { transform: translate(var(--drop), var(--drop)); }
 .press:active::after { transform: none; }
 
-/* A panel on the grid: a one-pixel outline whose corners step in like the lockup's, no
-   rounding. --frame sets the outline, --fill the inside. */
-.frame {
-  --frame: var(--divider); --fill: var(--surface);
-  background:
-    linear-gradient(var(--fill), var(--fill)) center / calc(100% - var(--n2) * 2) calc(100% - var(--n1) * 2) no-repeat,
-    linear-gradient(var(--fill), var(--fill)) center / calc(100% - var(--n1) * 2) calc(100% - var(--n2) * 2) no-repeat,
-    linear-gradient(var(--frame), var(--frame)) center / calc(100% - var(--n2) * 2) 100% no-repeat,
-    linear-gradient(var(--frame), var(--frame)) center / calc(100% - var(--n1) * 2) calc(100% - var(--n1) * 2) no-repeat,
-    linear-gradient(var(--frame), var(--frame)) center / 100% calc(100% - var(--n2) * 2) no-repeat;
-}
-
-/* Tabs on the grid: notched top corners; the open one is lit and joins the panel under it. */
-.tabs { display: flex; gap: calc(var(--px) * 2); }
-.tab {
-  --c: var(--raised);
-  padding: calc(var(--px) * 4) calc(var(--px) * 8) calc(var(--px) * 3);
-  border: 0; color: var(--muted); font: inherit; font-weight: 600; cursor: pointer;
-  background:
-    linear-gradient(var(--c), var(--c)) top / calc(100% - var(--n2) * 2) 100% no-repeat,
-    linear-gradient(var(--c), var(--c)) bottom / calc(100% - var(--n1) * 2) calc(100% - var(--n1)) no-repeat,
-    linear-gradient(var(--c), var(--c)) bottom / 100% calc(100% - var(--n2)) no-repeat;
-  transition: color .08s steps(1);
-}
-.tab:hover { --c: var(--hover); color: var(--text); }
-.tab[aria-selected="true"] { --c: var(--accent); color: var(--canvas); }
-
 /* A key off the Scan R1's keypad: a dark notched cap standing on its shadow. Pressed, or
    selected (.on / a checked radio before it), it sinks into the shadow and its legend lights. */
 .key {
@@ -145,15 +88,3 @@
 .key:hover { --c: var(--hover); color: var(--text); }
 .key:active, .key.on, :checked + .key { transform: translateY(calc(var(--px) * 2)); filter: none; color: var(--accent); }
 :checked + .key { --c: var(--active-soft); }
-
-/* Cut in with the film's dissolve: a quarter, half, three quarters, then whole. */
-.dither-in {
-  -webkit-mask-size: calc(var(--px) * 4); mask-size: calc(var(--px) * 4);
-  animation: dither-in .3s step-end;
-}
-@keyframes dither-in {
-  0% { -webkit-mask-image: var(--dither-25); mask-image: var(--dither-25); }
-  33% { -webkit-mask-image: var(--dither-50); mask-image: var(--dither-50); }
-  66% { -webkit-mask-image: var(--dither-75); mask-image: var(--dither-75); }
-  100% { -webkit-mask-image: none; mask-image: none; }
-}

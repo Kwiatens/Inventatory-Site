@@ -1,6 +1,7 @@
 ---
 /**
- * The homepage. The pixel art is drawn on the lockup's grid. The Scan R1 and the racks are generated from
+ * The homepage. The hero's pixel art is drawn on the lockup's grid. The film explains the
+ * workflow; the highlights name each desktop feature. The Scan R1 and the racks are generated from
  * models (scripts/pixel-art), and the scanner's screens come from its firmware
  * (scripts/scan-r1-lcd).
  */
@@ -11,13 +12,13 @@ import LcdPanel from '../components/concept/LcdPanel.astro';
 import Film from '../components/concept/Film.astro';
 import Keypad from '../components/concept/Keypad.astro';
 import Scanner from '../components/home/Scanner.astro';
+import Highlights from '../components/home/Highlights.astro';
 import PlatformInstallSelector from '../components/PlatformInstallSelector.astro';
 import art from '../data/pixel-art.json';
 import { hero } from '../data/home';
 import { url } from '../lib/url';
-
 ---
-<BaseLayout title="Every component, accounted for">
+<BaseLayout title="Inventory for electronics">
   <section class="hero" aria-label="Introduction">
     <div class="hero-bg" aria-hidden="true">
       <video class="hero-video" autoplay loop muted playsinline preload="auto" poster={url('/media/scan-r1-poster.png')}>
@@ -27,28 +28,28 @@ import { url } from '../lib/url';
     </div>
 
     <div class="wrap hero-inner">
-      <h1 class="word"><Lockup tone="flat" cursor animate typo label="Inventatory" /></h1>
-      <div class="intro">
-        <p class="claim">{hero.title.join(' ')}</p>
-        <p class="summary">{hero.summary}</p>
-        <div class="acts">
-          <a class="press" href="#homepage-download">{hero.primary}</a>
-          <a class="quiet go" href="#intake-film">{hero.secondary}</a>
-        </div>
+      <div class="hero-logo">
+        <Lockup tone="flat" cursor animate label="Inventatory" />
+      </div>
+      <h1 class="claim">{hero.title.join(' ')}</h1>
+      <p class="summary">{hero.summary}</p>
+      <div class="acts">
+        <a class="press" href="#homepage-download">{hero.primary}</a>
+        <a class="quiet go" href="#how">{hero.secondary}</a>
       </div>
     </div>
-
-    <a class="hero-scroll" href="#intake-film" aria-label="Scroll down to workflow">
-      <span class="scroll-tag">EXPLORE</span>
-      <span class="scroll-chevron" aria-hidden="true"></span>
-    </a>
   </section>
 
-  <section id="intake-film" class="bench band" aria-label="What Inventatory does">
+  <section id="how" class="how" aria-label="How the workflow works">
     <div class="wrap">
+      <p class="film-caption">One scan adds a part to stock. A board's parts list then points to the exact slot.</p>
       <Film />
     </div>
   </section>
+
+  <div class="wrap">
+    <Highlights />
+  </div>
 
   <Scanner>
     <div slot="model" class="r1" data-r1>
@@ -59,6 +60,7 @@ import { url } from '../lib/url';
       </div>
     </div>
   </Scanner>
+
   <div class="wrap"><PlatformInstallSelector id="homepage-download" /></div>
 </BaseLayout>
 
@@ -113,21 +115,16 @@ import { url } from '../lib/url';
 </style>
 
 <style>
-  /* ---------- hero: full-screen video background ---------- */
+  /* ---------- hero: the product video behind the claim, text on the left ---------- */
   .hero {
     position: relative;
     width: 100%;
-    min-height: 100vh;
-    min-height: 100svh;
-    margin-top: calc(-1 * var(--header-height));
-    padding-top: calc(var(--header-height) + var(--space-8));
-    padding-bottom: var(--space-6);
+    min-height: calc(100svh - var(--header-height));
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
     align-items: center;
     overflow: hidden;
     box-sizing: border-box;
+    padding-block: var(--space-16);
   }
 
   .hero-bg {
@@ -157,54 +154,42 @@ import { url } from '../lib/url';
     z-index: 1;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
-    margin-block: auto;
-    padding-block: var(--space-4);
+    align-items: flex-start;
+    text-align: left;
   }
 
-  .word {
-    width: min(100%, 920px);
-    margin: 0 auto;
+  .hero-logo {
+    width: min(100%, 36rem);
     --lockup-word: var(--text);
     --lockup-mark: var(--accent);
     --lockup-shadow: #1f2826;
   }
 
-  .intro {
-    max-width: 48rem;
-    margin-top: var(--space-8);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-4);
-  }
-
   .claim {
+    margin-top: var(--space-12);
+    max-width: 16ch;
     color: var(--text);
-    font-size: clamp(1.75rem, 3.4vw, 2.75rem);
+    font-size: clamp(2.25rem, 4.6vw, 3.75rem);
     font-weight: 600;
-    line-height: 1.1;
+    line-height: 1.05;
     letter-spacing: -.02em;
     text-wrap: balance;
-    margin: 0;
   }
 
   .summary {
-    color: var(--secondary);
-    font-size: clamp(1.05rem, 1.8vw, 1.25rem);
-    line-height: 1.5;
+    margin-top: var(--space-6);
     max-width: 38ch;
-    margin: 0;
+    color: var(--secondary);
+    font-size: clamp(1.05rem, 1.6vw, 1.2rem);
+    line-height: 1.5;
     text-wrap: balance;
   }
 
   .acts {
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: var(--space-6);
-    margin-top: var(--space-4);
+    margin-top: var(--space-8);
   }
 
   .quiet {
@@ -213,63 +198,17 @@ import { url } from '../lib/url';
     text-decoration: none;
   }
 
-  .quiet:hover {
-    color: var(--text);
-  }
+  .quiet:hover { color: var(--text); }
 
-  /* Pixel down-indicator */
-  .hero-scroll {
-    position: relative;
-    z-index: 1;
-    margin-top: auto;
-    padding-bottom: var(--space-4);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--space-2);
-    text-decoration: none;
-    color: var(--muted);
-    transition: color 0.15s steps(1);
-  }
-
-  .hero-scroll:hover {
-    color: var(--accent);
-  }
-
-  .scroll-tag {
-    font: var(--text-xs) var(--font-mono);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-
-  .scroll-chevron {
-    width: 10px;
-    height: 6px;
-    background:
-      linear-gradient(currentColor, currentColor) 0 0 / 2px 2px no-repeat,
-      linear-gradient(currentColor, currentColor) 2px 2px / 2px 2px no-repeat,
-      linear-gradient(currentColor, currentColor) 4px 4px / 2px 2px no-repeat,
-      linear-gradient(currentColor, currentColor) 6px 2px / 2px 2px no-repeat,
-      linear-gradient(currentColor, currentColor) 8px 0 / 2px 2px no-repeat;
-    animation: chevron-bob 1.4s steps(1) infinite;
-  }
-
-  /* Stepped like the films' cursor: down one grid pixel, then two, then back. */
-  @keyframes chevron-bob {
-    0%, 70%, 100% { transform: translateY(0); }
-    75%, 95% { transform: translateY(var(--px)); }
-    80%, 90% { transform: translateY(calc(var(--px) * 2)); }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .scroll-chevron {
-      animation: none;
-    }
-  }
-
-  /* ---------- bench: the film loop ---------- */
-  .bench {
-    padding-block: var(--space-12) var(--space-16);
+  /* ---------- how it works: the film, with one sentence above it ---------- */
+  .how { padding-block: var(--space-20) var(--space-12); }
+  .film-caption {
+    max-width: 44ch;
+    text-wrap: balance;
+    margin-bottom: var(--space-6);
+    color: var(--secondary);
+    font-size: var(--text-lead);
+    line-height: 1.5;
   }
 
   /* ---------- Scan R1 section: the device and its face ---------- */
@@ -291,6 +230,8 @@ import { url } from '../lib/url';
   }
 
   @media (max-width: 44rem) {
+    .hero { min-height: auto; padding-block: var(--space-12); }
+    .claim { margin-top: var(--space-8); }
     .r1 {
       grid-template-columns: 1fr;
     }

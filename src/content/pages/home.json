@@ -6,64 +6,53 @@
     ],
     "summary": "Free, open-source and terminal based. Purpose-built for electronics.",
     "primary": "Install Inventatory",
-    "secondary": "Features"
+    "secondary": "How it works"
   },
-  "statement": {
-    "lines": [
-      "Automated stock management for electronics.",
-      "",
-      "You just scan a label and the system handels the rest."
-    ]
-  },
-  "build": {
-    "title": "When you build a board, it finds every part for you."
-  },
-  "workflow": {
-    "headingLines": ["Everything after the scan."],
-    "summary": "",
-    "readGuideText": "Read the guide",
-    "recordingPendingText": "Recording pending",
-    "steps": [
+  "highlights": {
+    "items": [
       {
         "id": "import",
-        "title": "Import a whole order",
-        "text": "Load a DigiKey order CSV and review it line by line: accept or skip each part, and Inventatory creates the accepted ones and fills in their details from DigiKey.",
-        "mediaCaption": "Import workspace",
-        "href": "/docs/desktop/import/",
-        "media": null
+        "icon": "import",
+        "title": "Import an order",
+        "text": "Load a DigiKey order CSV and review each line. Accept or skip it, and accepted parts are created and filled in from DigiKey.",
+        "href": "/docs/desktop/import/"
       },
       {
-        "id": "store",
-        "title": "Know precisely where your parts are",
-        "text": "Inventatory features 3D-Printable racks. The system automatically assigns each part to a specific slot on the rack, so later it can give you the precise location of it, not just generic 'Drawer 12'.",
-        "mediaCaption": "Racks workspace",
-        "href": "/docs/desktop/racks/",
-        "media": null
+        "id": "racks",
+        "icon": "racks",
+        "title": "Give every part a slot",
+        "text": "Assign parts to a 5 × 5 rack grid, so a location reads R1-B3 instead of Drawer 12. Print labels for slots and parts.",
+        "href": "/docs/desktop/racks/"
       },
       {
-        "id": "build",
-        "title": "Build a board",
-        "text": "Import your PCBs BOM and Inventatory will automatically display on which rack and slot each of the part is stored.",
-        "mediaCaption": "Projects workspace",
-        "href": "/docs/desktop/projects/",
-        "media": null
+        "id": "projects",
+        "icon": "projects",
+        "title": "Build a board from its BOM",
+        "text": "Import a KiCad BOM to see what is in stock and what needs ordering. Pick the parts rack by rack, then deduct them from stock.",
+        "href": "/docs/desktop/projects/"
+      },
+      {
+        "id": "stock",
+        "icon": "stock",
+        "title": "Search and count stock",
+        "text": "Filter by part, category, parameter, location or SKU. Set a reorder threshold for each part and run a guided stocktake.",
+        "href": "/docs/desktop/stock/"
       },
       {
         "id": "history",
-        "title": "Undo anything",
-        "text": "Every change to your stock is recorded. See exactly what changed, set checkpoints, and restore or reverse a change, even after a restart.",
-        "mediaCaption": "History workspace",
-        "href": "/docs/desktop/history/",
-        "media": null
+        "icon": "history",
+        "title": "Restore and undo",
+        "text": "Every change is recorded with its before and after values. Set checkpoints, and restore or reverse a change, even after a restart.",
+        "href": "/docs/desktop/history/"
       }
     ]
   },
   "scanner": {
     "title": "Inventatory Scan R1",
-    "summary": "A custom, DiY-able hardware scanner that's directly integrated with Inventatory. It can read vendor labels, modify your stock and print labels for new parts automatically.",
+    "summary": "A handheld scanner for Inventatory. It reads vendor labels, updates your stock and prints labels for new parts.",
     "open": {
       "title": "Build it yourself",
-      "text": "Everything the scanner needs is open source: the firmware, the schematics and the build docs. You can build one without paying me a cent. Design your own enclosure, print it in any material you like, or use one the community shares.",
+      "text": "The firmware, schematics and build docs are open source. Design your own enclosure, print it in any material, or use one the community shares.",
       "links": [
         {
           "label": "Firmware on GitHub",
@@ -77,22 +66,17 @@
     },
     "bundle": {
       "title": "Official CAD files",
-      "text": "If Inventatory is useful to you and you want to support my work, this is my thank-you: the enclosure and charging dock I designed and tested, ready to print.",
+      "text": "The enclosure and charging dock, designed and tested for printing. Pay what you want to support the project.",
       "pricing": "Pay what you want",
-      "delivery": "You set the price · digital download",
+      "delivery": "Digital download",
       "cta": "Get the CAD files",
-      "href": "#",
+      "href": "",
       "contents": [
         { "item": "Scanner enclosure", "note": ".STEP" },
-        { "item": "Charging dock", "note": ".STEP"},
-        { "item": "Fine-tuned print-ready files", "note": ".3MF" },
-        { "item": "Detailed assembly instructions", "note": ".PDF/.MP4" }
+        { "item": "Charging dock", "note": ".STEP" },
+        { "item": "Print-ready files", "note": ".3MF" },
+        { "item": "Assembly instructions", "note": ".PDF / .MP4" }
       ]
     }
-  },
-  "nextSteps": [
-    { "label": "Installation", "href": "/docs/getting-started/installation/" },
-    { "label": "Your first inventory", "href": "/docs/getting-started/first-inventory/" },
-    { "label": "Organize physical storage", "href": "/docs/desktop/racks/" }
-  ]
+  }
 }

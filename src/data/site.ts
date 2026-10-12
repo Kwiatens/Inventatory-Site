@@ -9,11 +9,10 @@ export const site = {
 export const release = {
   url: site.releases + '/latest',
 };
+// The logo is the home link, so the nav starts with the pages that are not home.
 export const nav = [
-  { label: 'Overview', href: '/' },
   { label: 'Documentation', href: '/docs/' },
-  // Scrolls to the install section at the bottom of the homepage.
-  { label: 'Download', href: '/#homepage-download' },
+  { label: 'Download', href: '/download/' },
   { label: 'GitHub', href: site.repository },
 ];
 // Shared page media. Homepage feature visuals are defined with their feature data below.
