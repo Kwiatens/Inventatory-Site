@@ -42,7 +42,7 @@ import { url } from '../lib/url';
 
   <section id="how" class="how" aria-label="What the system does">
     <div class="wrap">
-      <p class="film-caption">Here’s what the system does.</p>
+      <p class="film-caption" data-type>Here’s what the system does.</p>
       <Film />
     </div>
   </section>
@@ -103,6 +103,34 @@ import { url } from '../lib/url';
     }, { threshold: 0.1 }).observe(heroVideo);
   }
 
+</script>
+
+<script>
+  // The line types itself in once, the first time it is on screen, like the lockup's boot. The
+  // text is in the markup already, so without JavaScript or with reduced motion it simply shows.
+  const line = document.querySelector<HTMLElement>('[data-type]');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (line && !reduced.matches) {
+    const text = line.textContent ?? '';
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      observer.disconnect();
+      line.textContent = '';
+      line.classList.add('typing');
+      let i = 0;
+      const type = () => {
+        i++;
+        line.textContent = text.slice(0, i);
+        if (i < text.length) {
+          setTimeout(type, 38);
+        } else {
+          setTimeout(() => line.classList.remove('typing'), 500);
+        }
+      };
+      setTimeout(type, 150);
+    }, { threshold: 0.6 });
+    observer.observe(line);
+  }
 </script>
 
 <style is:global>
@@ -205,16 +233,24 @@ import { url } from '../lib/url';
 
   /* ---------- how it works: the film, with one sentence above it ---------- */
   .how { padding-block: var(--space-20) var(--space-12); }
-  /* The line is set on a rule, like the rows below it, and the film sits under it. */
+  /* Set large on the page itself, with no rule, so it reads as floating over the film's background. */
   .film-caption {
     margin-bottom: var(--space-8);
-    padding-top: var(--space-6);
-    border-top: var(--border) solid var(--divider);
     color: var(--text);
     font-size: var(--text-h2);
     font-weight: 600;
     line-height: 1.2;
     letter-spacing: -.01em;
+  }
+  /* While it types, an accent block stands in for the cursor; it goes when the line is complete. */
+  .film-caption.typing::after {
+    content: '';
+    display: inline-block;
+    width: .5em;
+    height: .9em;
+    margin-left: .1em;
+    vertical-align: -.1em;
+    background: var(--accent);
   }
 
   /* ---------- Scan R1 section: the device and its face ---------- */
