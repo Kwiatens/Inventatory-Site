@@ -36,19 +36,48 @@ const label = 'Animation: the Scan R1 reads a vendor bag\'s label; you press A o
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     // Whole-number scale when there is room, so every art pixel is the same size; the bar
-    // takes the film's width.
+    // takes the film's width. On phones the film is drawn at 2x, and a window follows the action
+    // (see follow): the whole film is too wide to show at that size.
+    const phone = window.matchMedia('(max-width: 40rem)');
+    let avail = 0, target = 0, focus = W / 2;
     const fit = () => {
-      const avail = screen.clientWidth, dpr = devicePixelRatio || 1;
+      avail = screen.clientWidth;
+      if (phone.matches) {
+        canvas.style.width = W * 2 + 'px'; canvas.style.height = H * 2 + 'px';
+        root.style.setProperty('--film-w', avail + 'px');
+        return;
+      }
+      const dpr = devicePixelRatio || 1;
       const k = Math.floor(avail * dpr / W);
       const css = k >= 2 ? (k * W) / dpr : avail;
       canvas.style.width = css + 'px'; canvas.style.height = css * H / W + 'px';
       root.style.setProperty('--film-w', css + 'px');
     };
     new ResizeObserver(fit).observe(screen);
+    phone.addEventListener('change', fit);
+
+    // The window looks at the middle of the lit pixels, and never past the film's edges. It is
+    // read every third frame; tick eases the window towards it.
+    const context = canvas.getContext('2d')!;
+    let frame = 0;
+    const follow = () => {
+      if (!phone.matches || frame++ % 3) return;
+      const { data } = context.getImageData(0, 0, W, H);
+      let sum = 0, weight = 0;
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+        const p = (y * W + x) * 4;
+        if (data[p] * .2126 + data[p + 1] * .7152 + data[p + 2] * .0722 > 40) { sum += x; weight++; }
+      }
+      const cx = weight ? sum / weight : W / 2;
+      // Smooth the focus itself, so one busy frame does not swing the window.
+      focus += (cx - focus) * .05;
+      target = Math.max(0, Math.min(W * 2 - avail, focus * 2 - avail / 2));
+    };
 
     let t = reduced.matches ? POSTER : 0, playing = !reduced.matches, visible = false, last = performance.now();
     const draw = () => {
       film.render(t);
+      follow();
       fill.style.width = t / LOOP * 100 + '%';
       track.setAttribute('aria-valuenow', String(Math.round(t / LOOP * 100)));
     };
@@ -95,6 +124,7 @@ const label = 'Animation: the Scan R1 reads a vendor bag\'s label; you press A o
         if (t >= LOOP) t -= LOOP;
         draw();
       }
+      if (phone.matches) screen.scrollLeft += Math.max(-1.5, Math.min(1.5, (target - screen.scrollLeft) * .03));
       last = now;
       requestAnimationFrame(tick);
     };
@@ -135,8 +165,9 @@ const label = 'Animation: the Scan R1 reads a vendor bag\'s label; you press A o
   /* The playhead: one block, twice the line's height, on the open film's segment only. */
   .open .fill::after { content: ''; position: absolute; right: calc(var(--px) * -1); top: calc(var(--px) * -1.5); width: calc(var(--px) * 2); height: calc(var(--px) * 4); background: var(--focus); }
   .track:focus-visible { outline-offset: 2px; }
-  /* Phones: the film runs edge to edge, so it gets one more whole-number step of scale. */
+  /* Phones: the film runs edge to edge at 2x, and the window moves with the action. */
   @media (max-width: 40rem) {
-    .screen { margin-inline: calc(var(--gutter) * -1); }
+    .screen { margin-inline: calc(var(--gutter) * -1); justify-content: flex-start; overflow: hidden; }
+    canvas { flex: none; }
   }
 </style>

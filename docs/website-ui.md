@@ -29,6 +29,8 @@ Top to bottom:
    currently "Here’s what the system does.". It types itself in once when it enters the screen, with
    an accent caret that goes when it finishes. Then the film (`components/concept/Film.astro`). The
    film is one canvas with one timeline. The line is text, not a heading, and has no eyebrow.
+   On phones (40rem and below) the film is drawn at 2x and a window follows the action: it eases
+   towards the middle of the lit pixels and never moves past the film's edges.
 4. **Highlights** (`components/home/Highlights.astro`): one row per desktop feature. Each row has a
    pixel icon, a title, one or two sentences, and a `Read the guide` link. Rows are separated by 1px
    dividers. This is a list, not a card grid.
@@ -141,9 +143,6 @@ Remove an item from this list when it is settled.
 
 - **Hero art on phones.** On a 390 px screen the turntable art still sits behind the claim and the
   summary. The desktop shift is not applied there yet.
-- **Film on phones.** The artwork is 384 px wide and the whole-number scale only applies from 2×,
-  so on a 390 px screen the film draws at about 1×. Options: a still frame on phones, or 2× with a
-  cropped view.
 - **CAD destination.** `scanner.bundle.href` is empty, so the purchase button reads `Coming soon`.
 - **Body font.** Space Grotesk is kept for now. It is a common default in generated interfaces,
   so a replacement may be worth a look once the layout is settled.
