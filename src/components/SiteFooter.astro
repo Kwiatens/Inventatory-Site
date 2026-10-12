@@ -5,34 +5,52 @@ import Lockup from './Lockup.astro';
 ---
 <footer class="site-footer">
   <div class="wrap footer-inner">
-    <div class="footer-brand">
-      <a class="footer-wordmark" href={url('/')} aria-label="Inventatory home"><Lockup tone="flat" shadow={false} /></a>
+    <div class="footer-signature">
+      <a class="footer-wordmark" href={url('/')} aria-label="Inventatory home"><Lockup tone="flat" shadow /></a>
       <p class="byline">by <a href="https://github.com/Kwiatens">Kwiatens</a></p>
     </div>
     <nav aria-label="Footer links">
-      <a href={url('/docs/')}>Documentation</a>
-      <a href={url('/docs/resources/')}>Contribute</a>
-      <a href={site.repository}>GitHub</a>
-      <a href={site.repository + '/issues'}>Report an issue</a>
-      <a href={site.repository + '/blob/main/LICENSE.md'}>GPL-3.0-only</a>
+      <a class="go" href={url('/docs/resources/')}>Contribute</a>
+      <a class="out" href={site.repository + '/issues'}>Report an issue</a>
+      <a class="out" href={site.repository + '/blob/main/LICENSE.md'}>GPL-3.0-only</a>
     </nav>
   </div>
 </footer>
 <style>
-  .site-footer { margin-top: var(--space-8); border-top: var(--border) solid var(--divider); }
+  /* A band in the surface tone that dissolves out of the page above, as the film's band does. */
+  .site-footer { position: relative; margin-top: calc(var(--px) * 8); background: var(--surface); }
+  .site-footer::before {
+    content: ''; position: absolute; left: 0; right: 0; bottom: 100%; height: calc(var(--px) * 8);
+    background: var(--surface); pointer-events: none;
+    -webkit-mask: var(--dither-edge) 0 0 / calc(var(--px) * 4) 100% repeat-x;
+    mask: var(--dither-edge) 0 0 / calc(var(--px) * 4) 100% repeat-x;
+  }
   .footer-inner {
     display: flex;
-    flex-wrap: wrap;
     justify-content: space-between;
     align-items: flex-end;
-    gap: var(--space-6) var(--space-8);
-    padding-block: var(--space-10);
+    gap: var(--space-6);
+    padding-block: var(--space-8);
+    font: var(--text-xs)/1 var(--font-mono);
   }
-  .footer-wordmark { display: block; width: 9rem; --lockup-word: var(--text); --lockup-mark: var(--text); }
-  .byline { margin-top: var(--space-3); color: var(--muted); font: var(--text-xs)/1.5 var(--font-mono); }
-  .byline a { color: var(--secondary); text-decoration: none; }
-  .byline a:hover { color: var(--text); }
-  nav { display: flex; flex-wrap: wrap; gap: var(--space-3) var(--space-6); font: var(--text-sm)/1.5 var(--font-mono); }
-  nav a { color: var(--secondary); text-decoration: none; }
-  nav a:hover { color: var(--text); text-decoration: underline; text-underline-offset: .25em; }
+  /* Embossed into the canvas: barely lighter than the background, with a darker drop. */
+  .footer-wordmark {
+    display: block;
+    width: 10.5rem;
+    --lockup-word: #2a3331;
+    --lockup-mark: #2a3331;
+    --lockup-shadow: #080a0a;
+  }
+  .footer-wordmark:hover { --lockup-mark: var(--active); }
+  .byline { margin-top: var(--space-1); color: #4f5a57; font: inherit; letter-spacing: .04em; }
+  .byline a { color: inherit; text-decoration: none; transition: color .08s steps(1); }
+  .byline a:hover { color: var(--muted); }
+  nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-6); }
+  nav a { color: var(--muted); text-decoration: none; transition: color .08s steps(1); }
+  nav a::after { margin-left: .4em; }
+  nav a:hover { color: var(--focus); }
+  @media (max-width: 40rem) {
+    .footer-inner { flex-direction: column; align-items: flex-start; gap: var(--space-6); padding-block: var(--space-8); }
+    nav { justify-content: flex-start; gap: var(--space-3) var(--space-6); }
+  }
 </style>

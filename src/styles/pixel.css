@@ -30,12 +30,22 @@
 /* Pixel headings. Sizes are whole multiples of the grid; the shadow is one grid pixel, down
    and right, in the lockup's shadow colour. */
 .px-head, .px-sub {
-  font-weight: 400; letter-spacing: 0; color: var(--text); text-wrap: balance;
-  text-shadow: none;
+  font-weight: 400; letter-spacing: 0; color: var(--pixel-text); text-wrap: balance;
   -webkit-font-smoothing: none; font-smooth: never;
 }
 .px-head { font-family: 'Inventatory Pixel Head', var(--font-body); font-size: calc(var(--px) * 20); line-height: calc(var(--px) * 20); }
 .px-sub { font-family: 'Inventatory Pixel Sub', var(--font-body); font-size: calc(var(--px) * 13); line-height: calc(var(--px) * 13); }
+
+/* A band in the surface tone that dissolves out of the canvas above it, and back below. */
+.band { position: relative; background: var(--surface); }
+.band::before, .band::after {
+  content: ''; position: absolute; left: 0; right: 0; height: calc(var(--px) * 8);
+  background: var(--surface); pointer-events: none;
+  -webkit-mask: var(--dither-edge) 0 0 / calc(var(--px) * 4) 100% repeat-x;
+  mask: var(--dither-edge) 0 0 / calc(var(--px) * 4) 100% repeat-x;
+}
+.band::before { bottom: 100%; }
+.band::after { top: 100%; transform: scaleY(-1); }
 
 /* Pixel arrows after a link's text: › stays on the site, ↗ leaves it. */
 .go::after, .out::after {
@@ -71,6 +81,18 @@
 .press:active { transform: translate(var(--drop), var(--drop)); }
 .press:active::after { transform: none; }
 
+/* A panel on the grid: a one-pixel outline whose corners step in like the lockup's, no
+   rounding. --frame sets the outline, --fill the inside. */
+.frame {
+  --frame: var(--divider); --fill: var(--surface);
+  background:
+    linear-gradient(var(--fill), var(--fill)) center / calc(100% - var(--n2) * 2) calc(100% - var(--n1) * 2) no-repeat,
+    linear-gradient(var(--fill), var(--fill)) center / calc(100% - var(--n1) * 2) calc(100% - var(--n2) * 2) no-repeat,
+    linear-gradient(var(--frame), var(--frame)) center / calc(100% - var(--n2) * 2) 100% no-repeat,
+    linear-gradient(var(--frame), var(--frame)) center / calc(100% - var(--n1) * 2) calc(100% - var(--n1) * 2) no-repeat,
+    linear-gradient(var(--frame), var(--frame)) center / 100% calc(100% - var(--n2) * 2) no-repeat;
+}
+
 /* A key off the Scan R1's keypad: a dark notched cap standing on its shadow. Pressed, or
    selected (.on / a checked radio before it), it sinks into the shadow and its legend lights. */
 .key {
@@ -88,3 +110,9 @@
 .key:hover { --c: var(--hover); color: var(--text); }
 .key:active, .key.on, :checked + .key { transform: translateY(calc(var(--px) * 2)); filter: none; color: var(--accent); }
 :checked + .key { --c: var(--active-soft); }
+
+/* A rule on the grid: one art pixel thick, dotted two on and two off. Its position is the
+   background's: the top edge by default, or 0 100% for a rule at the bottom. */
+.rule {
+  background: linear-gradient(90deg, var(--divider) 50%, transparent 0) 0 0 / calc(var(--px) * 4) var(--px) repeat-x;
+}

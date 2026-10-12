@@ -8,6 +8,12 @@
     "primary": "Install Inventatory",
     "secondary": "How it works"
   },
+  "film": {
+    "names": [
+      "Stock a part",
+      "Build a board"
+    ]
+  },
   "highlights": {
     "items": [
       {

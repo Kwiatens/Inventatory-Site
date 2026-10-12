@@ -10,6 +10,8 @@
   --text: #f1eee5;
   --secondary: #cad0ca;
   --muted: #8c9690;
+  /* The pixel headings: pure white, no shadow. A deliberate step outside the app palette. */
+  --pixel-text: #ffffff;
   /* The top-bar logo at rest. */
   --graphite: #5d6865;
   --focus: #b9e7dd;
@@ -45,4 +47,6 @@
   --border: 1px;
   --focus-width: 2px;
   --header-height: 3.5rem;
+  /* The vertical rhythm of every homepage section, top and bottom. */
+  --section-y: var(--space-20);
 }

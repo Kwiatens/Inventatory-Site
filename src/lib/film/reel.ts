@@ -1,27 +1,37 @@
-// The reel: one film. "Stock a part" (film.ts) puts a part away and backs off to the racks on the
-// desk; then, on a dissolve, the finale (finale.ts) takes a board's BOM to the parts; then a second
-// of blank closes the loop. render(t) draws any moment of it.
+// The reel: an intro (intro.ts: the title line is typed and backspaced away), then one film.
+// "Stock a part" (film.ts) puts a part away and backs off to the racks on the desk; then, on a
+// dissolve, the finale (finale.ts) takes a board's BOM to the parts; then a second of blank closes
+// the loop. render(t) draws any moment of it.
 import * as intake from './film';
 import * as finale from './finale';
+import { createIntro, LENGTH as INTRO } from './intro';
 import { dither } from './gfx';
 
 export const W = intake.W, H = intake.H;
-const CUT = intake.CUT, FADE = 300, PAUSE = 1000;
-export const LOOP = CUT + finale.RUN + PAUSE;
+const CUT = intake.CUT, FADE = 300, IN = 450, PAUSE = 1000;
+export const LOOP = INTRO + CUT + finale.RUN + PAUSE;
 /** The frame to show still (reduced motion). */
-export const POSTER = CUT + finale.POSTER;
+export const POSTER = INTRO + CUT + finale.POSTER;
 /** Chapter starts, for the arrow keys. */
-export const CHAPTERS = [...intake.CHAPTERS.filter(c => c < CUT), ...finale.CHAPTERS.map(c => CUT + c)];
+export const CHAPTERS = [0, INTRO, ...intake.CHAPTERS.filter(c => c < CUT).slice(1).map(c => INTRO + c), ...finale.CHAPTERS.map(c => INTRO + CUT + c)];
+/** Each film's span on the loop: its timeline segment, in the order of home.json's film names. */
+export const FILMS = [
+  { start: INTRO, end: INTRO + CUT },
+  { start: INTRO + CUT, end: INTRO + CUT + finale.RUN },
+];
 
 export function createReel(canvas: HTMLCanvasElement) {
-  const a = intake.createFilm(canvas), b = finale.createFinale(canvas, a.kit);
+  const i = createIntro(canvas), a = intake.createFilm(canvas), b = finale.createFinale(canvas, a.kit);
   const g = canvas.getContext('2d')!;
   function render(time: number) {
     const t = ((time % LOOP) + LOOP) % LOOP;
-    if (t < CUT) {
-      a.render(t);
-      if (t >= CUT - FADE) dither(g, (t - (CUT - FADE)) / FADE);
-    } else if (t < CUT + finale.RUN) b.render(t - CUT);
+    if (t < INTRO) { i.render(t); return; }
+    const u = t - INTRO;
+    if (u < CUT) {
+      a.render(u);
+      if (u < IN) dither(g, 1 - u / IN);                  // dithers in out of the intro's blank
+      if (u >= CUT - FADE) dither(g, (u - (CUT - FADE)) / FADE);
+    } else if (u < CUT + finale.RUN) b.render(u - CUT);
     else g.clearRect(0, 0, W, H);
   }
   return { render };

@@ -1,19 +1,26 @@
 ---
 /**
- * The project mascot: the chevron of the ›I mark, acting. Two poses. Rest is the logo's chevron
- * and stem. Point turns the chevron into a down arrow, with its eye (the cell in the arrow's mouth)
- * lit in the accent colour. Geometry is taken from branding/inventatory-mark.svg (one cell = 100
+ * The project mascot: the › of the Inventatory mark with a block cursor where the i's stem
+ * stands, so it reads as a terminal prompt. Geometry is taken from the logo (one cell = 100
  * units); the dot is left out, as in the header logo.
  *
- * `play` runs one stepped sequence and then rests: 'lost' shakes the arrow (page not found), 'nod'
- * dips the chevron once (a copy succeeded). Nothing loops. Reduced motion shows the still pose.
+ * `pose`: 'rest' shows the cursor solid; 'sleep' hides it, the way a terminal does while it waits.
+ * `play` runs one stepped sequence and then rests. Nothing loops:
+ *   blink  the cursor goes off and on three times
+ *   hop    the whole mark jumps one cell and lands
+ *   nod    the chevron dips one cell and comes back (a copy succeeded)
+ *   shake  the whole mark swings from side to side (page not found)
+ *   type   the chevron is typed in one cell at a time, then the cursor appears
+ * Reduced motion shows the still pose.
  */
 interface Props {
-  pose?: 'rest' | 'point';
-  play?: 'none' | 'lost' | 'nod';
+  pose?: 'rest' | 'sleep';
+  play?: 'none' | 'blink' | 'hop' | 'nod' | 'shake' | 'type';
   size?: string;
 }
 const { pose = 'rest', play = 'none', size = '36px' } = Astro.props;
+// The chevron's cells, top-left, middle, tip, lower middle, bottom-left, in the order they are typed.
+const chevron: Array<[number, number]> = [[0, 350], [100, 450], [200, 550], [100, 650], [0, 750]];
 ---
 <svg
   class="mascot"
@@ -25,23 +32,11 @@ const { pose = 'rest', play = 'none', size = '36px' } = Astro.props;
   focusable="false"
   shape-rendering="crispEdges"
 >
-  <rect class="stem" x="400" y="300" width="200" height="600" />
   <g class="body">
-    <g class="rest-pose">
-      <rect x="0" y="350" width="100" height="100" />
-      <rect x="100" y="450" width="100" height="100" />
-      <rect x="200" y="550" width="100" height="100" />
-      <rect x="100" y="650" width="100" height="100" />
-      <rect x="0" y="750" width="100" height="100" />
+    <g class="chevron">
+      {chevron.map(([x, y], i) => <rect class="glyph" style={{ '--i': i }} x={x} y={y} width="100" height="100" />)}
     </g>
-    <g class="point-pose">
-      <rect x="100" y="350" width="100" height="100" />
-      <rect x="100" y="450" width="100" height="100" />
-      <rect x="0" y="550" width="100" height="100" />
-      <rect x="200" y="550" width="100" height="100" />
-      <rect x="100" y="650" width="100" height="100" />
-      <rect class="eye" x="100" y="550" width="100" height="100" />
-    </g>
+    <rect class="cursor" x="400" y="300" width="200" height="600" />
   </g>
 </svg>
 
@@ -53,12 +48,9 @@ const { pose = 'rest', play = 'none', size = '36px' } = Astro.props;
     height: var(--mascot-size, 36px);
     overflow: visible;
   }
-  .mascot rect { fill: var(--graphite); }
-  .mascot .eye { fill: var(--accent); }
-
-  .point-pose { display: none; }
-  .mascot[data-pose="point"] .point-pose { display: inline; }
-  .mascot[data-pose="point"] .rest-pose { display: none; }
+  .mascot .glyph { fill: var(--graphite); }
+  .mascot .cursor { fill: var(--accent); }
+  .mascot[data-pose="sleep"] .cursor { opacity: 0; }
 
   /* Six swings of 105 ms each, then upright: 630 ms, stepped (no easing). */
   @keyframes mascot-shake {
@@ -70,17 +62,42 @@ const { pose = 'rest', play = 'none', size = '36px' } = Astro.props;
     83.33% { transform: translateX(100px); }
     100% { transform: translateX(0); }
   }
-  /* One dip of one cell: 120 ms down, 120 ms back. The stem never moves. */
+  /* One jump of one cell: up for 120 ms, down for 120 ms. */
+  @keyframes mascot-hop {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-100px); }
+    100% { transform: translateY(0); }
+  }
+  /* One dip of one cell: 120 ms down, 120 ms back. The cursor stays where it is. */
   @keyframes mascot-nod {
     0% { transform: translateY(0); }
     50% { transform: translateY(100px); }
     100% { transform: translateY(0); }
   }
-  .mascot[data-play="lost"] .body { animation: mascot-shake 630ms steps(1, end) 1 both; }
-  .mascot[data-play="nod"] .rest-pose { animation: mascot-nod 240ms steps(1, end) 1 both; }
+  /* Three blinks of the cursor, each half 120 ms, ending on. */
+  @keyframes mascot-blink {
+    0% { opacity: 1; }
+    16.67% { opacity: 0; }
+    33.33% { opacity: 1; }
+    50% { opacity: 0; }
+    66.67% { opacity: 1; }
+    83.33% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes mascot-show { from { opacity: 0; } }
+
+  .mascot[data-play="shake"] .body { animation: mascot-shake 630ms steps(1, end) 1 both; }
+  .mascot[data-play="hop"] .body { animation: mascot-hop 240ms steps(1, end) 1 both; }
+  .mascot[data-play="nod"] .chevron { animation: mascot-nod 240ms steps(1, end) 1 both; }
+  .mascot[data-play="blink"] .cursor { animation: mascot-blink 720ms steps(1, end) 1 both; }
+  /* Typing: one cell every 90 ms, then the cursor. */
+  .mascot[data-play="type"] .glyph { animation: mascot-show .01s steps(1, end) both; animation-delay: calc(var(--i) * 90ms); }
+  .mascot[data-play="type"] .cursor { animation: mascot-show .01s steps(1, end) 450ms both; }
 
   @media (prefers-reduced-motion: reduce) {
     .mascot[data-play] .body,
-    .mascot[data-play] .rest-pose { animation: none !important; }
+    .mascot[data-play] .chevron,
+    .mascot[data-play] .cursor,
+    .mascot[data-play] .glyph { animation: none !important; }
   }
 </style>

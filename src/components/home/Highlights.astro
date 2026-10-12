@@ -43,45 +43,52 @@ const icons: Record<string, Rect[]> = {
 };
 ---
 <section id="highlights" class="highlights" aria-labelledby="highlights-title">
-  <h2 id="highlights-title" class="sr-only">What Inventatory does</h2>
-  <ul class="rows">
+  <div class="title-block">
+    <h2 id="highlights-title" class="px-head">System’s features</h2>
+  </div>
+  <ul class="rows rule">
     {highlights.map(item => (
-      <li class="row">
+      <li class="row rule">
         <svg class="icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false" shape-rendering="crispEdges">
           {icons[item.icon].map(([x, y, w, h, lit]) => <rect x={x} y={y} width={w} height={h} class={lit ? 'lit' : undefined} />)}
         </svg>
-        <div class="copy">
-          <h3>{item.title}</h3>
+        <h3 class="title">{item.title}</h3>
+        <div class="body">
           <p>{item.text}</p>
+          <a class="go" href={url(item.href)}>Read the guide</a>
         </div>
-        <a class="go" href={url(item.href)}>Read the guide</a>
       </li>
     ))}
   </ul>
 </section>
 
 <style>
-  .highlights { padding-block: var(--space-16); }
-  .rows { list-style: none; margin: 0; padding: 0; border-bottom: var(--border) solid var(--divider); }
+  /* A table, one row per feature: the icon, the name, then what it does and where to read more.
+     The names share one column, so they line up down the page. Rules are the dotted grid rule. */
+  /* After the film's band: the band already gives its bottom space, so the rhythm is one section-y. */
+  .highlights { padding-top: calc(var(--section-y) - var(--space-8)); }
+  /* The heading is centred over the list. */
+  .title-block { width: fit-content; margin: 0 auto var(--space-12); text-align: center; }
+  .title-block h2 { text-align: center; }
+  .rows { list-style: none; margin: 0; padding: 0; background-position: 0 100%; }
   .row {
     display: grid;
-    grid-template-columns: calc(var(--px) * 16) minmax(0, 1fr) auto;
-    gap: var(--space-4) var(--space-8);
+    grid-template-columns: calc(var(--px) * 16) minmax(0, 20rem) minmax(0, 1fr);
+    gap: var(--space-2) var(--space-8);
     align-items: start;
     margin: 0;
-    padding-block: var(--space-8);
-    border-top: var(--border) solid var(--divider);
+    padding-block: var(--space-6);
   }
   .icon { display: block; width: calc(var(--px) * 16); height: auto; color: var(--secondary); }
   .icon rect { fill: currentColor; }
   .icon .lit { fill: var(--accent); }
-  .copy { max-width: 52ch; }
-  .copy h3 { margin-bottom: var(--space-2); color: var(--text); font-size: var(--text-lead); font-weight: 600; }
-  .copy p { color: var(--secondary); }
-  .row .go { white-space: nowrap; font: var(--text-sm)/1.5 var(--font-mono); }
+  .title { color: var(--text); font-size: var(--text-lead); font-weight: 600; line-height: 1.3; }
+  .body { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); max-width: 60ch; }
+  .body p { color: var(--secondary); }
+  .body .go { font: var(--text-sm)/1.5 var(--font-mono); }
   @media (max-width: 40rem) {
-    .highlights { padding-block: var(--space-12); }
-    .row { grid-template-columns: calc(var(--px) * 16) minmax(0, 1fr); gap: var(--space-3) var(--space-4); padding-block: var(--space-6); }
-    .row .go { grid-column: 2; justify-self: start; }
+    .row { grid-template-columns: calc(var(--px) * 16) minmax(0, 1fr); gap: var(--space-2) var(--space-4); padding-block: var(--space-6); }
+    .icon { grid-row: span 2; }
+    .body { grid-column: 2; }
   }
 </style>

@@ -1,15 +1,12 @@
 ---
-import { site } from '../data/site';
+import { release, site } from '../data/site';
 import { url } from '../lib/url';
-import Mascot from './Mascot.astro';
 
 interface Props {
   id: string;
-  /** Shows the mascot beside each Copy button. The homepage does; the download page does not. */
-  mascot?: boolean;
 }
 
-const { id, mascot = false } = Astro.props;
+const { id } = Astro.props;
 const releaseBase = site.releases + '/latest/download';
 const windowsCommand = 'curl.exe -fL "' + releaseBase + '/Install-Inventatory.ps1" -o "%TEMP%\\Install-Inventatory.ps1" && powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%TEMP%\\Install-Inventatory.ps1" && del /q "%TEMP%\\Install-Inventatory.ps1"';
 const linuxCommand = [
@@ -22,60 +19,111 @@ const linuxCommand = [
   './Install-Inventatory.sh',
 ];
 const linuxCopy = linuxCommand.join(' && ');
----
-<section id={id} class="install" aria-labelledby={id + '-title'}>
-  <h2 id={id + '-title'} class="sr-only">Install Inventatory</h2>
-  <p class="install-lead">Choose Windows or Linux. The installer fetches the latest stable release and checks the package before it installs anything.</p>
 
-  <fieldset class="platform">
+// OS icons drawn on the grid, one rect per pixel; letters pick the colour.
+const ICON_COLORS: Record<string, string> = { a: 'currentColor', k: '#5d6865', w: '#f1eee5', y: '#d8b56b' };
+const pixels = (rows: string[]) => rows.flatMap((row, y) => [...row].map((c, x) => ({ x, y, c })).filter(p => p.c !== '.'));
+const windowsIcon = pixels(['aaa.aaa', 'aaa.aaa', 'aaa.aaa', '.......', 'aaa.aaa', 'aaa.aaa', 'aaa.aaa']);
+const copyIcon = pixels(['aaaaa...', 'a...a...', 'a..aaaaa', 'a..a...a', 'aaaa...a', '...a...a', '...a...a', '...aaaaa']);
+const checkIcon = pixels(['.......a', '......aa', 'a....aa.', 'aa..aa..', '.aaaa...', '..aa....']);
+const linuxIcon = pixels([
+  '...kkk...', '..kkkkk..', '..kwkwk..', '..kyyyk..', '.kkwwwkk.', '.kwwwwwk.', 'kkwwwwwkk', 'kkwwwwwkk', '.kwwwwwk.', 'yyykkkyyy',
+]);
+---
+<section id={id} class="install-section" aria-labelledby={id + '-title'}>
+  <div class="install-heading">
+    <div>
+      <h2 id={id + '-title'} class="px-head">Install Inventatory</h2>
+      <p class="install-lead">Choose your system for the latest stable release.</p>
+    </div>
+    <a class="release-link out" href={release.url}>Release notes</a>
+  </div>
+
+  <fieldset class="platform-selector frame">
     <legend class="sr-only">Choose your operating system</legend>
-    <div class="platform-tabs">
+    <div class="platform-tabs" role="tablist">
       <input class="platform-radio" type="radio" name={id + '-platform'} id={id + '-windows'} value="windows" checked />
-      <label class="platform-tab" for={id + '-windows'}>Windows <small>x64</small></label>
+      <label class="platform-tab" for={id + '-windows'}>
+        <svg class="os" viewBox="0 0 7 7" aria-hidden="true" shape-rendering="crispEdges">{windowsIcon.map(p => <rect x={p.x} y={p.y} width="1" height="1" fill={ICON_COLORS[p.c]} />)}</svg>
+        <span>Windows</span><small>x64</small>
+      </label>
       <input class="platform-radio" type="radio" name={id + '-platform'} id={id + '-linux'} value="linux" />
-      <label class="platform-tab" for={id + '-linux'}>Linux <small>Ubuntu 24.04</small></label>
+      <label class="platform-tab" for={id + '-linux'}>
+        <svg class="os" viewBox="0 0 9 10" aria-hidden="true" shape-rendering="crispEdges">{linuxIcon.map(p => <rect x={p.x} y={p.y} width="1" height="1" fill={ICON_COLORS[p.c]} />)}</svg>
+        <span>Linux</span><small>Ubuntu 24.04</small>
+      </label>
     </div>
 
-    <!-- Both panels share one grid cell, so the box keeps its height whichever is open. -->
+    <!-- Both panels share one grid cell, so the box is the same size whichever is open. The
+         command stays on one line (scroll it, or just copy it). -->
     <div class="platform-panels">
       <section class="platform-panel" data-platform-panel="windows" aria-labelledby={id + '-windows-title'}>
         <h3 id={id + '-windows-title'} class="sr-only">Windows · x64</h3>
-        <p class="platform-lead">Open Command Prompt and paste the command. Then follow the installer.</p>
-        <div class="command">
-          <div class="command-bar">
-            <span class="command-shell">Command Prompt</span>
-            <div class="command-tools">
-              {mascot && <Mascot size="1.125rem" />}
-            <button type="button" class="copy-button" aria-label="Copy install command" data-copy={windowsCommand}>
-              <span class="copy-label">Copy</span>
-            </button>
+        <p class="platform-lead">Open Command Prompt, paste the command, then follow the installer and first-run setup.</p>
+        <div class="terminal frame">
+          <div class="terminal-bar">
+            <span class="terminal-title">Command Prompt</span>
+            <div class="terminal-tools">
+              <button
+                type="button"
+                class="copy-button key"
+                aria-label="Copy install command"
+                title="Copy command"
+                data-copy={windowsCommand}
+              >
+                <span class="copy-icon-wrap" aria-hidden="true">
+                  <svg class="copy-icon" viewBox="0 0 8 8" shape-rendering="crispEdges">{copyIcon.map(p => <rect x={p.x} y={p.y} width="1" height="1" fill="currentColor" />)}</svg>
+                  <svg class="check-icon" viewBox="0 0 8 6" shape-rendering="crispEdges">{checkIcon.map(p => <rect x={p.x} y={p.y} width="1" height="1" fill="currentColor" />)}</svg>
+                </span>
+                <span class="copy-label">Copy</span>
+              </button>
             </div>
           </div>
-          <pre><code>{windowsCommand}</code></pre>
+          <div class="terminal-line">
+            <div class="terminal-code" tabindex="0" aria-label="Install command">
+              <span class="terminal-prompt" aria-hidden="true">&gt;</span>
+              <pre><code>{windowsCommand}</code></pre>
+            </div>
+          </div>
         </div>
+        <p class="platform-note">The installer checks the release package before it installs anything.</p>
       </section>
 
       <section class="platform-panel" data-platform-panel="linux" aria-labelledby={id + '-linux-title'}>
         <h3 id={id + '-linux-title'} class="sr-only">Ubuntu 24.04 LTS · x86-64</h3>
-        <p class="platform-lead">Paste the command into a terminal. The installer puts Inventatory in <code>~/.local/bin/inventatory</code>.</p>
-        <div class="command">
-          <div class="command-bar">
-            <span class="command-shell">Terminal</span>
-            <div class="command-tools">
-              {mascot && <Mascot size="1.125rem" />}
-            <button type="button" class="copy-button" aria-label="Copy install command" data-copy={linuxCopy}>
-              <span class="copy-label">Copy</span>
-            </button>
+        <p class="platform-lead">Paste the command into a terminal. The verified installer puts Inventatory in <code>~/.local/bin/inventatory</code>.</p>
+        <div class="terminal frame">
+          <div class="terminal-bar">
+            <span class="terminal-title">Terminal</span>
+            <div class="terminal-tools">
+              <button
+                type="button"
+                class="copy-button key"
+                aria-label="Copy install command"
+                title="Copy command"
+                data-copy={linuxCopy}
+              >
+                <span class="copy-icon-wrap" aria-hidden="true">
+                  <svg class="copy-icon" viewBox="0 0 8 8" shape-rendering="crispEdges">{copyIcon.map(p => <rect x={p.x} y={p.y} width="1" height="1" fill="currentColor" />)}</svg>
+                  <svg class="check-icon" viewBox="0 0 8 6" shape-rendering="crispEdges">{checkIcon.map(p => <rect x={p.x} y={p.y} width="1" height="1" fill="currentColor" />)}</svg>
+                </span>
+                <span class="copy-label">Copy</span>
+              </button>
             </div>
           </div>
-          <pre><code>{linuxCopy}</code></pre>
+          <div class="terminal-line">
+            <div class="terminal-code" tabindex="0" aria-label="Install command">
+              <span class="terminal-prompt" aria-hidden="true">$</span>
+              <pre><code>{linuxCopy}</code></pre>
+            </div>
+          </div>
         </div>
         <p class="platform-note">Missing runtime libraries? <a class="go" href={url('/docs/getting-started/installation/#requirements')}>See the requirements</a></p>
       </section>
     </div>
+    <div class="platform-foot"><a class="out" href={site.releases}>See all releases</a></div>
   </fieldset>
 
-  <div class="install-foot"><a class="out" href={site.releases}>All releases</a></div>
 </section>
 
 <script>
@@ -83,7 +131,7 @@ const linuxCopy = linuxCommand.join(' && ');
     const button = (e.target as Element).closest<HTMLButtonElement>('.copy-button');
     if (!button) return;
 
-    const text = button.getAttribute('data-copy') || button.closest('.platform-panel')?.querySelector('code')?.textContent?.trim() || '';
+    const text = button.getAttribute('data-copy') || button.closest('.terminal, .platform-panel')?.querySelector('code')?.textContent?.trim() || '';
     if (!text) return;
 
     try {
@@ -98,24 +146,19 @@ const linuxCopy = linuxCommand.join(' && ');
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
-        const copied = document.execCommand('copy');
+        document.execCommand('copy');
         textArea.remove();
-        if (!copied) throw new Error('The browser refused the copy');
       }
 
       button.classList.add('copied');
       const label = button.querySelector<HTMLElement>('.copy-label');
-      if (label) label.textContent = 'Copied';
-      const mascotEl = button.closest('.command')?.querySelector<SVGElement>('.mascot');
-      if (mascotEl) {
-        mascotEl.dataset.play = 'none';
-        void mascotEl.getBoundingClientRect();
-        mascotEl.dataset.play = 'nod';
-      }
+      if (label) label.textContent = 'Copied!';
+      button.setAttribute('aria-label', 'Copied to clipboard');
 
       setTimeout(() => {
         button.classList.remove('copied');
         if (label) label.textContent = 'Copy';
+        button.setAttribute('aria-label', 'Copy install command');
       }, 2000);
     } catch (err) {
       console.error('Failed to copy install command', err);
@@ -124,13 +167,41 @@ const linuxCopy = linuxCommand.join(' && ');
 </script>
 
 <style>
-  .install { padding-block: var(--space-16) var(--space-12); border-top: var(--border) solid var(--divider); }
-  .install-lead { max-width: 60ch; color: var(--secondary); font-size: var(--text-lead); line-height: 1.6; }
+  /* The bottom space keeps the footer's dithered band clear of the install box. */
+  .install-section { padding-block: var(--section-y) var(--space-20); }
+  .install-heading { display: flex; align-items: end; justify-content: space-between; gap: var(--space-8); margin-bottom: var(--space-8); }
+  .install-heading h2 { margin: 0 0 var(--space-3); }
+  .install-lead { margin: 0; color: var(--secondary); }
+  .release-link { flex: 0 0 auto; font: var(--text-sm)/1.5 var(--font-mono); text-decoration: none; }
+  .platform-selector { --fill: var(--surface); min-width: 0; margin: 0; padding: 0; border: 0; }
 
-  .platform { min-width: 0; margin: var(--space-8) 0 0; padding: 0; border: 0; }
-
-  /* Tabs are text with a bar under the open one; the rule underneath is the panel's top edge. */
-  .platform-tabs { display: flex; gap: var(--space-8); border-bottom: var(--border) solid var(--divider); }
+  /* 50/50 split tab header with pixelart border and notched corners */
+  .platform-tabs {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin: var(--px) var(--px) 0;
+    background: var(--surface);
+    clip-path: polygon(
+      calc(var(--px) * 2) 0,
+      calc(100% - var(--px) * 2) 0,
+      calc(100% - var(--px)) var(--px),
+      100% calc(var(--px) * 2),
+      100% 100%,
+      0 100%,
+      0 calc(var(--px) * 2),
+      var(--px) var(--px)
+    );
+  }
+  /* Dotted pixel rule separating tabs from panel */
+  .platform-tabs::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0;
+    height: var(--px);
+    background: linear-gradient(90deg, var(--divider) 50%, transparent 0) 0 0 / calc(var(--px) * 4) var(--px) repeat-x;
+    pointer-events: none;
+  }
   .platform-radio {
     position: absolute;
     width: 1px;
@@ -140,71 +211,147 @@ const linuxCopy = linuxCommand.join(' && ');
     white-space: nowrap;
   }
   .platform-tab {
-    display: inline-flex;
-    align-items: baseline;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     gap: var(--space-2);
-    margin-bottom: calc(-1 * var(--border));
-    padding: var(--space-3) 0;
-    border-bottom: 2px solid transparent;
+    min-height: 3.25rem;
+    padding: var(--space-3) var(--space-4);
     color: var(--muted);
-    font-weight: 600;
+    font: 500 var(--text-sm)/1.4 var(--font-mono);
     cursor: pointer;
     user-select: none;
-    transition: color .12s, border-color .12s;
+    transition: color .08s steps(1), background-color .08s steps(1);
   }
-  .platform-tab small { font: var(--text-xs)/1 var(--font-mono); color: inherit; }
-  .platform-tab:hover { color: var(--text); }
-  .platform-radio:checked + .platform-tab { color: var(--text); border-bottom-color: var(--accent); }
-  .platform-radio:focus-visible + .platform-tab { outline: var(--focus-width) solid var(--focus); outline-offset: 2px; }
+  /* Vertical dotted pixel divider between Windows and Linux tabs */
+  .platform-tab:first-of-type::after {
+    content: '';
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: var(--px);
+    background: linear-gradient(180deg, var(--divider) 50%, transparent 0) 0 0 / var(--px) calc(var(--px) * 4) repeat-y;
+    pointer-events: none;
+  }
+  .platform-tab:hover {
+    color: var(--text);
+    background: var(--hover);
+  }
+  .platform-radio:checked + .platform-tab {
+    color: var(--text);
+    background: var(--active-soft);
+  }
+  .platform-radio:focus-visible + .platform-tab {
+    outline: var(--focus-width) solid var(--focus);
+    outline-offset: -2px;
+  }
+  .os { width: calc(var(--px) * 7); height: auto; }
+  .platform-tab:last-of-type .os { width: calc(var(--px) * 9); }
+  .platform-tab small { color: var(--muted); font-size: var(--text-xs); }
+  .platform-radio:checked + .platform-tab small { color: var(--secondary); }
 
-  .platform-panels { display: grid; padding-top: var(--space-8); }
-  .platform-panel { display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
-  .platform-lead { max-width: 60ch; color: var(--secondary); line-height: 1.6; }
-  .platform-lead code { color: var(--text); font-size: var(--text-sm); }
+  /* The panels stack in one cell: the box takes the taller one's height and keeps it. */
+  .platform-panels { display: grid; gap: var(--space-8); padding: var(--space-6); }
+  .platform-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+  .platform-lead { margin: 0; color: var(--secondary); font-size: var(--text-sm); line-height: 1.6; }
+  .platform-lead code { color: var(--text); font-size: var(--text-xs); }
 
-  .command { min-width: 0; border: var(--border) solid var(--divider); background: var(--surface); }
-  .command-bar {
+  /* Dedicated terminal window */
+  .terminal {
+    --frame: var(--divider);
+    --fill: var(--canvas);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .terminal-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: var(--space-4);
-    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+    padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
     border-bottom: var(--border) solid var(--divider);
+    background: var(--raised);
   }
-  .command-tools { display: flex; align-items: center; gap: var(--space-3); }
-  .command-shell { color: var(--muted); font: 500 var(--text-xs)/1 var(--font-mono); text-transform: uppercase; letter-spacing: .06em; }
-  .copy-button {
-    min-height: 2rem;
-    padding: 0 var(--space-3);
-    border: var(--border) solid var(--divider);
-    background: transparent;
-    color: var(--secondary);
+  .terminal-title {
+    color: var(--muted);
     font: 500 var(--text-xs)/1 var(--font-mono);
-    cursor: pointer;
-    transition: color .12s, border-color .12s;
   }
-  .copy-button:hover { color: var(--text); border-color: var(--muted); }
-  .copy-button:focus-visible { outline: var(--focus-width) solid var(--focus); outline-offset: 2px; }
-  .copy-button.copied { color: var(--success); border-color: var(--success); }
+  .terminal-tools { display: flex; align-items: center; gap: var(--space-3); }
+  /* One line; wider commands scroll sideways under a one-pixel bar. */
+  .terminal-code {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--divider) transparent;
+  }
+  /* The line dissolves at the right edge in the film's dither: there is more of it. */
+  /* Inside the frame's outline, so nothing scrolls over it. */
+  .terminal-line { position: relative; margin: 0 var(--px) var(--px); }
+  .terminal-line::after {
+    --t: calc(var(--px) * 4);
+    content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: calc(var(--t) * 4);
+    background: var(--canvas); pointer-events: none;
+    -webkit-mask: var(--dither-25) 0 0 / var(--t) var(--t) repeat-y, var(--dither-50) var(--t) 0 / var(--t) var(--t) repeat-y,
+      var(--dither-75) calc(var(--t) * 2) 0 / var(--t) var(--t) repeat-y, linear-gradient(#000 0 0) 100% 0 / var(--t) 100% no-repeat;
+    mask: var(--dither-25) 0 0 / var(--t) var(--t) repeat-y, var(--dither-50) var(--t) 0 / var(--t) var(--t) repeat-y,
+      var(--dither-75) calc(var(--t) * 2) 0 / var(--t) var(--t) repeat-y, linear-gradient(#000 0 0) 100% 0 / var(--t) 100% no-repeat;
+  }
+  .terminal-code:focus-visible { outline: var(--focus-width) solid var(--focus); outline-offset: -2px; }
+  .terminal-prompt {
+    flex: 0 0 auto;
+    color: var(--accent);
+    font: 700 var(--text-xs)/1.7 var(--font-mono);
+    user-select: none;
+  }
+  /* Its own width, plus room to scroll the end out from under the dither. */
+  .terminal-code pre {
+    flex: none;
+    margin: 0;
+    padding: 0 calc(var(--px) * 16) 0 0;
+    color: var(--focus);
+    font: var(--text-xs)/1.7 var(--font-mono);
+    white-space: pre;
+  }
+  .terminal-code pre code { color: inherit; white-space: inherit; }
 
-  /* The whole command wraps inside the box: nothing is cut off, and copying gives one line. */
-  .command pre { margin: 0; padding: var(--space-4); color: var(--focus); font: var(--text-sm)/1.7 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; }
-  .command code { color: inherit; }
-
-  .platform-note { color: var(--muted); font-size: var(--text-sm); }
+  .copy-button { min-height: 1.75rem; padding: 0 var(--space-3); gap: var(--space-1); font: 500 var(--text-xs)/1 var(--font-mono); }
+  .copy-icon-wrap { display: inline-flex; align-items: center; justify-content: center; }
+  .copy-icon-wrap svg { width: 14px; height: auto; }
+  .copy-button .check-icon { display: none; }
+  .copy-button.copied { color: var(--success); transform: translateY(calc(var(--px) * 2)); filter: none; }
+  .platform-note { margin: 0; color: var(--muted); font-size: var(--text-xs); line-height: 1.6; }
   .platform-note a { text-decoration: none; }
-  .install-foot { display: flex; justify-content: flex-end; margin-top: var(--space-4); font: var(--text-sm)/1.5 var(--font-mono); }
-  .install-foot a { text-decoration: none; }
 
-  /* Both panels are in one cell; the hidden one still takes its space, so the box never jumps. */
-  @supports selector(.platform:has(input:checked)) {
+  /* Dotted rule on the grid */
+  .platform-foot {
+    display: flex; justify-content: flex-end; margin-inline: var(--space-6); padding: var(--space-4) 0 var(--space-6);
+    background: linear-gradient(90deg, var(--divider) 50%, transparent 0) 0 0 / calc(var(--px) * 4) var(--px) repeat-x;
+    font: var(--text-xs)/1.5 var(--font-mono);
+  }
+  .platform-foot a { white-space: nowrap; text-decoration: none; }
+
+  @supports selector(.platform-selector:has(input:checked)) {
     .platform-panel { grid-area: 1 / 1; }
-    .platform:has(.platform-radio[value="windows"]:checked) [data-platform-panel="linux"],
-    .platform:has(.platform-radio[value="linux"]:checked) [data-platform-panel="windows"] { visibility: hidden; }
+    .platform-selector:has(.platform-radio[value="windows"]:checked) [data-platform-panel="linux"],
+    .platform-selector:has(.platform-radio[value="linux"]:checked) [data-platform-panel="windows"] { visibility: hidden; }
   }
 
+  @media (max-width: 48rem) {
+    .install-heading { align-items: start; flex-direction: column; gap: var(--space-4); }
+  }
   @media (max-width: 30rem) {
-    .platform-tabs { gap: var(--space-6); }
-    .command pre { padding: var(--space-3); }
+    .platform-tab { padding-inline: var(--space-2); font-size: var(--text-xs); }
+    .platform-tab small { display: none; }
+    .platform-panels { padding: var(--space-4); }
+    .platform-foot { margin-inline: var(--space-4); }
   }
 </style>

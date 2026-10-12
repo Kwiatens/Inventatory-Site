@@ -18,8 +18,14 @@ import BrandMark from './BrandMark.astro';
     top: 0;
     z-index: 20;
     height: var(--header-height);
-    background: var(--canvas);
-    border-bottom: var(--border) solid var(--divider);
+    background: var(--surface);
+  }
+  /* The bar's lower edge dissolves into the page in the films' dither, as the bands do. */
+  .site-header::after {
+    content: ''; position: absolute; left: 0; right: 0; top: 100%; height: calc(var(--px) * 8);
+    background: var(--surface); pointer-events: none; transform: scaleY(-1);
+    -webkit-mask: var(--dither-edge) 0 0 / calc(var(--px) * 4) 100% repeat-x;
+    mask: var(--dither-edge) 0 0 / calc(var(--px) * 4) 100% repeat-x;
   }
   .header-inner { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: var(--space-6); }
   .header-brand { --h: 1rem; --lockup-word: var(--graphite); --lockup-mark: var(--graphite); }

@@ -18,33 +18,45 @@ that way.
 
 Top to bottom:
 
-1. **Header**: a sticky bar, `--header-height` tall, on the canvas colour with a 1px divider below.
+1. **Header**: a sticky bar, `--header-height` tall, on the surface colour. Its lower edge dissolves
+   into the page in the films' dither.
    The brand mark sits left. Navigation sits right: Documentation, Download, GitHub. The current
    page's link has a 1px accent underline.
 2. **Hero**: left-aligned, in the column. The logo lockup, then the H1 claim, then one summary
    sentence, then the primary button (`.press`) and a secondary text link to `#how`. The product
    turntable video plays on the pixel grid. On desktop (44rem and up) it sits behind the text, shifted
-   9% to the right so it clears the claim and the summary. On phones (44rem and below) it is a band of
-   its own, 15.5rem tall and full bleed, above the text.
-3. **What the system does** (`#how`): one short line set large on the page, with no rule above it,
-   currently "Here’s what the system does.". It types itself in once when it enters the screen, with
-   an accent caret that goes when it finishes. Then the film (`components/concept/Film.astro`). The
-   film is one canvas with one timeline. The line is text, not a heading, and has no eyebrow.
-   On phones (40rem and below) the film is drawn at 2x and a window follows the action: it eases
-   towards the middle of the lit pixels and never moves past the film's edges.
-4. **Highlights** (`components/home/Highlights.astro`): one row per desktop feature. Each row has a
-   pixel icon, a title, one or two sentences, and a `Read the guide` link. Rows are separated by 1px
-   dividers. This is a list, not a card grid.
-5. **Scan R1** (`components/home/Scanner.astro`): the name and summary, the device sprite with its
-   LCD and keypad, then two columns separated by a 1px rule: `Build it yourself` and
-   `Official CAD files`. The purchase button stays disabled with the label `Coming soon` while
-   `scanner.bundle.href` is empty.
-6. **Install** (`components/PlatformInstallSelector.astro`): a visually hidden H2, a lead sentence,
-   OS choices as text tabs with a 2px accent underline on the chosen one, then the command in a
-   bordered block. The command wraps; it never scrolls sideways. A text `Copy` button sits in the
-   block's header row. Both OS panels share one grid cell, so the box keeps its height when the
-   tab changes.
-7. **Footer**: a top divider, the muted wordmark, the byline, and one row of links.
+   20% to the right so the scanner starts clear of the claim. On phones (44rem and below) it is a band
+   of its own, 15.5rem tall and full bleed, above the text.
+3. **The film** (`#how`, `components/concept/Film.astro`): in a `.band`, a surface-tone section whose
+   top and bottom edges dissolve into the page in dither. No caption above it. The reel opens on an
+   intro (`lib/film/intro.ts`): the cursor, the lockup's prompt mark, types "See what the system can
+   do", holds it, backspaces it away, and the film dithers in out of the blank. It is one canvas with
+   one timeline. The timeline has a segment per film, named from `film.names` in `home.json`. Each
+   segment is as long as its film. On phones the segments are equal and only the open film is named.
+   The open segment carries the playhead. On phones (40rem and below) the film is drawn at 2x and a
+   window follows the action: it eases towards the middle of the lit pixels and never moves past the
+   film's edges.
+4. **Highlights** (`components/home/Highlights.astro`): one row per desktop feature, laid out as a
+   table. The pixel icon, then the name in one shared column, then the description with its
+   `Read the guide` link. Rows are separated by dotted rules. This is a list, not a card grid. On
+   phones the name sits beside the icon and the description goes below it.
+5. **Scan R1** (`components/home/Scanner.astro`): the pixel heading and summary, the device sprite with
+   its LCD and keypad, then two framed panels: `Build it yourself` and `Official CAD files`. The CAD
+   panel is set apart with an accent outline and a tinted inside. While `scanner.bundle.href` is empty, a
+   `Coming soon` status tag (a frame with a quiet label, not a button) stands where the purchase
+   button will go. The two cards are the same height, so their footers line up.
+6. **Install** (`components/PlatformInstallSelector.astro`): the pixel heading `Install Inventatory`,
+   a lead sentence and a `Release notes` link. Windows and Linux are two notched tabs with an OS icon;
+   the open one is set in the active tone, with no bar. The command sits in a framed terminal with a `Copy` key in
+   its header. The command stays on one line and scrolls sideways inside it, and the right edge
+   dissolves in dither. Both OS
+   panels share one grid cell, so the box keeps its height when the tab changes.
+7. **Footer**: a surface band that dissolves out of the page above in dither, the embossed wordmark,
+   the byline, and one row of links.
+
+Every section starts `--section-y` below the one before it (80px; 64px on phones). Sections have
+top padding only, except the install block, which keeps 80px below itself so the footer's dithered
+band stays clear of the install box.
 
 The download page (`src/pages/download.astro`) reuses the install component.
 
@@ -54,9 +66,11 @@ Do:
 
 - Take colours, type sizes and spacing from `src/styles/tokens.css`. Components do not write hex
   values, except the sprite and lockup data.
-- Left-align text. Put content in the `.wrap` column, which is `--width` (72rem) wide.
-- Separate things with a 1px `--divider` rule and space. Use a border only where it carries
-  meaning, such as the input frame of the install command.
+- Left-align text. Put content in the `.wrap` column, which is `--width` (72rem) wide. The exception
+  is the features heading, which is centred over its list.
+- Separate things with a dotted `.rule` in `--divider`: one grid pixel thick, two on and two off.
+  Use a 1px border only where it carries meaning, such as the header's bottom edge or the input
+  frame of the install command.
 - Draw pixel art on the grid: rectangles on an integer grid, `shape-rendering="crispEdges"`, one
   art pixel = `--px`. Icons are 16 × 16 grids with lit pixels in `--accent`.
 - The top-bar logo is `--graphite` at rest. On hover only the mark turns `--accent`; the wordmark that
@@ -68,31 +82,35 @@ Do:
 
 Do not:
 
-- No gradients, visible or hidden: no gradient backgrounds, no gradient text, no fades made with
-  gradient masks, no dithered edges on bars or sections.
+- No smooth gradients: no gradient backgrounds, no gradient text, no fades made with smooth gradient
+  masks. Transitions between tones are dithered, not blended: a `.band` section, the header's lower
+  edge and the footer's upper edge all dissolve in `--dither-edge` (see `pixel.css`). Frames, notched
+  buttons and dotted rules are stacked hard-stop gradients on the grid, and the command line's right
+  edge is a dithered fade.
 - No glass, blur, neon or coloured glow shadows. The one hard drop shadow is the `.press` button,
   in the lockup's shadow colour.
 - No eyebrow labels, kickers, or decorative section titles above content. Sections start with
   their content. Headings that exist for screen readers are visually hidden.
+- No uppercase text. Labels, table headers and the terminal title are sentence case.
 - No grids of identical icon, title and text cards. No nested cards. No rounded boxes. No coloured
   left-border accents.
 - No stock photography, people pointing at screens, invented statistics, testimonials, or logo
   walls.
 - No centred hero, and no "Welcome to" copy.
 - No new fonts. Body text is Space Grotesk (`--font-body`) and mono labels are IBM Plex Mono
-  (`--font-mono`). The pixel heading faces are kept in `src/assets/fonts` but nothing on the
-  homepage uses them.
+  (`--font-mono`). The pixel heading faces (`.px-head` for section headings, `.px-sub` for panel
+  headings) are the Scan R1's own bitmap fonts. They appear on the homepage only in the Scan R1 and
+  install sections, in pure white (`--pixel-text`) with no shadow.
 
 ## Motion
 
 Allowed:
 
 - The lockup's boot animation, played once when the page loads (`animate` on the logo).
-- The "What the system does" line types in once, the first time it is on screen. Reduced motion
-  and no-JavaScript visitors see the full line at once.
-- The mascot points and shakes once on the 404 page, when its page-not-found text renders. This is
-  a response to the page state, not a second reveal. Reduced motion shows the pointing pose.
-- The mascot dips once after a successful copy in the install block. It plays only on success.
+- The mascot shakes once on the 404 page, when its page-not-found text renders. This is a response
+  to the page state, not a second reveal. Reduced motion shows the still mark.
+- The mascot's other behaviours (blink, hop, nod, type, sleep) are built but not on a page yet. Each one
+  runs once and stops; nothing loops, not even the cursor's blink.
 - The hero video, the film, and the Scan R1 demo, each on its own timeline.
 - Short colour transitions of 120 ms or less.
 
@@ -124,9 +142,9 @@ and any animation of layout. Everything respects `prefers-reduced-motion`.
 | `src/components/home/Highlights.astro` | Feature rows with pixel icons |
 | `src/components/home/Scanner.astro` | Scan R1 section |
 | `src/components/PlatformInstallSelector.astro` | OS tabs and install commands |
-| `src/components/Mascot.astro` | The project mascot: the mark's chevron, rest and point poses, one-shot motion |
+| `src/components/Mascot.astro` | The project mascot: the mark's › with a block cursor, rest and sleep poses, one-shot blink, hop, nod, shake and type |
 | `src/styles/tokens.css` | Colours, type scale, spacing, layout tokens |
-| `src/styles/pixel.css` | The pixel grid (`--px`), the notched `.press` button, the link arrows |
+| `src/styles/pixel.css` | The pixel grid (`--px`), the notched `.press` and `.key` buttons, the `.frame` panel, the dotted `.rule`, the pixel headings, the link arrows |
 
 ## Checks before committing
 
@@ -148,9 +166,10 @@ Then look at the result:
 
 Remove an item from this list when it is settled.
 
-- **CAD destination.** `scanner.bundle.href` is empty, so the purchase button reads `Coming soon`.
-- **Mascot direction.** The Caret concept is built on the 404 page and the install block. The
-  scanner states and a more expressive character are not built. The point pose reads as a plain
-  pointer at 36 px, so it may need a larger sprite.
+- **CAD destination.** `scanner.bundle.href` is empty, so the bundle shows a `Coming soon` status tag.
+- **Mascot direction.** The mascot is the › of the mark with a block cursor in the place of the i's
+  stem (`Mascot.astro`). It shakes on the 404 page. The
+  owner's sketches are not in the repo, so each behaviour is built from the written brief. Check
+  them against the sketches, and say which behaviours go on which pages.
 - **Body font.** Space Grotesk is kept for now. It is a common default in generated interfaces,
   so a replacement may be worth a look once the layout is settled.
