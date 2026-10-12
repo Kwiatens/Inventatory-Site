@@ -40,9 +40,9 @@ import { url } from '../lib/url';
     </div>
   </section>
 
-  <section id="how" class="how" aria-label="How the workflow works">
+  <section id="how" class="how" aria-label="What the system does">
     <div class="wrap">
-      <p class="film-caption">One scan adds a part to stock. A board's parts list then points to the exact slot.</p>
+      <p class="film-caption">Here’s what the system does.</p>
       <Film />
     </div>
   </section>
@@ -205,13 +205,16 @@ import { url } from '../lib/url';
 
   /* ---------- how it works: the film, with one sentence above it ---------- */
   .how { padding-block: var(--space-20) var(--space-12); }
+  /* The line is set on a rule, like the rows below it, and the film sits under it. */
   .film-caption {
-    max-width: 44ch;
-    text-wrap: balance;
-    margin-bottom: var(--space-6);
-    color: var(--secondary);
-    font-size: var(--text-lead);
-    line-height: 1.5;
+    margin-bottom: var(--space-8);
+    padding-top: var(--space-6);
+    border-top: var(--border) solid var(--divider);
+    color: var(--text);
+    font-size: var(--text-h2);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -.01em;
   }
 
   /* ---------- Scan R1 section: the device and its face ---------- */

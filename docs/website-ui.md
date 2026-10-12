@@ -25,8 +25,9 @@ Top to bottom:
    sentence, then the primary button (`.press`) and a secondary text link to `#how`. The product
    turntable video plays behind it on the pixel grid. On desktop (44rem and up) the art is shifted 9%
    to the right so it clears the claim and the summary.
-3. **How it works** (`#how`): one sentence, then the film (`components/concept/Film.astro`). The
-   film is one canvas with one timeline. The sentence has a maximum measure of 44ch.
+3. **What the system does** (`#how`): one short line on a 1px rule, currently "Here’s what the system
+   does.", then the film (`components/concept/Film.astro`). The film is one canvas with one timeline.
+   The line is text set large, not a heading, and it has no eyebrow above it.
 4. **Highlights** (`components/home/Highlights.astro`): one row per desktop feature. Each row has a
    pixel icon, a title, one or two sentences, and a `Read the guide` link. Rows are separated by 1px
    dividers. This is a list, not a card grid.
