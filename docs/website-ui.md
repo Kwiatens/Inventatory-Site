@@ -59,6 +59,8 @@ Do:
   meaning, such as the input frame of the install command.
 - Draw pixel art on the grid: rectangles on an integer grid, `shape-rendering="crispEdges"`, one
   art pixel = `--px`. Icons are 16 × 16 grids with lit pixels in `--accent`.
+- The top-bar logo is `--graphite` at rest. On hover only the mark turns `--accent`; the wordmark that
+  unfolds on wide screens stays `--graphite`. The colour change takes 120 ms.
 - Keep hover states to colour changes. The exceptions are the brand's own pixel arrows on links
   and the pressed state of `.press`.
 - Text contrast: 4.5:1 minimum for body and small text. `--muted` (`#8c9690`) on the canvas is

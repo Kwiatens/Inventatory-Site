@@ -10,6 +10,8 @@
   --text: #f1eee5;
   --secondary: #cad0ca;
   --muted: #8c9690;
+  /* The top-bar logo at rest. */
+  --graphite: #5d6865;
   --focus: #b9e7dd;
   --accent: #58b9b0;
   --success: #a5c9a5;

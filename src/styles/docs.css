@@ -32,7 +32,8 @@
 :focus-visible { outline: var(--focus-width) solid var(--focus); outline-offset: var(--space-1); }
 .docs-header { display: flex; align-items: center; gap: var(--space-6); height: 100%; }
 /* Reserve the unfolded width so the navigation does not move when the mark unfolds. */
-.docs-brand { flex-shrink: 0; --h: 1rem; --lockup-word: var(--text); --lockup-mark: var(--text); }
+.docs-brand { flex-shrink: 0; --h: 1rem; --lockup-word: var(--graphite); --lockup-mark: var(--graphite); }
+.docs-brand:is(:hover, :focus-visible) { --lockup-mark: var(--accent); }
 /* Reserve the unfolded width (plus the link's own right padding) so nothing moves. */
 @media (min-width: 64rem) and (hover: hover) { .docs-brand { min-width: calc(var(--h, 1.5rem) * var(--expanded) + var(--space-2)); } }
 .docs-primary { display: flex; flex: 1; flex-wrap: nowrap; gap: var(--space-1); min-width: 0; }
