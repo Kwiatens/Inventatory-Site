@@ -149,6 +149,10 @@ import { url } from '../lib/url';
     image-rendering: crisp-edges;
   }
 
+  @media (min-width: 44rem) {
+    .hero-pixels { transform: translateX(9%); }
+  }
+
   .hero-inner {
     position: relative;
     z-index: 1;
@@ -159,7 +163,7 @@ import { url } from '../lib/url';
   }
 
   .hero-logo {
-    width: min(100%, 36rem);
+    width: min(100%, 18rem);
     --lockup-word: var(--text);
     --lockup-mark: var(--text);
   }

@@ -23,7 +23,8 @@ Top to bottom:
    page's link has a 1px accent underline.
 2. **Hero**: left-aligned, in the column. The logo lockup, then the H1 claim, then one summary
    sentence, then the primary button (`.press`) and a secondary text link to `#how`. The product
-   turntable video plays behind it on the pixel grid.
+   turntable video plays behind it on the pixel grid. On desktop (44rem and up) the art is shifted 9%
+   to the right so it clears the claim and the summary.
 3. **How it works** (`#how`): one sentence, then the film (`components/concept/Film.astro`). The
    film is one canvas with one timeline. The sentence has a maximum measure of 44ch.
 4. **Highlights** (`components/home/Highlights.astro`): one row per desktop feature. Each row has a
@@ -134,6 +135,8 @@ Then look at the result:
 
 Remove an item from this list when it is settled.
 
+- **Hero art on phones.** On a 390 px screen the turntable art still sits behind the claim and the
+  summary. The desktop shift is not applied there yet.
 - **Film on phones.** The artwork is 384 px wide and the whole-number scale only applies from 2×,
   so on a 390 px screen the film draws at about 1×. Options: a still frame on phones, or 2× with a
   cropped view.
