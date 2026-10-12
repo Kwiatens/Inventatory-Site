@@ -1,12 +1,15 @@
 ---
 import { site } from '../data/site';
 import { url } from '../lib/url';
+import Mascot from './Mascot.astro';
 
 interface Props {
   id: string;
+  /** Shows the mascot beside each Copy button. The homepage does; the download page does not. */
+  mascot?: boolean;
 }
 
-const { id } = Astro.props;
+const { id, mascot = false } = Astro.props;
 const releaseBase = site.releases + '/latest/download';
 const windowsCommand = 'curl.exe -fL "' + releaseBase + '/Install-Inventatory.ps1" -o "%TEMP%\\Install-Inventatory.ps1" && powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%TEMP%\\Install-Inventatory.ps1" && del /q "%TEMP%\\Install-Inventatory.ps1"';
 const linuxCommand = [
@@ -41,9 +44,12 @@ const linuxCopy = linuxCommand.join(' && ');
         <div class="command">
           <div class="command-bar">
             <span class="command-shell">Command Prompt</span>
+            <div class="command-tools">
+              {mascot && <Mascot size="1.125rem" />}
             <button type="button" class="copy-button" aria-label="Copy install command" data-copy={windowsCommand}>
               <span class="copy-label">Copy</span>
             </button>
+            </div>
           </div>
           <pre><code>{windowsCommand}</code></pre>
         </div>
@@ -55,9 +61,12 @@ const linuxCopy = linuxCommand.join(' && ');
         <div class="command">
           <div class="command-bar">
             <span class="command-shell">Terminal</span>
+            <div class="command-tools">
+              {mascot && <Mascot size="1.125rem" />}
             <button type="button" class="copy-button" aria-label="Copy install command" data-copy={linuxCopy}>
               <span class="copy-label">Copy</span>
             </button>
+            </div>
           </div>
           <pre><code>{linuxCopy}</code></pre>
         </div>
@@ -89,13 +98,20 @@ const linuxCopy = linuxCommand.join(' && ');
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
-        document.execCommand('copy');
+        const copied = document.execCommand('copy');
         textArea.remove();
+        if (!copied) throw new Error('The browser refused the copy');
       }
 
       button.classList.add('copied');
       const label = button.querySelector<HTMLElement>('.copy-label');
       if (label) label.textContent = 'Copied';
+      const mascotEl = button.closest('.command')?.querySelector<SVGElement>('.mascot');
+      if (mascotEl) {
+        mascotEl.dataset.play = 'none';
+        void mascotEl.getBoundingClientRect();
+        mascotEl.dataset.play = 'nod';
+      }
 
       setTimeout(() => {
         button.classList.remove('copied');
@@ -155,6 +171,7 @@ const linuxCopy = linuxCommand.join(' && ');
     padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
     border-bottom: var(--border) solid var(--divider);
   }
+  .command-tools { display: flex; align-items: center; gap: var(--space-3); }
   .command-shell { color: var(--muted); font: 500 var(--text-xs)/1 var(--font-mono); text-transform: uppercase; letter-spacing: .06em; }
   .copy-button {
     min-height: 2rem;

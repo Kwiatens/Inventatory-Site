@@ -1,5 +1,23 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import Mascot from '../components/Mascot.astro';
 import { url } from '../lib/url';
 ---
-<BaseLayout title="Page not found"><div class="wrap page-intro"><p class="eyebrow">404</p><h1>Page not found</h1><p>The address may have changed. Start with the overview or browse the documentation.</p><div class="actions"><a href={url('/')}>Back to overview</a><a href={url('/docs/')}>Open documentation</a></div></div></BaseLayout>
+<BaseLayout title="Page not found">
+  <div class="wrap page-intro">
+    <div class="title-row">
+      <Mascot pose="point" play="lost" size="2.25rem" />
+      <h1>Page not found</h1>
+    </div>
+    <p>The address may have changed. Start with the overview or browse the documentation.</p>
+    <div class="actions">
+      <a href={url('/')}>Back to overview</a>
+      <a href={url('/docs/')}>Open documentation</a>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .title-row { display: flex; align-items: center; gap: var(--space-4); margin-bottom: var(--space-6); }
+  .title-row h1 { margin: 0; }
+</style>

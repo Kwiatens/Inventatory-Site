@@ -90,6 +90,9 @@ Allowed:
 - The lockup's boot animation, played once when the page loads (`animate` on the logo).
 - The "What the system does" line types in once, the first time it is on screen. Reduced motion
   and no-JavaScript visitors see the full line at once.
+- The mascot points and shakes once on the 404 page, when its page-not-found text renders. This is
+  a response to the page state, not a second reveal. Reduced motion shows the pointing pose.
+- The mascot dips once after a successful copy in the install block. It plays only on success.
 - The hero video, the film, and the Scan R1 demo, each on its own timeline.
 - Short colour transitions of 120 ms or less.
 
@@ -121,6 +124,7 @@ and any animation of layout. Everything respects `prefers-reduced-motion`.
 | `src/components/home/Highlights.astro` | Feature rows with pixel icons |
 | `src/components/home/Scanner.astro` | Scan R1 section |
 | `src/components/PlatformInstallSelector.astro` | OS tabs and install commands |
+| `src/components/Mascot.astro` | The project mascot: the mark's chevron, rest and point poses, one-shot motion |
 | `src/styles/tokens.css` | Colours, type scale, spacing, layout tokens |
 | `src/styles/pixel.css` | The pixel grid (`--px`), the notched `.press` button, the link arrows |
 
@@ -145,5 +149,8 @@ Then look at the result:
 Remove an item from this list when it is settled.
 
 - **CAD destination.** `scanner.bundle.href` is empty, so the purchase button reads `Coming soon`.
+- **Mascot direction.** The Caret concept is built on the 404 page and the install block. The
+  scanner states and a more expressive character are not built. The point pose reads as a plain
+  pointer at 36 px, so it may need a larger sprite.
 - **Body font.** Space Grotesk is kept for now. It is a common default in generated interfaces,
   so a replacement may be worth a look once the layout is settled.

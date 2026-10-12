@@ -95,6 +95,13 @@ if (!homepage) {
 const download = documents.get(base + '/download/')?.$;
 if (!download) errors.push('Download page missing from production output.');
 else verifyInstallSelector(download, '#download-platforms', 'Download page');
+if (download && download('.mascot').length) errors.push('The download page must not show the mascot.');
+const notFound = documents.get(base + '/404.html')?.$;
+if (!notFound) errors.push('404 page missing from production output.');
+else {
+  if (notFound('.mascot').length !== 1) errors.push('The 404 page must show one mascot.');
+  if (notFound('.eyebrow').length) errors.push('The 404 page must not keep the eyebrow label.');
+}
 if (!existsSync(join(root, 'pagefind/pagefind.js'))) errors.push('Documentation search index missing.');
 if (errors.length) { console.error(errors.join('\n')); process.exit(1); }
 console.log('Verified ' + documents.size + ' HTML pages and ' + links + ' internal links/assets/fragments under ' + (base || '/') + '. CSS assets, search index, static workflow, platform installers, and scanner media present.');
