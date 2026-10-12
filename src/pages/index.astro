@@ -272,7 +272,10 @@ import { url } from '../lib/url';
   }
 
   @media (max-width: 44rem) {
-    .hero { min-height: auto; padding-block: var(--space-12); }
+    /* On phones the art gets a band of its own above the text, so it never sits behind the claim. */
+    .hero { display: block; min-height: auto; padding-block: var(--space-6) var(--space-12); }
+    .hero-bg { position: relative; inset: auto; height: 15.5rem; margin-inline: calc(var(--gutter) * -1); }
+    .hero-inner { margin-top: var(--space-8); }
     .claim { margin-top: var(--space-8); }
     .r1 {
       grid-template-columns: 1fr;

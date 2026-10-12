@@ -23,8 +23,9 @@ Top to bottom:
    page's link has a 1px accent underline.
 2. **Hero**: left-aligned, in the column. The logo lockup, then the H1 claim, then one summary
    sentence, then the primary button (`.press`) and a secondary text link to `#how`. The product
-   turntable video plays behind it on the pixel grid. On desktop (44rem and up) the art is shifted 9%
-   to the right so it clears the claim and the summary.
+   turntable video plays on the pixel grid. On desktop (44rem and up) it sits behind the text, shifted
+   9% to the right so it clears the claim and the summary. On phones (44rem and below) it is a band of
+   its own, 15.5rem tall and full bleed, above the text.
 3. **What the system does** (`#how`): one short line set large on the page, with no rule above it,
    currently "Here’s what the system does.". It types itself in once when it enters the screen, with
    an accent caret that goes when it finishes. Then the film (`components/concept/Film.astro`). The
@@ -141,8 +142,6 @@ Then look at the result:
 
 Remove an item from this list when it is settled.
 
-- **Hero art on phones.** On a 390 px screen the turntable art still sits behind the claim and the
-  summary. The desktop shift is not applied there yet.
 - **CAD destination.** `scanner.bundle.href` is empty, so the purchase button reads `Coming soon`.
 - **Body font.** Space Grotesk is kept for now. It is a common default in generated interfaces,
   so a replacement may be worth a look once the layout is settled.
