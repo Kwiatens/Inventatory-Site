@@ -29,7 +29,7 @@ import { url } from '../lib/url';
 
     <div class="wrap hero-inner">
       <div class="hero-logo">
-        <Lockup tone="flat" cursor animate label="Inventatory" />
+        <Lockup tone="flat" cursor animate shadow={false} label="Inventatory" />
       </div>
       <h1 class="claim">{hero.title.join(' ')}</h1>
       <p class="summary">{hero.summary}</p>
@@ -161,8 +161,7 @@ import { url } from '../lib/url';
   .hero-logo {
     width: min(100%, 36rem);
     --lockup-word: var(--text);
-    --lockup-mark: var(--accent);
-    --lockup-shadow: #1f2826;
+    --lockup-mark: var(--text);
   }
 
   .claim {

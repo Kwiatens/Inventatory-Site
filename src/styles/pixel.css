@@ -31,7 +31,7 @@
    and right, in the lockup's shadow colour. */
 .px-head, .px-sub {
   font-weight: 400; letter-spacing: 0; color: var(--text); text-wrap: balance;
-  text-shadow: var(--px) var(--px) 0 var(--drop-color);
+  text-shadow: none;
   -webkit-font-smoothing: none; font-smooth: never;
 }
 .px-head { font-family: 'Inventatory Pixel Head', var(--font-body); font-size: calc(var(--px) * 20); line-height: calc(var(--px) * 20); }
