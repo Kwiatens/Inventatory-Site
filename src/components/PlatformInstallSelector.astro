@@ -50,7 +50,7 @@ const linuxIcon = pixels([
       <input class="platform-radio" type="radio" name={id + '-platform'} id={id + '-linux'} value="linux" />
       <label class="platform-tab" for={id + '-linux'}>
         <svg class="os" viewBox="0 0 9 10" aria-hidden="true" shape-rendering="crispEdges">{linuxIcon.map(p => <rect x={p.x} y={p.y} width="1" height="1" fill={ICON_COLORS[p.c]} />)}</svg>
-        <span>Linux</span><small>Ubuntu 24.04</small>
+        <span>Linux</span><small>x86-64</small>
       </label>
     </div>
 
@@ -88,7 +88,7 @@ const linuxIcon = pixels([
       </section>
 
       <section class="platform-panel" data-platform-panel="linux" aria-labelledby={id + '-linux-title'}>
-        <h3 id={id + '-linux-title'} class="sr-only">Ubuntu 24.04 LTS · x86-64</h3>
+        <h3 id={id + '-linux-title'} class="sr-only">Linux · x86-64</h3>
         <p class="platform-lead">Paste the command into a terminal. The verified installer puts Inventatory in <code>~/.local/bin/inventatory</code>.</p>
         <div class="terminal frame">
           <div class="terminal-bar">

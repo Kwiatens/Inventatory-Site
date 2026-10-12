@@ -1,21 +1,21 @@
 ---
 title: "Install on Windows and Linux"
-description: "Install the Windows x64 or Ubuntu Linux x86-64 public beta and complete first-run setup."
+description: "Install the Windows x64 or Linux x86-64 public beta and complete first-run setup."
 ---
 
 ## Requirements
 
-- Windows x64, or Ubuntu 24.04 LTS on x86-64, with a writable folder for application data.
+- Windows x64, or Linux x86-64 with glibc 2.34 or newer (tested on Ubuntu 22.04, Debian 12, AlmaLinux 9 and Fedora 44), with a writable folder for application data.
 - A terminal window at least **100 columns × 30 rows**. A smaller window shows a resize notice.
 - Internet access to download the release. Core inventory data is stored locally.
 
-Ubuntu needs the runtime libraries `libsecret-1-0`, `libcurl4`, `libssl3`, and `libglib2.0-0`. Secret storage also requires a running Secret Service provider such as GNOME Keyring. The supported Linux target is Ubuntu 24.04 LTS x86-64.
+Linux needs OpenSSL 3, libsecret, libcurl and GLib at runtime. On Ubuntu and Debian these are `libssl3`, `libsecret-1-0`, `libcurl4` and `libglib2.0-0`; on Fedora and RHEL they are `openssl-libs`, `libsecret`, `libcurl` and `glib2`. Label printing needs `cups-client` (`lp` and `lpstat`). Secret storage also requires a running Secret Service provider such as GNOME Keyring or KWallet. The release is built on AlmaLinux 9, which sets its floor at glibc 2.34; other x86-64 distributions with glibc 2.34 or newer should also work.
 
 ## Download and launch
 
 1. Open the [download page](../../../download/#download-platforms) and select Windows or Linux.
 2. Read the notes for the current prerelease before updating an existing installation, and make a backup of your inventory.
-3. Follow the displayed platform command. The Windows installer verifies the package before activation. On Ubuntu, the installer checks the downloaded archive and installer against the published SHA-256 manifest and places the executable at `~/.local/bin/inventatory`.
+3. Follow the displayed platform command. The Windows installer verifies the package before activation. On Linux, the installer checks the downloaded archive and installer against the published SHA-256 manifest, confirms that the program starts, and places the executable at `~/.local/bin/inventatory`.
 
 Launch Inventatory and complete the first-run wizard. On Windows, setup can create a desktop shortcut. On Linux, run `~/.local/bin/inventatory` from a terminal; add `~/.local/bin` to your `PATH` if you want to use the shorter `inventatory` command.
 

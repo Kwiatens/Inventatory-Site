@@ -3,7 +3,7 @@ title: "Introduction"
 description: "Start using Inventatory to manage electronic component stock and physical locations."
 ---
 
-Inventatory is an open-source terminal inventory application for Windows and Ubuntu Linux x86-64, with an optional, dedicated handheld scanner. The desktop application owns your local inventory, rack locations, projects, and history.
+Inventatory is an open-source terminal inventory application for Windows and x86-64 Linux, with an optional, dedicated handheld scanner. The desktop application owns your local inventory, rack locations, projects, and history.
 
 ## Start here
 
@@ -30,4 +30,4 @@ You can use the application without a scanner. DigiKey metadata enrichment, prin
 
 These guides were checked against application source on 24 September 2026. They describe the current source; controls and workflows can differ in older releases. Consult the [release notes](https://github.com/Kwiatens/Inventatory-Software/releases/latest) for your installed version.
 
-The software is in public beta. Native Linux release packages target Ubuntu 24.04 LTS x86-64. Scanner hardware and firmware distribution have not been publicly verified; read the [hardware status](scanner/status/) before planning a build or purchase.
+The software is in public beta. Native Linux release packages run on x86-64 distributions with glibc 2.34 or newer, and are tested on Ubuntu 22.04, Debian 12, AlmaLinux 9 and Fedora 44. Scanner hardware and firmware distribution have not been publicly verified; read the [hardware status](scanner/status/) before planning a build or purchase.
