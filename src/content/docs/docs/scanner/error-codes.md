@@ -3,17 +3,17 @@ title: "Error codes"
 description: "What each Scan R1 error code means, where it appears on the scanner and what to check."
 ---
 
-Every problem the scanner reports has an error code: three letters, a dash and two digits. Find the code on the screen and look it up here. A code keeps its number, and a retired code keeps its entry.
+Every problem the scanner reports has an error code: three letters, a dash and two digits. Find the code on the screen and look it up here. A code keeps its number, and a number that is retired is never used again.
 
 ## Where the codes appear
 
-- **Fault mark.** While a problem stands, a black exclamation mark shows at the top right of the screen. A problem is the barcode scanner not running, a queue that cannot be read, or a blocked sync. The main screen then reads **There is a problem** with the code under it, and its footer offers `# Fault info`. Press `#` for the explanation. The menu offers the same action.
+- **Fault mark.** While a problem stands, a black exclamation mark shows at the top right of the screen. A problem is the barcode scanner not running, a queue that cannot be read, a blocked sync, or a battery reading that cannot be trusted. The main screen then reads **There is a problem** with the code under it, and its footer offers `# Fault info`. Press `#` for the explanation. The menu offers the same action.
 - **Result screens.** A failed action shows its message, with the code on the line below.
 - **Pairing screens.** The code is on the bottom line.
 - **Print failures.** The code is under the message, in place of the usual hint.
 - **Start-up.** A start-up stage that fails shows its code under the stage name.
 
-Battery warnings and a barcode the scanner does not recognise show no code. Their entries below give the words the screen shows instead.
+The low and empty battery warnings show no code. Their entries below give the words the screen shows instead.
 
 When several problems stand at once, the main screen shows each code in turn, about every three seconds. The fault info screen turns with it, so `#` explains the code on show.
 
@@ -22,15 +22,12 @@ When several problems stand at once, the main screen shows each code in turn, ab
 | Code | Problem |
 | --- | --- |
 | [SCN-01](#scn-01-scanner-not-replying) | Scanner not replying |
-| [SCN-02](#scn-02-barcode-not-recognised) | Barcode not recognised |
 | [SCN-03](#scn-03-scan-data-cannot-be-saved) | Scan data cannot be saved |
 | [STO-01](#sto-01-queue-full) | Queue full |
 | [STO-02](#sto-02-scan-not-saved) | Scan not saved |
 | [STO-03](#sto-03-queue-unreadable) | Queue unreadable |
 | [STO-04](#sto-04-could-not-repair-queue) | Could not repair queue |
 | [STO-05](#sto-05-could-not-discard-scan) | Could not discard scan |
-| [SYN-01](#syn-01-pc-app-too-old) | PC app too old |
-| [SYN-02](#syn-02-pc-does-not-accept-the-scanner) | PC does not accept the scanner |
 | [SYN-03](#syn-03-sync-blocked) | Sync blocked |
 | [PAI-01](#pai-01-pairing-locked) | Pairing locked |
 | [PAI-02](#pai-02-could-not-save-setup) | Could not save setup |
@@ -43,8 +40,6 @@ When several problems stand at once, the main screen shows each code in turn, ab
 | [PRT-01](#prt-01-pc-or-printer-offline) | PC or printer offline |
 | [PRT-02](#prt-02-pc-offline) | PC offline |
 | [PRT-03](#prt-03-refresh-presets-first) | Refresh presets first |
-| [PWR-01](#pwr-01-battery-low) | Battery low |
-| [PWR-02](#pwr-02-battery-empty) | Battery empty |
 | [PWR-03](#pwr-03-battery-not-read) | Battery not read |
 
 ## Scanner
@@ -62,21 +57,15 @@ When several problems stand at once, the main screen shows each code in turn, ab
 
 The device checks the scanner only at start-up and when it wakes from standby. If the scanner is unplugged while the device is on, no fault shows until the device restarts.
 
-### SCN-02 Barcode not recognised
-
-**Shown:** nothing. The screen does not change, and the scan is ignored.
-
-**Means:** the barcode is neither an Inventatory code nor a standard component Data Matrix label. Scans are also ignored while a confirmation, a firmware update or a label print is on screen.
-
-**What to do:** scan an Inventatory code or a standard component label, with the scanner aimed at the whole code.
+A barcode the scanner does not recognise is ignored, and the screen does not change. Scans are also ignored while a confirmation, a firmware update or a label print is on screen. Neither case shows a code. To add a scan, use an Inventatory code or a standard component label, with the scanner aimed at the whole code.
 
 ### SCN-03 Scan data cannot be saved
 
 **Shown:** the result "Scan data cannot be saved", with SCN-03 below it.
 
-**Means:** the code is empty or longer than 64 characters, so the device will not keep it. The scan is not queued.
+**Means:** the scanner read a component label whose part name is longer than 64 characters, and the label has no valid part number to use instead. The device will not keep a name that long, so the scan is not queued.
 
-**What to do:** scan the label again. If the same label always fails, its code is longer than the device accepts.
+**What to do:** scan the label again. If the same label always fails, the device cannot store it. Report the label.
 
 ## Offline queue and storage
 
@@ -127,27 +116,11 @@ Scans wait on the device until the PC accepts them. The codes below concern that
 
 ## Sync with the PC
 
-### SYN-01 PC app too old
-
-**Shown:** the result "Protocol v1 required", with SYN-01 below it. It appears while scans are waiting to be sent.
-
-**Means:** the Inventatory app on the PC does not speak the scanner's protocol version.
-
-**What to do:** update Inventatory on the PC, then keep the PC running so the queue can send.
-
-### SYN-02 PC does not accept the scanner
-
-**Shown:** the result "Check device token", with SYN-02 below it. It appears while scans are waiting to be sent.
-
-**Means:** the PC refused the scanner's pairing, so it will not accept its scans.
-
-**What to do:** pair the scanner again. Open the menu, choose `2 Device settings`, then `3 Pair with new PC`, and press `A` to confirm. Holding `#` on the Ready screen opens the same confirmation. Confirming removes the saved Wi-Fi and pairing, then the scanner starts pairing again. The pairing steps are in [Connection and setup](../setup/).
-
 ### SYN-03 Sync blocked
 
 **Shown:** the main screen reads "There is a problem" with "Error code SYN-03" under it, in turn with any other problem. The menu offers "3 Discard stuck scan".
 
-**Means:** the PC refused the oldest queued scan five times in a row. The device keeps that scan, and the scans queued behind it wait.
+**Means:** the PC answered the oldest queued scan with an error, or did not accept it, five times in a row. The device keeps that scan, and the scans queued behind it wait.
 
 **What to do:** check the scan on the PC. If the PC should have accepted it, fix the cause and the queue sends again. If the scan has to go, press `C`, then `3`, then `A`. A discarded scan is deleted for good.
 
@@ -181,7 +154,7 @@ Scans wait on the device until the PC accepts them. The codes below concern that
 
 **Shown:** the result "Could not clear pairing", with PAI-04 below it.
 
-**Means:** the scanner could not remove its pairing, so it keeps the current one.
+**Means:** the scanner could not remove its pairing, so it keeps the current one. This happens when the network service stays busy for more than a second, or the stored setup cannot be cleared.
 
 **What to do:** try the re-pair again. If it keeps failing, restart the scanner.
 
@@ -249,35 +222,27 @@ Scans wait on the device until the PC accepts them. The codes below concern that
 
 ## Battery
 
-The battery level is an estimate. The warnings below come from it.
+The battery level is an estimate. The low and empty warnings below come from it. They show no code. Only a battery reading that cannot be trusted has one, PWR-03.
 
-### PWR-01 Battery low
+### Battery low or empty
 
-**Shown:** the screen "Battery low", with "Dock to charge" and a countdown, "Powering off in N s". At start-up, the screen reads "Battery low" with "Charge to power on". No code appears.
+**Shown:** for a low battery, the screen "Battery low", with "Dock to charge" and a countdown, "Powering off in N s". At start-up, it reads "Battery low" with "Charge to power on". For an empty battery, the screen reads "Battery empty", with "Charge to power on", for about four seconds, then the scanner powers off. Neither warning shows a code.
 
-**Means:** the battery is at about 10 percent or less. The scanner powers off after 60 seconds unless it is docked. At start-up, a low battery that is not docked is refused the same way, and the scanner goes back to sleep.
+**Means:** a low battery is at about 10 percent or less. The scanner powers off after 60 seconds unless it is docked. At start-up, a low battery that is not docked is refused the same way, and the scanner goes back to sleep. An empty battery is at about 3 percent or less.
 
-**What to do:** put the scanner in its dock. Charging cancels the countdown.
-
-### PWR-02 Battery empty
-
-**Shown:** the screen "Battery empty", with "Charge to power on". It stays for about four seconds, then the scanner powers off. No code appears.
-
-**Means:** the battery is at about 3 percent or less.
-
-**What to do:** charge the scanner in its dock before you use it.
+**What to do:** put the scanner in its dock. Charging cancels the countdown. Charge the scanner in its dock before you use it.
 
 ### PWR-03 Battery not read
 
-**Shown:** the top bar shows no battery level, and no warning appears. No code appears.
+**Shown:** on the main screen, "There is a problem" with PWR-03 below it, in turn with any other code that stands. The top bar shows the warning mark and no battery level. `#` opens the fault info screen, which reads "Battery not read", "Voltage not valid" and "Check battery wiring".
 
-**Means:** the battery voltage reads below 2.5 V. The scanner cannot tell how much charge is left, so it does not warn or power off because of the battery.
+**Means:** the battery voltage has been outside the range the scanner accepts, 2.5 V to 4.5 V, for four seconds in a row. A battery that is not connected, or a broken voltage wire, can cause this. The scanner cannot tell how much charge is left, so it does not warn or power off because of the battery.
 
-**What to do:** check the battery connection, then charge the battery. If the top bar still shows no level, report the code.
+**What to do:** check the battery connection and the voltage wiring. If the code stays after the battery is connected, report it.
 
 ## Codes from the PC
 
-Some results come from the PC rather than the scanner. The scanner then shows the message and the code the PC sent. Those codes are not in this list, because the PC application defines them.
+Some results come from the PC rather than the scanner. The scanner then shows the message and the code the PC sent, on the line where a scanner code would be, such as `unknown_item` for an item the PC does not have. Those codes are not in this list, because the PC application defines them.
 
 ## Report a code that is not listed
 
