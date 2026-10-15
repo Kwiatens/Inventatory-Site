@@ -3,7 +3,7 @@ title: "Error codes"
 description: "What each Scan R1 error code means, where it appears on the scanner and what to check."
 ---
 
-Every problem the scanner reports has an error code: three letters, a dash and two digits. Find the code on the screen and look it up here. A code keeps its number, and a number that is retired is never used again.
+Every problem the scanner reports has an error code: three letters, a dash and two digits. Find the code on the screen and look it up here. The numbers run in order within each area, with no gaps.
 
 ## Where the codes appear
 
@@ -22,13 +22,13 @@ When several problems stand at once, the main screen shows each code in turn, ab
 | Code | Problem |
 | --- | --- |
 | [SCN-01](#scn-01-scanner-not-replying) | Scanner not replying |
-| [SCN-03](#scn-03-scan-data-cannot-be-saved) | Scan data cannot be saved |
+| [SCN-02](#scn-02-scan-data-cannot-be-saved) | Scan data cannot be saved |
 | [STO-01](#sto-01-queue-full) | Queue full |
 | [STO-02](#sto-02-scan-not-saved) | Scan not saved |
 | [STO-03](#sto-03-queue-unreadable) | Queue unreadable |
 | [STO-04](#sto-04-could-not-repair-queue) | Could not repair queue |
 | [STO-05](#sto-05-could-not-discard-scan) | Could not discard scan |
-| [SYN-03](#syn-03-sync-blocked) | Sync blocked |
+| [SYN-01](#syn-01-sync-blocked) | Sync blocked |
 | [PAI-01](#pai-01-pairing-locked) | Pairing locked |
 | [PAI-02](#pai-02-could-not-save-setup) | Could not save setup |
 | [PAI-03](#pai-03-check-wi-fi-details) | Check Wi-Fi details |
@@ -40,7 +40,7 @@ When several problems stand at once, the main screen shows each code in turn, ab
 | [PRT-01](#prt-01-pc-or-printer-offline) | PC or printer offline |
 | [PRT-02](#prt-02-pc-offline) | PC offline |
 | [PRT-03](#prt-03-refresh-presets-first) | Refresh presets first |
-| [PWR-03](#pwr-03-battery-not-read) | Battery not read |
+| [PWR-01](#pwr-01-battery-not-read) | Battery not read |
 
 ## Scanner
 
@@ -59,9 +59,9 @@ The device checks the scanner only at start-up and when it wakes from standby. I
 
 A barcode the scanner does not recognise is ignored, and the screen does not change. Scans are also ignored while a confirmation, a firmware update or a label print is on screen. Neither case shows a code. To add a scan, use an Inventatory code or a standard component label, with the scanner aimed at the whole code.
 
-### SCN-03 Scan data cannot be saved
+### SCN-02 Scan data cannot be saved
 
-**Shown:** the result "Scan data cannot be saved", with SCN-03 below it.
+**Shown:** the result "Scan data cannot be saved", with SCN-02 below it.
 
 **Means:** the scanner read a component label whose part name is longer than 64 characters, and the label has no valid part number to use instead. The device will not keep a name that long, so the scan is not queued.
 
@@ -116,9 +116,9 @@ Scans wait on the device until the PC accepts them. The codes below concern that
 
 ## Sync with the PC
 
-### SYN-03 Sync blocked
+### SYN-01 Sync blocked
 
-**Shown:** the main screen reads "There is a problem" with "Error code SYN-03" under it, in turn with any other problem. The menu offers "3 Discard stuck scan".
+**Shown:** the main screen reads "There is a problem" with "Error code SYN-01" under it, in turn with any other problem. The menu offers "3 Discard stuck scan".
 
 **Means:** the PC answered the oldest queued scan with an error, or did not accept it, five times in a row. The device keeps that scan, and the scans queued behind it wait.
 
@@ -222,7 +222,7 @@ Scans wait on the device until the PC accepts them. The codes below concern that
 
 ## Battery
 
-The battery level is an estimate. The low and empty warnings below come from it. They show no code. Only a battery reading that cannot be trusted has one, PWR-03.
+The battery level is an estimate. The low and empty warnings below come from it. They show no code. Only a battery reading that cannot be trusted has one, PWR-01.
 
 ### Battery low or empty
 
@@ -232,9 +232,9 @@ The battery level is an estimate. The low and empty warnings below come from it.
 
 **What to do:** put the scanner in its dock. Charging cancels the countdown. Charge the scanner in its dock before you use it.
 
-### PWR-03 Battery not read
+### PWR-01 Battery not read
 
-**Shown:** on the main screen, "There is a problem" with PWR-03 below it, in turn with any other code that stands. The top bar shows the warning mark and no battery level. `#` opens the fault info screen, which reads "Battery not read", "Voltage not valid" and "Check battery wiring".
+**Shown:** on the main screen, "There is a problem" with PWR-01 below it, in turn with any other code that stands. The top bar shows the warning mark and no battery level. `#` opens the fault info screen, which reads "Battery not read", "Voltage not valid" and "Check battery wiring".
 
 **Means:** the battery voltage has been outside the range the scanner accepts, 2.5 V to 4.5 V, for four seconds in a row. A battery that is not connected, or a broken voltage wire, can cause this. The scanner cannot tell how much charge is left, so it does not warn or power off because of the battery.
 
