@@ -43,6 +43,7 @@ export default defineConfig({
         { label: 'Scan R1 overview', slug: 'docs/scanner' },
         { label: 'Connection and setup', slug: 'docs/scanner/setup' },
         { label: 'Using a paired scanner', slug: 'docs/scanner/usage' },
+        { label: 'Error codes', slug: 'docs/scanner/error-codes' },
         { label: 'Hardware and firmware status', slug: 'docs/scanner/status' },
       ]},
       { label: 'Project resources', items: [

@@ -21,6 +21,7 @@ Public hardware and firmware distribution have not been verified. These guides d
 
 - [Connect a compatible device](setup/).
 - [Use a paired scanner](usage/).
+- [Look up an error code](error-codes/).
 - [Read hardware and firmware status](status/).
 
 No authentic scanner photograph or demonstration recording was supplied for this website. Product imagery will be added when available; the site does not substitute a fictional device.
