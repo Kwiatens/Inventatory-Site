@@ -81,7 +81,7 @@ Scans wait on the device until the PC accepts them. The codes below concern that
 
 ### STO-02 Scan not saved
 
-**Shown:** the result "Scan storage write failed", with STO-02 below it. If the scan storage did not open at start-up, every scan shows this code.
+**Shown:** the result "Scan storage write failed", with STO-02 below it. If the scan storage did not open at start-up, or the queue cannot be read (STO-03), every scan shows this code.
 
 **Means:** the device could not write the scan to its storage. The scan is not queued, and the device does not show it as queued.
 
@@ -91,7 +91,7 @@ Scans wait on the device until the PC accepts them. The codes below concern that
 
 **Shown:** the main screen reads "There is a problem" with "Error code STO-03" under it, in turn with any other problem. The menu offers "3 Repair scan queue".
 
-**Means:** the saved queue was written by another firmware version, or its header is damaged. The device cannot read it, so it cannot send those scans.
+**Means:** the saved queue holds scans that were written by another firmware version, or its header is damaged. The device cannot read those scans, so it cannot send them, and it cannot save new scans until the queue is repaired. An empty queue from another version does not show this code: after an update, the device takes it over.
 
 **What to do:** press `C`, then `3`, then `A`. The repair screen says what it will delete:
 
