@@ -21,10 +21,7 @@ import { url } from '../lib/url';
 <BaseLayout title="Inventory for electronics">
   <section class="hero" aria-label="Introduction">
     <div class="hero-bg" aria-hidden="true">
-      <video class="hero-video" autoplay loop muted playsinline preload="auto" poster={url('/media/scan-r1-poster.png')}>
-        <source src={url('/media/scan-r1-turntable.webm')} type="video/webm" />
-      </video>
-      <canvas class="hero-pixels"></canvas>
+      <span class="hero-novideo">no video</span>
     </div>
 
     <div class="wrap hero-inner">
@@ -65,7 +62,6 @@ import { url } from '../lib/url';
 
 <script>
   import { playScanR1 } from '../lib/scan-player';
-  import { pixelVideo } from '../lib/pixel-video';
 
   // Keys flash in the sprite's keypad (and on a face-on keypad, when there is one).
   const press = (root: Element, key: string) => {
@@ -82,25 +78,6 @@ import { url } from '../lib/url';
     still: ['pick', 4200],
     onEvent: (_, event) => { if (event.startsWith('key:')) press(r1, event.slice(4)); },
   });
-
-  // ---------- Hero background video: 0.5s persistence check on visibility ----------
-  const heroVideo = document.querySelector<HTMLVideoElement>('.hero-video');
-  const heroPixels = document.querySelector<HTMLCanvasElement>('.hero-pixels');
-  if (heroVideo && heroPixels) pixelVideo(heroVideo, heroPixels);
-  if (heroVideo) {
-    let heroTimer: ReturnType<typeof setTimeout> | null = null;
-    new IntersectionObserver(([e]) => {
-      if (heroTimer) clearTimeout(heroTimer);
-      const inView = e.isIntersecting;
-      heroTimer = setTimeout(() => {
-        if (inView) {
-          heroVideo.play().catch(() => {});
-        } else {
-          heroVideo.pause();
-        }
-      }, 500);
-    }, { threshold: 0.1 }).observe(heroVideo);
-  }
 
 </script>
 
@@ -134,23 +111,13 @@ import { url } from '../lib/url';
     overflow: hidden;
   }
 
-  /* The video is the source; the canvas shows it on the art grid (lib/pixel-video). */
-  .hero-video {
+  .hero-novideo {
     position: absolute;
-    width: 1px;
-    height: 1px;
-    opacity: 0;
-  }
-
-  .hero-pixels {
-    display: block;
-    image-rendering: pixelated;
-    image-rendering: crisp-edges;
-  }
-
-  /* Clear of the claim: the scanner starts to the right of "inventory". */
-  @media (min-width: 44rem) {
-    .hero-pixels { transform: translateX(20%); }
+    right: var(--space-6);
+    bottom: var(--space-6);
+    color: var(--text-muted, var(--text));
+    font-size: 0.75rem;
+    opacity: 0.6;
   }
 
   .hero-inner {

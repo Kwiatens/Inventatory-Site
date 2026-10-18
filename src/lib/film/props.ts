@@ -296,7 +296,7 @@ export function labelBig(): Bitmap {
   text(g, 'mono', '0603', L + 3, 53, C.bone);
   text(g, 'mono', 'YAGEO', L + pw + 3, 53, C.ink);
   // the parameters: a rule, then two columns of tiles about a hairline
-  g.fillStyle = C.ink; g.fillRect(L, 58, 80, 1); g.fillRect(45, 61, 1, 36);
+  g.fillStyle = C.ink; g.fillRect(L, 58, 80, 1); g.fillRect(45, 61, 1, 20);
   text(g, 'tiny', 'POWER', L, 65, C.ink); text(g, 'bold', '100mW', L, 75, C.ink);
   text(g, 'tiny', 'TEMPCO', 48, 65, C.ink); text(g, 'mono', '\u00b1100ppm', 48, 74, C.ink);
   text(g, 'tiny', 'TYPE', L, 85, C.ink); text(g, 'mono', 'Thick Film', L, 94, C.ink);

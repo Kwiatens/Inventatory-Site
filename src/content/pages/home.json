@@ -76,8 +76,8 @@
     },
     "bundle": {
       "title": "Official CAD files",
-      "text": "The enclosure and charging dock, designed and tested for printing. Pay what you want to support the project.",
-      "pricing": "Pay what you want",
+      "text": "The enclosure and charging dock, designed and tested for printing.",
+      "pricing": "N/A",
       "delivery": "Digital download",
       "cta": "Get the CAD files",
       "href": "",
