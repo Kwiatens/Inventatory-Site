@@ -24,6 +24,11 @@ MATERIALS = {
     "key": "kK",
     "pad": "4",
     "lit": "T",
+    "bag": "mno",      # anti-static bag film
+    "pcb": "pqr",      # solder mask
+    "gold": "Yy",      # pads, pins
+    "steel": "stu",    # the monitor's case
+    "screen": "H",     # a dark screen, printed with the app
 }
 
 def band(lit, n):
@@ -52,8 +57,11 @@ class Scene:
         r, u, _ = view(az, el)
         return (float((P @ r).min()), float((P @ r).max()), float((P @ u).min()), float((P @ u).max()))
 
-    def render(self, az, el, width, plane=None, bounds=None, depth=False, persp=None, px_per_mm=None):
+    def render(self, az, el, width, plane=None, bounds=None, depth=False, persp=None, px_per_mm=None, textures=None):
         """plane: (pid, origin, U, V) -> report (u, v) for that part's pixels.
+        textures: {pid: (origin, U, V, rows)}: that part is printed with rows (codes, one string
+        per row, top first; "." keeps the part's own shade) stretched over origin + u U + v V.
+        Each pixel takes the code most of its samples on the part land on (orthographic only).
         bounds: (xmin, xmax, ymin, ymax) in view space, so frames of a moving part share
         one framing; defaults to this scene's own extent (returned as "bounds").
         depth: also return "depth", each pixel's nearest point toward the viewer in mm (None
@@ -112,7 +120,10 @@ class Scene:
                 nv = nrm_b[y, x][ids_b[y, x] == pid].mean(axis=0); nv /= (np.linalg.norm(nv) or 1)
                 material, tag = self.info[pid]
                 codes = MATERIALS[material]
-                row += codes[band(float(nv @ LIGHT), len(codes))]
+                own = codes[band(float(nv @ LIGHT), len(codes))]
+                if textures and pid in textures:
+                    own = texel(textures[pid], r, u, xmin, ymax, s, x, y, ids_b[y, x] == pid, own)
+                row += own
                 if tag: tags.setdefault(tag, []).append([x, y])
                 if plane and pid == plane[0]:
                     _, O, U, V = plane
@@ -128,6 +139,22 @@ class Scene:
         if plane: out["uv"] = uv
         if depth: out["depth"] = zs
         return out
+
+def texel(tex, r, u, xmin, ymax, s, x, y, mine, own):
+    """The code a textured part shows at pixel (x, y): the texture's code under most of the
+    pixel's samples on that part (`mine`, SS x SS, row-major), "." being the part's own shade."""
+    O, U, V, rows = (np.asarray(tex[0], float), np.asarray(tex[1], float), np.asarray(tex[2], float), tex[3])
+    A = np.linalg.inv(np.array([[U @ r, V @ r], [U @ u, V @ u]]))
+    h, w = len(rows), len(rows[0])
+    votes = {}
+    for k in np.flatnonzero(mine):
+        sy, sx = divmod(int(k), SS)
+        cx = xmin + (x * SS + sx + .5) / s; cy = ymax - (y * SS + sy + .5) / s
+        uu, vv = A @ np.array([cx - O @ r, cy - O @ u])
+        ch = rows[min(h - 1, max(0, int(vv * h)))][min(w - 1, max(0, int(uu * w)))] if 0 <= uu <= 1 and 0 <= vv <= 1 else "."
+        votes[ch] = votes.get(ch, 0) + 1
+    best = max(votes, key=votes.get) if votes else "."
+    return own if best == "." else best
 
 def view(az, el):
     """Screen right, screen up and toward-the-viewer axes for a camera at azimuth az and

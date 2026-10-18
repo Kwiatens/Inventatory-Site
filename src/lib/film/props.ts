@@ -1,5 +1,5 @@
 // Concept film: the props, drawn as pixel art from photos of the real things.
-import { Canvas, dataMatrix } from '../pixel';
+import { Canvas, dataMatrix, GLYPHS } from '../pixel';
 import { bitmap, fromRects, withShadow, text, measure, fillPoly, line, C, type Bitmap } from './gfx';
 import { qr } from '../intake-art';
 
@@ -241,10 +241,12 @@ export function cap(turn = 0): Bitmap {
   return c;
 }
 
-// ---------- the tube label, after the printed prototypes (photo, 2026-10) ----------
-// Landscape; a short dark tab with the category; the part's line large and bold, cut with
-// "..."; the package; a short rule; maker and parameters; the QR code right of centre; the
-// slot bottom left; the label's code bottom right.
+// ---------- the tube label, as the app prints it ----------
+// Inventatory's part label (src/label_printer/core/LabelPrinter.cpp): 256 x 200 dots on 32 x 25 mm
+// stock, drawn here at half size. A dark header bar with the part's kind and the brand mark; the
+// value large, with its tolerance; the package in a dark pill and the maker; a rule, then the
+// parameter tiles; down the right, the QR code, the readable ID, the rack slot (rack dark, cell
+// light) and a pen field for a new slot. The values are the app's own for this part.
 /** Die-cut corners, radius r (the labels' corners are well rounded, as in the photo). */
 const rounded = (g: CanvasRenderingContext2D, w: number, h: number, r = 1) => {
   for (let y = 0; y < r; y++) {
@@ -253,21 +255,64 @@ const rounded = (g: CanvasRenderingContext2D, w: number, h: number, r = 1) => {
     g.clearRect(0, y, e, 1); g.clearRect(w - e, y, e, 1); g.clearRect(0, h - 1 - y, e, 1); g.clearRect(w - e, h - 1 - y, e, 1);
   }
 };
-
-/** The label as printed, at the close-up's scale (256 x 200 dots at a half). */
+/** A filled box with its corners cut by `r` px, as ZPL draws a rounded ^GB. */
+const pill = (g: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, color: string, r = 1) => {
+  g.fillStyle = color;
+  for (let j = 0; j < h; j++) {
+    const e = Math.max(0, r - Math.min(j, h - 1 - j));
+    g.fillRect(x + e, y + j, w - 2 * e, 1);
+  }
+};
+/** Text at twice the font's size, every pixel a 2 x 2 block. */
+const text2x = (g: CanvasRenderingContext2D, name: Parameters<typeof text>[1], str: string, x: number, y: number, color: string) => {
+  const w = measure(name, str) + 2, [c, cg] = bitmap(w, 20);
+  text(cg, name, str, 0, 15, color);
+  g.drawImage(c, 0, 0, w, 20, x, y - 30, w * 2, 40);
+  return w * 2 - 4;
+};
+/** The brand mark (the >| of the logo), one pixel a square. */
+const MARK = ['#...#', '.#..#', '..#.#', '.#..#', '#...#'];
+/** The label as printed, at the close-up's scale (256 x 200 dots at a half). Printed content
+ *  starts 5 px in from every edge, as the app's test prints land. */
 export function labelBig(): Bitmap {
-  const W = 128, H = 100;
+  const W = 128, H = 100, L = 5, CW = 82;                 // the left column: the part
   const [c, g] = bitmap(W, H);
   g.fillStyle = C.bone; g.fillRect(0, 0, W, H); rounded(g, W, H, 6);
-  g.fillStyle = C.ink; g.fillRect(5, 5, 50, 12); g.clearRect(5, 5, 1, 1); g.fillStyle = C.bone; g.fillRect(5, 5, 1, 1); g.fillRect(54, 5, 1, 1); g.fillRect(5, 16, 1, 1); g.fillRect(54, 16, 1, 1);
-  text(g, 'bold', 'Resistor', 9, 14, C.bone);
-  text(g, 'big', 'RES 10K OHM...', 5, 35, C.ink);
-  text(g, 'sans', '0603', 5, 47, C.ink);
-  g.fillStyle = C.ink; g.fillRect(5, 51, 62, 1);
-  ['Yageo', 'R 10 kOhm', 'Pwr 0.1W'].forEach((line, i) => text(g, 'sans', line, 5, 62 + i * 10, C.ink));
-  qr(19, 5).forEach((row, y) => row.forEach((on, x) => { if (on) g.fillRect(80 + x * 2, 42 + y * 2, 2, 2); }));
-  text(g, 'bold', 'R1 - B3', 5, 95, C.ink);
-  text(g, 'tiny', 'D-0412', W - 5 - measure('tiny', 'D-0412'), 95, C.ink);
+  // header bar: the kind of part, the brand mark at the right end
+  pill(g, L, 5, 118, 11, C.ink, 2);
+  text(g, 'mono', 'RESISTOR', 8, 13, C.bone);
+  g.fillStyle = C.bone;
+  MARK.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '#') g.fillRect(114 + x, 8 + y, 1, 1); }));
+  // the value: number, unit and tolerance on one baseline, centred in the left column
+  const num = '10k', tol = '1%', base = 39;
+  const wn = measure('bold', num) * 2 - 2, wu = measure('title', '\u03a9'), wt = measure('mono', '\u00b1' + tol);
+  let x = L + Math.round((CW - (wn + 1 + wu + 4 + wt)) / 2);
+  text2x(g, 'bold', num, x, base, C.ink); x += wn + 1;
+  text(g, 'title', '\u03a9', x, base, C.ink); x += wu + 4;
+  text(g, 'mono', '\u00b1' + tol, x, base, C.ink);
+  // package pill and maker
+  const pw = measure('mono', '0603') + 4;
+  pill(g, L, 45, pw, 10, C.ink, 2);
+  text(g, 'mono', '0603', L + 3, 53, C.bone);
+  text(g, 'mono', 'YAGEO', L + pw + 3, 53, C.ink);
+  // the parameters: a rule, then two columns of tiles about a hairline
+  g.fillStyle = C.ink; g.fillRect(L, 58, 80, 1); g.fillRect(45, 61, 1, 36);
+  text(g, 'tiny', 'POWER', L, 65, C.ink); text(g, 'bold', '100mW', L, 75, C.ink);
+  text(g, 'tiny', 'TEMPCO', 48, 65, C.ink); text(g, 'mono', '\u00b1100ppm', 48, 74, C.ink);
+  text(g, 'tiny', 'TYPE', L, 85, C.ink); text(g, 'mono', 'Thick Film', L, 94, C.ink);
+  // the QR code (21 modules at 1.5 px) and the readable ID under it
+  g.fillStyle = C.ink;
+  qr(21, 5).forEach((row, y) => row.forEach((on, i) => { if (on) g.fillRect(91.5 + i * 1.5, 19 + y * 1.5, 1.5, 1.5); }));
+  text(g, 'tiny', 'R-0412', 107 - Math.round(measure('tiny', 'R-0412') / 2), 57, C.ink);
+  // the rack slot: a framed chip, the rack in the dark part, the cell in the light
+  pill(g, 91, 60, 32, 12, C.ink, 2); pill(g, 106, 61, 16, 10, C.bone, 1);
+  text(g, 'mono', 'R1', 99 - Math.round(measure('mono', 'R1') / 2), 69, C.bone);
+  text(g, 'mono', 'B3', 115 - Math.round(measure('mono', 'B3') / 2), 69, C.ink);
+  // the pen field: open corner brackets under its caption
+  text(g, 'tiny', 'NEW SLOT', 91, 78, C.ink);
+  for (const [bx, by, sx, sy] of [[91, 80, 1, 1], [122, 80, -1, 1], [91, 94, 1, -1], [122, 94, -1, -1]]) {
+    g.fillRect(Math.min(bx, bx + sx * 3), by, 4, 1); g.fillRect(bx, Math.min(by, by + sy * 3), 1, 4);
+  }
   return c;
 }
 
@@ -311,23 +356,40 @@ export function labelTiny(): Bitmap {
  *  is 38 x 30 here: three quarters of the tube's height, as the real one is. */
 export const TUBE_LABEL_W = 38;
 
-// The rack's label plate, hung on its front as on the real racks: a bone card with a dark
-// header strip, a rule for the title and a dark pill for the rack's number, drawn as marks
-// (too small to read). `hot`: the card lit, as the app's blink lights a slot.
-const plates = new Map<string, Bitmap>();
-export function rackPlate(n: number, hot = false): Bitmap {
-  const key = n + (hot ? 'h' : '');
-  let b = plates.get(key);
-  if (!b) {
-    const w = 20, [c, cg] = bitmap(w, 11);
-    cg.fillStyle = hot ? C.focus : C.bone; cg.fillRect(0, 0, w, 11);
-    cg.fillStyle = C.ink; cg.fillRect(0, 0, w, 2); cg.fillRect(2, 4, w - 4, 1);
-    cg.fillRect(4, 7, w - 8, 3);
-    cg.fillStyle = hot ? C.focus : C.bone;
-    for (let i = 0; i < n; i++) cg.fillRect(6 + i * 2, 8, 1, 1);        // the pill's tally: one mark per rack number
-    b = c; plates.set(key, b);
-  }
-  return b;
+// The rack card: the app's rack label (src/label_printer/platform/LabelPrinterRack.cpp, 256 x 200
+// dots) at the few pixels it has on the film's rack. The header bar; the rack's number white on a
+// dark block, the largest thing on it; the type's electrical symbol (the resistor's box) and its
+// name to the right, the name as a line of letter marks. `w` x `h`: its size on screen, face on.
+const cards = new Map<string, Bitmap>();
+export function rackCard(w: number, h: number, number = '01'): Bitmap {
+  const key = w + 'x' + h + number;
+  let b = cards.get(key);
+  if (b) return b;
+  const [c, g] = bitmap(w, h);
+  // dots (with the printer's 3, 10 offset) to pixels
+  const X = (d: number) => Math.round((d + 3) * w / 256), Y = (d: number) => Math.round((d + 10) * h / 200);
+  g.fillStyle = C.bone; g.fillRect(0, 0, w, h);
+  g.fillStyle = C.ink;
+  g.fillRect(X(7), Y(0), X(243) - X(7), Math.max(2, Y(22) - Y(0)));                  // header bar
+  const bx = X(7), by = Y(28), bw = X(107) - X(7), bh = Y(179) - Y(28);
+  g.fillRect(bx, by, bw, bh);                                                       // number block
+  // the number, white, in the keypad's 3 x 5 digits, centred low in the block
+  const digits = [...number].map(d => GLYPHS[d]).filter(Boolean), nw = digits.length * 4 - 1;
+  let nx = bx + Math.round((bw - nw) / 2);
+  const ny = by + Math.max(1, Math.round((bh - 5) / 2) + 1);
+  g.fillStyle = C.bone;
+  for (const d of digits) { d.forEach((row, j) => [...row].forEach((ch, i) => { if (ch === '#') g.fillRect(nx + i, ny + j, 1, 1); })); nx += 4; }
+  if (ny - by >= 4) g.fillRect(bx + Math.round(bw / 2) - 2, by + 1, 4, 1);           // "RACK", above it
+  // the resistor's box with its leads, and the name under it
+  g.fillStyle = C.ink;
+  const sx0 = X(137), sx1 = X(221), sy0 = Y(62), sy1 = Math.max(sy0 + 2, Y(96)), mid = Math.round((sy0 + sy1) / 2);
+  g.fillRect(sx0, sy0, sx1 - sx0, 1); g.fillRect(sx0, sy1, sx1 - sx0, 1);
+  g.fillRect(sx0, sy0, 1, sy1 - sy0 + 1); g.fillRect(sx1 - 1, sy0, 1, sy1 - sy0 + 1);
+  g.fillRect(X(119), mid, sx0 - X(119), 1); g.fillRect(sx1, mid, X(239) - sx1, 1);
+  const ty = Y(141), tx0 = X(117), tx1 = X(243);
+  for (let x = tx0; x < tx1; x++) if ((x - tx0) % 3 !== 2) g.fillRect(x, ty, 1, Math.max(1, Y(160) - ty));
+  cards.set(key, c);
+  return c;
 }
 export function tubeBand(w = 14): Bitmap {
   const src = labelAt(TUBE_LABEL_W);

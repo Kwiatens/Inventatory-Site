@@ -1,110 +1,28 @@
 ---
 /**
- * The desktop features, one row each: a pixel icon, the claim, and the guide. Each icon is the
- * real thing the feature works with, on a 27 x 27 grid of art pixels: rack R1 and the Scan R1
- * come from CAD (scripts/pixel-art/icons.py); the bag, the BOM sheet and the History page are the
- * film's props and the app's screen, drawn here as maps, one character per pixel.
- * Copy comes from home.json (highlights).
+ * The desktop features, one row each: a pixel icon, the claim, and the guide. A row opens to show
+ * the feature on the real thing, in a video (`video` in home.json; until there is one, the slot
+ * says so). Each icon is the real thing the feature works with, rendered from a model through the
+ * film's renderer with the film's rack camera and fitted to the same box (scripts/pixel-art/icons.py):
+ * the vendor bag, rack R1 with B3 lit, the comparator board and its BOM, the Scan R1, and the PC
+ * showing the History page. Copy comes from home.json (highlights).
  */
 import { highlights } from '../../data/home';
 import { url } from '../../lib/url';
-import { CODES, hex } from '../../lib/pixel';
+import { CODES, hex, type SpriteData } from '../../lib/pixel';
 import cad from '../../data/feature-icons.json';
 
-const BOX = 27;
-/** Map characters to the palette tokens. */
-const TOKEN: Record<string, string> = {
-  s: 'surface', r: 'raised', h: 'hover', S: 'selection', d: 'divider', g: 'graphite', m: 'muted',
-  e: 'secondary', w: 'text', i: 'canvas', f: 'focus', a: 'accent', t: 'active', o: 'active-soft',
-  u: 'success', l: 'link', n: 'warning', N: 'warning-bg', x: 'danger', X: 'danger-bg',
-};
-const token = (ch: string) => `var(--${TOKEN[ch]})`;
-
-const maps: Record<string, string[]> = {
-  // The DigiKey bag, as the film's: dark anti-static film lit from the top left, the zip down the
-  // right, and its label: part number, description, DataMatrix, barcode and the QTY box.
-  import: [
-    '.dddddddddddddddddddddddsgh',
-    'hrhrhrhrhrhrrrrrrrrrrrhrsgh',
-    'hhrrrhrrrrrrrrrrrrrrrhrrsgh',
-    'hrhwwwwwwwwwwwwwwwwwhrhrsgh',
-    'hrrwiiwiiiiiiiiiiiwwsrrrsgh',
-    'hrhwwwwwwwwwwwwwwwwwsrrrsgh',
-    'hrrwiiiiiiiiiiiiiiiwsrsrsgh',
-    'hrrwwwwwwwwwwwwwwwwwsrrssgh',
-    'hrrwiiiwiiiwiiiiwwwwsrsrsgh',
-    'hrrwwwwwwwwwwwwwwwwwssrssgh',
-    'hrrwiiiiiiiiiiiiiiiwsrsssgh',
-    'hrrwiwiwwiwiiwiwiiiwssrssgh',
-    'hrrwiwwiwiwiiwiwiwiwsssssgh',
-    'hrrwiiwwwwwwwwwwiwiwssrssgh',
-    'hrswiiiiwiiwiiwiiiiwsssssgh',
-    'hrrrsssssssssssssssssssssgh',
-    'hrsrsrsrsrrrsssssssssssssgh',
-    'hsrsrsrrrrrsrsrsssrssssssgh',
-    '.ssssssssssssssssssssssssss',
-  ],
-  // The comparator board's BOM as the film prints it: Ref, Value, Pkg, Where, a folded corner.
-  // The six rack lines are picked (Where in the film's dark teal); J1 and U1 are in Drawer 2.
-  projects: [
-    'wwwwwwwwwwwwwwwwwwwwwwe....',
-    'wwwwwwwwwwwwwwwwwwwwwweeiii',
-    'wwggwwgggwwwwggwwwgggweeeii',
-    'wwwwwwwwwwwwwwwwwwwwwweeeei',
-    'weeeeeeeeeeeeeeeeeeeeeeeeii',
-    'wwwwwwwwwwwwwwwwwwwwwwwwwwi',
-    'wwiwwwiiiwwwwiiwwwtttwwwwwi',
-    'wwwwwwwwwwwwwwwwwwwwwwwwwwi',
-    'wwiwwwiiwwwwwiiwwwtttwwwwwi',
-    'wwwwwwwwwwwwwwwwwwwwwwwwwwi',
-    'wwiwwwiiiiiiwiiwwwiiiiiwwwi',
-    'wwwwwwwwwwwwwwwwwwwwwwwwwwi',
-    'wwiiiwiiwwwwwiiwwwtttwwwwwi',
-    'wwwwwwwwwwwwwwwwwwwwwwwwwwi',
-    'wwiwwwiiwwwwwiiwwwtttwwwwwi',
-    'wwwwwwwwwwwwwwwwwwwwwwwwwwi',
-    'wwiwwwiiwwwwwiiwwwtttwwwwwi',
-    'wwwwwwwwwwwwwwwwwwwwwwwwwwi',
-    'wwiwwwiwwwwwwiiwwwtttwwwwwi',
-    'wwwwwwwwwwwwwwwwwwwwwwwwwwi',
-    'wwiwwwiiiwwwwiiiiwiiiiiwwwi',
-    'wwwwwwwwwwwwwwwwwwwwwwwwwwi',
-    '.iiiiiiiiiiiiiiiiiiiiiiiiii',
-  ],
-  // The app's History page: the search bar; commits down the left, each with its source badge in
-  // the app's colours (project, checkpoint, corrective, ...); the selected checkpoint with the
-  // prompt mark; on the right its diff, each field's previous value in red, the new one in green.
-  history: [
-    'rllllllrrrrrrrrrrrrrrrrrrrr',
-    'ssssssssssssrssssssssssssss',
-    'ssssssssssssrsllllllsssssss',
-    'sssuuusmmmssrssssssssssssss',
-    'ssssssssssssrshhhhhhhhhhhhs',
-    'SfSSSSSSSSSSrsssssXXXXoooos',
-    'SSflllSeeeeSrsmmmsXxxXouuos',
-    'SfSSSSSSSSSSrsssssXXXXoooos',
-    'ssssssssssssrsssssXXXXoooos',
-    'sssnnnsmmmssrsmmmsXxxXouuos',
-    'ssssssssssssrsssssXXXXoooos',
-    'ssssssssssssrsssssXXXXoooos',
-    'ssslllsmmmmsrsmmmsXxxXouuos',
-    'ssssssssssssrsssssXXXXoooos',
-    'ssssssssssssrssssssssssssss',
-    'sssuuusmmmssrssssssssssssss',
-    'ssssssssssssrssssssssssssss',
-    'ssssssssssssrssssssssssssss',
-    'ssssssssssssrssssssssssssss',
-    'ssssssssssssrssssssssssssss',
-    'ssssssssssssrssssssssssssss',
-  ],
-};
-
+const BOX = cad.box;
+type Icon = SpriteData & { tags: Record<string, number[][]> };
 interface Run { x: number; y: number; w: number; fill: string }
-/** One rect per run of a colour along a row, the art centred in the box. */
-function runs(rows: string[], fill: (ch: string, x: number, y: number) => string | null): Run[] {
-  const w = Math.max(...rows.map(r => r.length)), ox = Math.floor((BOX - w) / 2), oy = Math.floor((BOX - rows.length) / 2);
+/** One rect per run of a colour along a row, the art centred in the box; lit (tagged) pixels in
+ *  the accent. */
+function runs(art: Icon): Run[] {
+  const lit = new Set(Object.values(art.tags ?? {}).flat().map(([x, y]) => x + ',' + y));
+  const fill = (ch: string, x: number, y: number) => ch === '.' ? null : lit.has(x + ',' + y) ? 'var(--accent)' : hex(CODES[ch]);
+  const ox = Math.floor((BOX - art.width) / 2), oy = Math.floor((BOX - art.height) / 2);
   const out: Run[] = [];
-  rows.forEach((row, y) => {
+  art.rows.forEach((row, y) => {
     for (let x = 0; x < row.length;) {
       const f = fill(row[x], x, y);
       let n = 1;
@@ -115,43 +33,33 @@ function runs(rows: string[], fill: (ch: string, x: number, y: number) => string
   });
   return out;
 }
-const fromCad = (art: { rows: string[]; tags: Record<string, number[][]> }) => {
-  const lit = new Set(Object.values(art.tags).flat().map(([x, y]) => x + ',' + y));
-  return runs(art.rows, (ch, x, y) => ch === '.' ? null : lit.has(x + ',' + y) ? 'var(--accent)' : hex(CODES[ch]));
-};
-const fromMap = (rows: string[]) => runs(rows, ch => ch === '.' ? null : token(ch));
-
-// The mascot, the lockup's prompt mark, sits on the heading's last letter, looking out to the right
-// at nothing in particular, and swings a foot over the edge. Its squares are two glyph pixels, so
-// the mark is as tall as the letter it sits on; its lowest square rests on the top of the s, and
-// the foot hangs from that square's corner, past the s's right side.
-const sitter: Array<[number, number]> = [[0, 0], [2, 2], [4, 4], [2, 6], [0, 8]];
-
-const icons: Record<string, Run[]> = {
-  import: fromMap(maps.import),
-  racks: fromCad(cad.rack),
-  projects: fromMap(maps.projects),
-  stock: fromCad(cad.scanner),
-  history: fromMap(maps.history),
-};
+const icons = cad as unknown as Record<string, Icon>;
 ---
 <section id="highlights" class="highlights" aria-labelledby="highlights-title">
   <div class="title-block">
-    <h2 id="highlights-title" class="px-head">System’s feature<span class="perch">s<svg class="sitter" viewBox="0 0 6 12" aria-hidden="true" focusable="false" shape-rendering="crispEdges">
-      {sitter.map(([x, y]) => <rect x={x} y={y} width="2" height="2" />)}
-      <rect class="foot" x="2" y="10" width="2" height="2" />
-    </svg></span></h2>
+    <h2 id="highlights-title" class="px-head">System’s features</h2>
   </div>
   <ul class="rows rule">
     {highlights.map(item => (
-      <li class="row rule">
-        <svg class="icon" viewBox={`0 0 ${BOX} ${BOX}`} aria-hidden="true" focusable="false" shape-rendering="crispEdges">
-          {icons[item.icon].map(r => <rect x={r.x} y={r.y} width={r.w} height="1" fill={r.fill} />)}
-        </svg>
-        <h3 class="title">{item.title}</h3>
-        <div class="body">
-          <p>{item.text}</p>
-          <a class="go" href={url(item.href)}>Read the guide</a>
+      <li class="row rule" data-feature>
+        <div class="head" data-head>
+          <svg class="icon" viewBox={`0 0 ${BOX} ${BOX}`} aria-hidden="true" focusable="false" shape-rendering="crispEdges">
+            {runs(icons[item.icon]).map(r => <rect x={r.x} y={r.y} width={r.w} height="1" fill={r.fill} />)}
+          </svg>
+          <h3 class="title">
+            <button type="button" class="toggle" aria-expanded="false" aria-controls={`feature-${item.id}`} data-toggle>
+              {item.title}<span class="mark" aria-hidden="true"></span>
+            </button>
+          </h3>
+          <div class="body">
+            <p>{item.text}</p>
+            <a class="go" href={url(item.href)}>Read the guide</a>
+          </div>
+        </div>
+        <div class="panel" id={`feature-${item.id}`} role="region" aria-label={`${item.title}: video`} hidden data-panel>
+          {item.video
+            ? <video class="video" controls preload="none" playsinline poster={item.poster ? url(item.poster) : undefined} src={url(item.video)}></video>
+            : <div class="video empty frame"><span class="soon">Video coming soon</span></div>}
         </div>
       </li>
     ))}
@@ -166,52 +74,68 @@ const icons: Record<string, Run[]> = {
   /* The heading is centred over the list. */
   .title-block { width: fit-content; margin: 0 auto var(--space-12); text-align: center; }
   .title-block h2 { text-align: center; }
-  /* Placed in glyph pixels from the s's own origin: helvB12's s starts one pixel in and its
-     x-height top is row 7 of the em, so the lowest square (rows 8-9 of the mark) ends on row 6. */
-  .perch { position: relative; }
-  .sitter {
-    position: absolute; left: calc(var(--px) * 6); top: calc(var(--px) * -3);
-    width: calc(var(--px) * 6); height: calc(var(--px) * 12); overflow: visible; pointer-events: none;
-  }
-  .sitter rect { fill: var(--accent); }
-  /* Three slow swings, a step every 200 ms (hang, forward, kicked up, forward), then a long rest. */
-  @keyframes swing {
-    0%, 10%, 20%, 30%, 100% { transform: translate(0, 0); }
-    2.5%, 7.5%, 12.5%, 17.5%, 22.5%, 27.5% { transform: translate(1px, 0); }
-    5%, 15%, 25% { transform: translate(2px, -1px); }
-  }
-  .sitter .foot { animation: swing 8s steps(1, end) infinite; animation-play-state: paused; }
-  .sitter[data-run] .foot { animation-play-state: running; }
-  @media (prefers-reduced-motion: reduce) { .sitter .foot { animation: none; } }
   .rows { list-style: none; margin: 0; padding: 0; background-position: 0 100%; }
-  .row {
+  .row { margin: 0; }
+  .head, .panel {
     display: grid;
-    grid-template-columns: calc(var(--px) * 27) minmax(0, 20rem) minmax(0, 1fr);
+    grid-template-columns: calc(var(--px) * 44) minmax(0, 20rem) minmax(0, 1fr);
     gap: var(--space-2) var(--space-8);
-    align-items: start;
-    margin: 0;
-    padding-block: var(--space-6);
   }
-  .icon { display: block; width: calc(var(--px) * 27); height: calc(var(--px) * 27); }
+  /* The whole row opens it; the name is the button that keyboards and screen readers use. */
+  .head { align-items: center; padding-block: var(--space-6); cursor: pointer; }
+  .icon { display: block; width: calc(var(--px) * 44); height: calc(var(--px) * 44); }
   .title { color: var(--text); font-size: var(--text-lead); font-weight: 600; line-height: 1.3; }
+  .toggle {
+    display: inline-flex; align-items: baseline; gap: var(--space-3); padding: 0; border: 0;
+    background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
+  }
+  .head:hover .toggle, .toggle:focus-visible { color: var(--focus); }
+  /* Open or shut: a pixel plus that loses its upright when the row is open. */
+  .mark {
+    flex: none; width: calc(var(--px) * 5); height: calc(var(--px) * 5); align-self: center;
+    background:
+      linear-gradient(var(--accent), var(--accent)) 0 50% / 100% var(--px) no-repeat,
+      linear-gradient(var(--accent), var(--accent)) 50% 0 / var(--px) 100% no-repeat;
+  }
+  .toggle[aria-expanded="true"] .mark { background: linear-gradient(var(--accent), var(--accent)) 0 50% / 100% var(--px) no-repeat; }
   .body { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-3); max-width: 60ch; }
   .body p { color: var(--secondary); }
   .body .go { font: var(--text-sm)/1.5 var(--font-mono); }
+  /* Open, the row shows the feature on the real thing under the name and the text, in a 16:9 slot. */
+  .panel { padding-bottom: var(--space-8); }
+  .panel[hidden] { display: none; }
+  .video { grid-column: 2 / -1; display: block; width: 100%; max-width: 44rem; aspect-ratio: 16 / 9; }
+  video.video { background: var(--canvas); }
+  /* No video yet: the framed slot, a pixel play mark and a quiet status. */
+  .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-4); }
+  .empty::before {
+    content: ''; width: calc(var(--px) * 7); height: calc(var(--px) * 10); background: var(--divider);
+    clip-path: polygon(0 0, 30% 0, 30% 10%, 45% 10%, 45% 20%, 60% 20%, 60% 30%, 75% 30%, 75% 40%, 100% 40%, 100% 60%, 75% 60%, 75% 70%, 60% 70%, 60% 80%, 45% 80%, 45% 90%, 30% 90%, 30% 100%, 0 100%);
+  }
+  .soon { color: var(--muted); font: var(--text-sm)/1 var(--font-mono); }
   @media (max-width: 40rem) {
-    .row { grid-template-columns: calc(var(--px) * 27) minmax(0, 1fr); gap: var(--space-2) var(--space-4); padding-block: var(--space-6); }
+    .head, .panel { grid-template-columns: calc(var(--px) * 44) minmax(0, 1fr); gap: var(--space-2) var(--space-4); }
+    .head { align-items: start; }
     .icon { grid-row: span 2; }
     .body { grid-column: 2; }
+    .video { grid-column: 1 / -1; }
   }
 </style>
 
 <script>
-  // The foot only swings while the heading is on screen (0.5 s debounce, as the film).
-  const sitter = document.querySelector<SVGElement>('#highlights .sitter');
-  if (sitter) {
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    new IntersectionObserver(([e]) => {
-      clearTimeout(timer);
-      timer = setTimeout(() => sitter.toggleAttribute('data-run', e.isIntersecting), 500);
-    }).observe(sitter);
+  // A row opens and shuts from anywhere on it but its links; closing it stops its video.
+  for (const row of document.querySelectorAll<HTMLElement>('[data-feature]')) {
+    const toggle = row.querySelector<HTMLButtonElement>('[data-toggle]')!;
+    const panel = row.querySelector<HTMLElement>('[data-panel]')!;
+    const set = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      panel.hidden = !open;
+      if (!open) panel.querySelector('video')?.pause();
+    };
+    const flip = () => set(toggle.getAttribute('aria-expanded') !== 'true');
+    toggle.addEventListener('click', flip);
+    row.querySelector('[data-head]')!.addEventListener('click', (e) => {
+      if (!(e.target as Element).closest('a, button')) flip();
+    });
   }
 </script>

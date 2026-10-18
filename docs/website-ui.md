@@ -31,15 +31,20 @@ Top to bottom:
    top and bottom edges dissolve into the page in dither. No caption above it. The reel opens on an
    intro (`lib/film/intro.ts`): the cursor, the lockup's prompt mark, types "See what the system can
    do", holds it, backspaces it away, and the film dithers in out of the blank. It is one canvas with
-   one timeline. The timeline has a segment per film, named from `film.names` in `home.json`. Each
-   segment is as long as its film. On phones the segments are equal and only the open film is named.
-   The open segment carries the playhead. On phones (40rem and below) the film is drawn at 2x and a
+   one timeline: a plain line for the whole loop with the playhead on it, no chapters and no names.
+   Click or drag to scrub; the arrow keys step five seconds. On phones (40rem and below) the film is drawn at 2x and a
    window follows the action: it eases towards the middle of the lit pixels and never moves past the
    film's edges.
 4. **Highlights** (`components/home/Highlights.astro`): one row per desktop feature, laid out as a
    table. The pixel icon, then the name in one shared column, then the description with its
-   `Read the guide` link. Rows are separated by dotted rules. This is a list, not a card grid. On
-   phones the name sits beside the icon and the description goes below it.
+   `Read the guide` link. Rows are separated by dotted rules. This is a list, not a card grid. The
+   name is a button with a pixel plus; a click anywhere on the row but its link opens it, and the
+   open row shows a 16:9 slot for a video of the feature on the real thing (`video` and `poster` in
+   `home.json`). Until a row has a video, its slot is a frame with a pixel play mark and
+   `Video coming soon`. Closing a row pauses its video. On phones the name sits beside the icon,
+   the description goes below it, and the video takes the full width.
+   The icons are one set: each is the real object the feature works with, rendered from a model by
+   `scripts/pixel-art/icons.py` with the film's rack camera, and fitted to the same 44 × 44 grid.
 5. **Scan R1** (`components/home/Scanner.astro`): the pixel heading and summary, the device sprite with
    its LCD and keypad, then two framed panels: `Build it yourself` and `Official CAD files`. The CAD
    panel is set apart with an accent outline and a tinted inside. While `scanner.bundle.href` is empty, a
@@ -72,7 +77,8 @@ Do:
   Use a 1px border only where it carries meaning, such as the header's bottom edge or the input
   frame of the install command.
 - Draw pixel art on the grid: rectangles on an integer grid, `shape-rendering="crispEdges"`, one
-  art pixel = `--px`. Icons are 16 × 16 grids with lit pixels in `--accent`.
+  art pixel = `--px`. The feature icons are 44 × 44 grids from `scripts/pixel-art/icons.sh`, all in
+  one camera, with lit pixels in `--accent`. Regenerate them rather than editing the JSON.
 - The top-bar logo is `--graphite` at rest. On hover only the mark turns `--accent`; the wordmark that
   unfolds on wide screens stays `--graphite`. The colour change takes 120 ms.
 - Keep hover states to colour changes. The exceptions are the brand's own pixel arrows on links
@@ -121,11 +127,21 @@ and any animation of layout. Everything respects `prefers-reduced-motion`.
 
 - Homepage copy lives in `src/content/pages/home.json`. Edit it there, not in the components.
   - `hero`: the claim, summary and buttons.
-  - `highlights.items`: one entry per row, with `icon`, `title`, `text` and `href`. The icon names
-    must match the keys in `Highlights.astro`.
+  - `highlights.items`: one entry per row, with `id`, `icon`, `title`, `text`, `href`, `video` and
+    `poster`. The icon names must match the keys in `src/data/feature-icons.json`. `video` and
+    `poster` are site paths (for example `/media/feature-racks.webm`); leave `video` empty until
+    the recording exists.
   - `scanner`: the Scan R1 copy, its open-source links, and the CAD bundle. Set
     `scanner.bundle.href` to enable the purchase button.
 - The hero summary is pinned by `scripts/verify-build.mjs`. Change the two together.
+- The film's props follow the real things. The tube label is the app's part label
+  (`src/label_printer/core/LabelPrinter.cpp` in the software repository) and the rack card is its
+  rack label (`LabelPrinterRack.cpp`), both with the app's own values for the 10K resistor in R1-B3.
+  Rack slots are named as the app's Racks page shows them: letters are columns, A to E from the left,
+  and numbers run 1 to 5 down each column from the far side toward the card. When the app's label
+  layout changes, update `labelBig` and `rackCard` in `src/lib/film/props.ts`. When the rack model
+  changes (`scripts/pixel-art/rack.py`), run `scripts/pixel-art/build.sh`; without the FreeCAD file
+  it rebuilds only the racks and keeps the scanner's sprites, then run `icons.sh` for the icons.
 - `src/data/site.ts` holds the navigation and the Scan R1 media. The header and the docs header
   both read `nav`.
 
@@ -139,7 +155,7 @@ and any animation of layout. Everything respects `prefers-reduced-motion`.
 | `src/components/BrandMark.astro` | Header brand mark |
 | `src/components/Lockup.astro` | The pixel wordmark |
 | `src/components/concept/Film.astro` | The workflow film and its timeline |
-| `src/components/home/Highlights.astro` | Feature rows with pixel icons |
+| `src/components/home/Highlights.astro` | Feature rows with pixel icons, each opening to a video slot |
 | `src/components/home/Scanner.astro` | Scan R1 section |
 | `src/components/PlatformInstallSelector.astro` | OS tabs and install commands |
 | `src/components/Mascot.astro` | The project mascot: the mark's › with a block cursor, rest and sleep poses, one-shot blink, hop, nod, shake and type |

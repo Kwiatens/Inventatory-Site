@@ -64,6 +64,15 @@ if (!homepage) {
   else if (!(canvas.attr('aria-label') ?? '').trim()) errors.push('The film must describe itself in its canvas label.');
   if (reel.find('[data-track][role="slider"]').length !== 1) errors.push('The film must have one timeline.');
   if (reel.find('canvas').length !== 1) errors.push('The reel must be one film on one canvas.');
+  // Each feature row opens, by its name's button, to its own video slot.
+  const features = homepage('#highlights [data-feature]');
+  if (!features.length) errors.push('Homepage must list the features.');
+  features.each((_, row) => {
+    const toggle = homepage(row).find('button[data-toggle][aria-controls]');
+    const id = toggle.attr('aria-controls');
+    if (toggle.length !== 1 || !id || homepage(row).find('[data-panel]').attr('id') !== id) errors.push('Each feature row must have one toggle that controls its panel.');
+    else if (!homepage(row).find('[data-panel] video, [data-panel] .video').length) errors.push('Each feature panel must hold a video slot.');
+  });
   if (homepage('[data-feature-carousel], [data-feature-slide], [data-carousel-controls]').length) errors.push('Homepage must not retain the retired carousel.');
   if (homepage('.hero .eyebrow, .hero-caption').length) errors.push('Homepage hero must not contain the removed eyebrow or screenshot caption.');
   const homepageText = homepage.text();

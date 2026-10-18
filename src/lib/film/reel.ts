@@ -12,13 +12,6 @@ const CUT = intake.CUT, FADE = 300, IN = 450, PAUSE = 1000;
 export const LOOP = INTRO + CUT + finale.RUN + PAUSE;
 /** The frame to show still (reduced motion). */
 export const POSTER = INTRO + CUT + finale.POSTER;
-/** Chapter starts, for the arrow keys. */
-export const CHAPTERS = [0, INTRO, ...intake.CHAPTERS.filter(c => c < CUT).slice(1).map(c => INTRO + c), ...finale.CHAPTERS.map(c => INTRO + CUT + c)];
-/** Each film's span on the loop: its timeline segment, in the order of home.json's film names. */
-export const FILMS = [
-  { start: INTRO, end: INTRO + CUT },
-  { start: INTRO + CUT, end: INTRO + CUT + finale.RUN },
-];
 
 export function createReel(canvas: HTMLCanvasElement) {
   const i = createIntro(canvas), a = intake.createFilm(canvas), b = finale.createFinale(canvas, a.kit);

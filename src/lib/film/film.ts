@@ -57,8 +57,6 @@ export const QUESTION = 'But why is this useful?';
 export const CUT = later(SIGN + DESK_LEN + BENCH_EXTRA);
 /** The frame to show still (reduced motion): the finished lockup. */
 export const POSTER = later(SIGN_END + BENCH_EXTRA) - 900;
-/** Chapter starts, for the scrubber. */
-export const CHAPTERS = [0, SCAN_END, FACE_END, ...[20000, PAN[0], BENCH_END, SIGN + BENCH_EXTRA, RESULT + BENCH_EXTRA].map(later)];
 // ---------- timing helpers ----------
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const seg = (t: number, a: number, b: number) => clamp((t - a) / (b - a));
@@ -69,7 +67,7 @@ const easeIn = (k: number) => k * k * k;
 const R = Math.round;
 
 // ---------- world (art px). Objects stand on one desk; the camera slides along it ----------
-const RACK = { x: 1100, y: DESK - 118 };
+const RACK = { x: 1100, y: DESK - art.filmRackFull.height };
 
 type Tagged = SpriteData & { tags: Record<string, number[][]> };
 type Pose = Tagged & { az: number; el: number; bounds: number[] };
@@ -892,19 +890,23 @@ export function createFilm(canvas: HTMLCanvasElement) {
   //    the caps in front hide it), and the cursor comes back up out of the new cap.
   // The camera centres the rack and the slot's name beside it, as one group.
   const TAG_X = 22, CAM_RACK = R(RACK.x + Math.max(rackFull.width, (slotTop['B3']?.[0] ?? 60) + TAG_X + measure('bold', P.PART.slot) + 6) / 2 - W / 2);
-  // each slot's ring: the outline of its cap, as the full rack draws it
-  const rings: Record<string, number[][]> = {};
-  for (const [tag, cells] of Object.entries(rackTags)) {
-    const set = new Set(cells.map(([x, y]) => x + ',' + y));
-    rings[tag.replace('slot-1', '')] = cells.filter(([x, y]) => [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => !set.has((x + dx) + ',' + (y + dy))));
-  }
-  const ring = (slot: string, color: string) => {
+  // each slot's ring: the outline of its cap as that rack draws it (with B3 out, more of B2 shows)
+  const ringsOf = (tags: Record<string, number[][]>) => {
+    const rings: Record<string, number[][]> = {};
+    for (const [tag, cells] of Object.entries(tags)) {
+      const set = new Set(cells.map(([x, y]) => x + ',' + y));
+      rings[tag.replace('slot-1', '')] = cells.filter(([x, y]) => [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => !set.has((x + dx) + ',' + (y + dy))));
+    }
+    return rings;
+  };
+  const ringsFull = ringsOf(rackTags), ringsEmpty = ringsOf((art.filmRackEmpty as unknown as Tagged).tags);
+  const ring = (slot: string, color: string, placed: boolean) => {
     g.fillStyle = color;
-    for (const [x, y] of rings[slot] ?? []) g.fillRect(R(RACK.x + x - camX), R(RACK.y + y), 1, 1);
+    for (const [x, y] of (placed ? ringsFull : ringsEmpty)[slot] ?? ringsFull[slot] ?? []) g.fillRect(R(RACK.x + x - camX), R(RACK.y + y), 1, 1);
   };
   // The B3 tube and the rack without it, with depth (scripts/pixel-art): the tube is drawn pixel
   // by pixel, each kept only where nothing of the rack is nearer the camera.
-  const RD = art.buildRack as unknown as { z0: number; pxPerMm: number; el: number; b3Out: string[]; tubes: Record<string, SpriteData & { x: number; y: number; depth: string[] }> };
+  const RD = art.buildRack as unknown as { z0: number; pxPerMm: number; el: number; foot: number; b3Out: string[]; tubes: Record<string, SpriteData & { x: number; y: number; depth: string[] }> };
   const zOf = (s: string, i: number) => s[2 * i] === '.' ? null : (parseInt(s.slice(2 * i, 2 * i + 2), 36) + RD.z0) / 2;
   const rackZ = RD.b3Out.map(r => Array.from({ length: r.length / 2 }, (_, i) => zOf(r, i)));
   const B3T = RD.tubes['B3'];
@@ -915,8 +917,8 @@ export function createFilm(canvas: HTMLCanvasElement) {
     return out;
   })();
   const MM_PER_PX = 1 / (RD.pxPerMm * Math.cos(RD.el * Math.PI / 180)), DZ = Math.sin(RD.el * Math.PI / 180);
-  // the tube's foot is 30 mm down in the hole: it hovers with its foot just clear of the rim
-  const IN_PX = Math.ceil(30 / MM_PER_PX), HOVER_PX = IN_PX + 4, FROM_PX = RACK.y + Math.max(...b3Pixels.map(p => p[1])) + 2;
+  // the tube's foot is RD.foot mm down in the hole: it hovers with its foot just clear of the rim
+  const IN_PX = Math.ceil(RD.foot / MM_PER_PX), HOVER_PX = IN_PX + 4, FROM_PX = RACK.y + Math.max(...b3Pixels.map(p => p[1])) + 2;
   const drawB3 = (n: number) => {
     const L = n * MM_PER_PX;
     for (const [x, y, color, z] of b3Pixels) {
@@ -971,25 +973,36 @@ export function createFilm(canvas: HTMLCanvasElement) {
     chevron(p[0], p[1], size, turn, C.accent);
   };
 
-  // The rack's label plate (props.ts rackPlate), hung on its front. The front runs down to the
-  // right along the view's slope (.4), so the plate is sheared to sit on it.
-  /** Rack n's plate; (x, y) is the rack sprite's top left on screen, z the sprite's scale. */
-  const drawPlate = (x: number, y: number, n: number, z = 1, hot = false, ctx = g) => {
-    drawAffine(ctx, P.rackPlate(n, hot), [x + 24 * z, y + 57 * z], [z, .4 * z], [0, z]);
-  };
+  // The rack card (props.ts rackCard), printed on the card's own pixels in the CAD render: each
+  // of them takes the label pixel under it, through the card's corners (scripts/pixel-art), so the
+  // label follows the card's slope on the rack's front exactly.
+  const cardArt = (() => {
+    const { o, ax, ay } = (art.filmRackFull as unknown as { card: { o: Pt; ax: Pt; ay: Pt } }).card;
+    const lw = R(Math.hypot(...ax)), lh = R(Math.hypot(...ay)), label = P.rackCard(lw, lh);
+    const src = label.getContext('2d')!.getImageData(0, 0, lw, lh).data, det = ax[0] * ay[1] - ax[1] * ay[0];
+    const [c, cg] = bitmap(rackFull.width, rackFull.height);
+    for (const [x, y] of rackTags.card ?? []) {
+      const px = x + .5 - o[0], py = y + .5 - o[1];
+      const u = clamp((px * ay[1] - py * ay[0]) / det, 0, .999), v = clamp((ax[0] * py - ax[1] * px) / det, 0, .999);
+      const k = (Math.floor(v * lh) * lw + Math.floor(u * lw)) * 4;
+      cg.fillStyle = `rgb(${src[k]},${src[k + 1]},${src[k + 2]})`; cg.fillRect(x, y, 1, 1);
+    }
+    return c;
+  })();
+  /** The rack card, on the rack sprite drawn at (x, y). */
+  const drawCard = (x: number, y: number, ctx = g) => ctx.drawImage(cardArt, R(x), R(y));
 
   function shotRack(t: number, withCursor = true) {
     camX = CAM_RACK;
     const placed = t >= SEATED;
     draw(placed ? rackFull : rackEmpty, RACK.x, RACK.y);
-    drawPlate(RACK.x - camX, RACK.y, 1);
     const [bx, by] = slotTop['B3'] ?? [60, 40];
     // the walk: a ring on each taken slot once the cursor is over it; on the free one, the ring
     // stays (the app's 700 ms blink) until the tube is in, then flashes
     const step = Math.min(ORDER.length - 1, Math.floor((t - WALK) / STEP));
     const over = t - WALK - step * STEP >= HOP * .6 || step === 0;
-    if (t > WALK && step < ORDER.length - 1 && over) ring(ORDER[step], C.accent);
-    if (t >= TAG_AT && !placed && (t < SINK[1] || Math.floor((t - SINK[1]) / 350) % 2 === 0)) ring('B3', C.focus);
+    if (t > WALK && step < ORDER.length - 1 && over) ring(ORDER[step], C.accent, placed);
+    if (t >= TAG_AT && !placed && (t < SINK[1] || Math.floor((t - SINK[1]) / 350) % 2 === 0)) ring('B3', C.focus, placed);
     // the tube: brought over the slot (slowing as it arrives), a moment's hover, lowered in; it
     // sinks the last pixel as it seats
     if (t > COME[0] && !placed) {
@@ -997,7 +1010,9 @@ export function createFilm(canvas: HTMLCanvasElement) {
         : t < LOWER[0] ? HOVER_PX : t < LOWER[1] ? lerp(HOVER_PX, 1, easeInOut(seg(t, LOWER[0], LOWER[1]))) : 0;
       drawB3(R(n));
     }
-    if (placed && t < SEATED + 600 && Math.floor((t - SEATED) / 150) % 2 === 0) ring('B3', C.focus);
+    // the card after the tube: it hangs in front of everything the tube passes behind
+    drawCard(RACK.x - camX, RACK.y);
+    if (placed && t < SEATED + 600 && Math.floor((t - SEATED) / 150) % 2 === 0) ring('B3', C.focus, placed);
     // the slot's name, pinned beside it: the leader draws out from the cursor, then the tag
     // after the hold it closes the way it opened, backwards: the tag to its middle, the leader in
     if (t > TAG_AT && t < SIGN + TAG_CLOSE[1]) {
@@ -1017,8 +1032,9 @@ export function createFilm(canvas: HTMLCanvasElement) {
   }
 
 
-  // The racks' projection, for the finale's drawer to stand on the same desk.
-  const rackPose = art.filmRackFull as unknown as Pose;
+  // The finale's drawer keeps the three-quarter view it was drawn for (the racks' old camera, az 32
+  // el 40, at the same scale); the racks now face the viewer, which would show the drawer flat.
+  const drawerPose = { az: 32, el: 40, width: 120, bounds: [2.2688, 109.3465, -26.1323, 77.934] } as unknown as Pose;
 
   // ---------- 6b'. The question ----------
   // The cursor stays where it was as the rack goes (it is not on the desk: it is Inventatory);
@@ -1181,11 +1197,11 @@ export function createFilm(canvas: HTMLCanvasElement) {
     for (const [a, b, dir] of cuts) if (t >= a && t < b) dither(g, dir > 0 ? seg(t, a, b) : 1 - seg(t, a, b));
   }
 
-  // What the finale (finale.ts) borrows: the rack's plate, the CAD projection, the cursor, and
+  // What the finale (finale.ts) borrows: the rack's card, the CAD projection, the cursor, and
   // the sign-off.
   const kit = {
-    plate: drawPlate,
-    axis: (v: V3) => linear(rackPose, v),
+    card: drawCard,
+    axis: (v: V3) => linear(drawerPose, v),
     chevron: (cx: number, cy: number, size: number, turn: number, color: string) => chevron(cx, cy, size, turn, color),
     sign: (L: number, scene: () => void, from: Pt) => { g = screenG; camX = CAM_RACK; shotSign(SIGN + L, scene, from, false); },
   };

@@ -75,8 +75,6 @@ const SIGN_HELD = 5600, SIGN_OUT = 600, END = KIT_END + SIGN_HELD + SIGN_OUT;
 export const RUN = END;
 /** The frame to show still (reduced motion): the kit. */
 export const POSTER = KIT_END - 300;
-/** Chapter starts, for the arrow keys. */
-export const CHAPTERS = [0, PAN1[0], ERASE[0], P3, KIT_END];
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const seg = (t: number, a: number, b: number) => clamp((t - a) / (b - a));
 const lerp = (a: number, b: number, k: number) => a + (b - a) * k;
@@ -87,7 +85,7 @@ type Pt = [number, number];
 type V3 = [number, number, number];
 
 export interface Kit {
-  plate: (x: number, y: number, n: number, z?: number, hot?: boolean, ctx?: CanvasRenderingContext2D) => void;
+  card: (x: number, y: number, ctx?: CanvasRenderingContext2D) => void;
   axis: (v: V3) => Pt;
   chevron: (cx: number, cy: number, size: number, turn: number, color: string) => void;
   sign: (L: number, scene: () => void, from: Pt) => void;
@@ -261,14 +259,25 @@ export function createFinale(canvas: HTMLCanvasElement, kit: Kit) {
 
   // ---------- rack R1 up close (the CAD's depth-tested picks) ----------
   type Tube = SpriteData & { x: number; y: number; depth: string[] };
-  const RD = art.buildRack as unknown as { z0: number; pxPerMm: number; el: number; depth: string[]; gone: Array<Array<[number, number, string, string]>>; tubes: Record<string, Tube> };
+  const RD = art.buildRack as unknown as { z0: number; pxPerMm: number; el: number; depth: string[]; gone: Array<Array<[number, number, string, string]>>; goneTags: Array<Record<string, number[][]>>; tubes: Record<string, Tube> };
   const fullData = art.filmRackFull as unknown as SpriteData & { tags: Record<string, number[][]> };
   const zOf = (s: string, i: number) => s[2 * i] === '.' ? null : (parseInt(s.slice(2 * i, 2 * i + 2), 36) + RD.z0) / 2;
+  // each slot's ring: the outline of its lit cap
+  const ringsOf = (tags: Record<string, number[][]>) => {
+    const rings: Record<string, number[][]> = {};
+    for (const [tag, cells] of Object.entries(tags)) {
+      const set = new Set(cells.map(([x, y]) => x + ',' + y));
+      rings[tag.replace('slot-1', '')] = cells.filter(([x, y]) => [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => !set.has((x + dx) + ',' + (y + dy))));
+    }
+    return rings;
+  };
   const variants = [-1, ...PICKS.map((_, k) => k)].map(k => {
     const rows = fullData.rows.map(r => [...r]);
     const depth = RD.depth.map(r => Array.from({ length: r.length / 2 }, (_, i) => zOf(r, i)));
     if (k >= 0) for (const [x, y, code, z] of RD.gone[k]) { rows[y][x] = code; depth[y][x] = zOf(z, 0); }
-    return { art: fromCodes({ width: fullData.width, height: fullData.height, rows: rows.map(r => r.join('')) } as SpriteData), depth };
+    // each variant lights its own caps: a tube taken out uncovers the cap behind it
+    const tags = k >= 0 ? RD.goneTags[k] : fullData.tags;
+    return { art: fromCodes({ width: fullData.width, height: fullData.height, rows: rows.map(r => r.join('')) } as SpriteData), depth, tags, rings: ringsOf(tags) };
   });
   const tubes = Object.fromEntries(PICKS.map(s => {
     const d = RD.tubes[s];
@@ -284,11 +293,6 @@ export function createFinale(canvas: HTMLCanvasElement, kit: Kit) {
     return out;
   };
   const MM_PER_PX = 1 / (RD.pxPerMm * Math.cos(RD.el * Math.PI / 180)), DZ = Math.sin(RD.el * Math.PI / 180);
-  const rings: Record<string, number[][]> = {};
-  for (const [tag, cells] of Object.entries(fullData.tags)) {
-    const set = new Set(cells.map(([x, y]) => x + ',' + y));
-    rings[tag.replace('slot-1', '')] = cells.filter(([x, y]) => [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => !set.has((x + dx) + ',' + (y + dy))));
-  }
   const capTop = (slot: string): Pt => {
     const cells = fullData.tags['slot-1' + slot];
     const top = Math.min(...cells.map(([, y]) => y));
@@ -298,11 +302,11 @@ export function createFinale(canvas: HTMLCanvasElement, kit: Kit) {
   const rack1 = (x: number, y: number, out: string[], lit: string[] = []) => {
     const v = variants[PICKS.filter(s => out.includes(s)).length];      // buildRack's patches go in PICKS order
     g.drawImage(v.art, x, y);
-    kit.plate(x, y, 1, 1, false, g);
+    kit.card(x, y, g);
     g.fillStyle = C.focus;
-    for (const s of lit) if (!out.includes(s)) for (const [px, py] of fullData.tags['slot-1' + s] ?? []) g.fillRect(x + px, y + py, 1, 1);
+    for (const s of lit) if (!out.includes(s)) for (const [px, py] of v.tags['slot-1' + s] ?? []) g.fillRect(x + px, y + py, 1, 1);
     g.fillStyle = C.accent;
-    for (const s of lit) if (!out.includes(s)) for (const [px, py] of rings[s] ?? []) g.fillRect(x + px, y + py, 1, 1);
+    for (const s of lit) if (!out.includes(s)) for (const [px, py] of v.rings[s] ?? []) g.fillRect(x + px, y + py, 1, 1);
     return v;
   };
   const lifted = (s: string, n: number, x: number, y: number, depth: (number | null)[][]) => {
@@ -317,7 +321,7 @@ export function createFinale(canvas: HTMLCanvasElement, kit: Kit) {
   const RACK_ROWS = BOM.map((_, k) => k).filter(inRack);
 
   // ---------- the film ----------
-  const RX = 16, RY = DESK - 118;                                         // R1 up close, on the desk line
+  const RX = 16, RY = DESK - fullData.height;                             // R1 up close, on the desk line
   // The desk scrolls under the pinned sheet: the camera's x (the desk moves right as it grows).
   const PAN_STEP = 400, DRAWER_O: Pt = [24, 124];
   const cam = (t: number) => PAN_STEP * (easeInOut(seg(t, PAN1[0], PAN1[1])) + easeInOut(seg(t, PAN2[0], PAN2[1])));

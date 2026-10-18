@@ -1,11 +1,10 @@
 ---
 /**
  * Concept: the pixel-art film (lib/film/reel) as one player. One scan puts a part away; then a
- * board's BOM shows what the exact slot is for (see reel.ts). Under the picture: one timeline with a
- * segment per film, named from home.json (click or drag to scrub, arrow keys step chapters). Plays
- * while on screen; with reduced motion it shows a poster frame until played.
+ * board's BOM shows what the exact slot is for (see reel.ts). Under the picture: one plain timeline
+ * for the whole loop (click or drag to scrub, arrow keys step five seconds). Plays while on screen;
+ * with reduced motion it shows a poster frame until played.
  */
-import { film } from '../../data/home';
 const label = 'Animation: the Scan R1 reads a vendor bag\'s label; you press A once; Inventatory on the PC fills in the part from the vendor and reserves slot R1-B3; parts go into a tube, its label prints and wraps the tube, and the tube drops into the rack. The cursor asks: But why is this useful? A circuit board\'s parts list prints out. The usual answer, Drawer 12 for every part, points into one drawer of identical bags; the cursor searches them, shakes its head and gives up. Inventatory gives every part its own slot in rack 1; the cursor goes straight to each one and nods. The six tubes are lifted out one by one, the 10K from R1-B3 first, and stand in a row as each line of the list is ticked. The cursor becomes the Inventatory logo.';
 ---
 <figure class="film" data-reel>
@@ -17,9 +16,7 @@ const label = 'Animation: the Scan R1 reads a vendor bag\'s label; you press A o
       <button type="button" class="play key" data-play aria-label="Pause"><span data-icon></span></button>
       <div class="reel">
         <div class="track" data-track role="slider" tabindex="0" aria-label="Position in the animation" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-          {film.names.map(name => (
-            <div class="seg" data-seg><span class="name">{name}</span><div class="fill" data-fill></div></div>
-          ))}
+          <div class="fill" data-fill></div>
         </div>
       </div>
     </div>
@@ -27,15 +24,14 @@ const label = 'Animation: the Scan R1 reads a vendor bag\'s label; you press A o
 </figure>
 
 <script>
-  import { createReel, W, H, LOOP, POSTER, CHAPTERS, FILMS } from '../../lib/film/reel';
+  import { createReel, W, H, LOOP, POSTER } from '../../lib/film/reel';
 
   for (const root of document.querySelectorAll<HTMLElement>('[data-reel]')) {
     const canvas = root.querySelector<HTMLCanvasElement>('canvas')!;
     const film = createReel(canvas);
     const screen = root.querySelector<HTMLElement>('[data-screen]')!;
     const track = root.querySelector<HTMLElement>('[data-track]')!;
-    const segs = [...root.querySelectorAll<HTMLElement>('[data-seg]')];
-    const fills = segs.map(seg => seg.querySelector<HTMLElement>('[data-fill]')!);
+    const fill = root.querySelector<HTMLElement>('[data-fill]')!;
     const play = root.querySelector<HTMLButtonElement>('[data-play]')!;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 
@@ -46,8 +42,6 @@ const label = 'Animation: the Scan R1 reads a vendor bag\'s label; you press A o
     let avail = 0, target = 0, focus = W / 2;
     const fit = () => {
       avail = screen.clientWidth;
-      // A segment is as long as its film, except on phones, where the segments are equal.
-      segs.forEach((seg, k) => { seg.style.flexGrow = String(phone.matches ? 1 : FILMS[k].end - FILMS[k].start); });
       if (phone.matches) {
         canvas.style.width = W * 2 + 'px'; canvas.style.height = H * 2 + 'px';
         root.style.setProperty('--film-w', avail + 'px');
@@ -84,13 +78,7 @@ const label = 'Animation: the Scan R1 reads a vendor bag\'s label; you press A o
     const draw = () => {
       film.render(t);
       follow();
-      // The film playing now is the open segment: it carries the playhead and its name.
-      const current = FILMS.findIndex(f => t >= f.start && t < f.end);
-      segs.forEach((seg, k) => {
-        const f = FILMS[k];
-        seg.classList.toggle('open', k === current);
-        fills[k].style.width = Math.max(0, Math.min(1, (t - f.start) / (f.end - f.start))) * 100 + '%';
-      });
+      fill.style.width = t / LOOP * 100 + '%';
       track.setAttribute('aria-valuenow', String(Math.round(t / LOOP * 100)));
     };
     const setPlaying = (on: boolean) => {
@@ -99,26 +87,19 @@ const label = 'Animation: the Scan R1 reads a vendor bag\'s label; you press A o
       play.dataset.state = on ? 'playing' : 'paused';
     };
     play.addEventListener('click', () => setPlaying(!playing));
-    // The pointer picks the moment under it: its place along the nearest film's segment.
+    // The pointer picks the moment under it.
     const seek = (clientX: number) => {
-      let k = 0, gap = Infinity;
-      segs.forEach((seg, i) => {
-        const r = seg.getBoundingClientRect();
-        const d = clientX < r.left ? r.left - clientX : clientX > r.right ? clientX - r.right : 0;
-        if (d < gap) { gap = d; k = i; }
-      });
-      const r = segs[k].getBoundingClientRect();
-      const f = FILMS[k];
-      t = f.start + Math.max(0, Math.min(.999, (clientX - r.left) / r.width)) * (f.end - f.start);
+      const r = track.getBoundingClientRect();
+      t = Math.max(0, Math.min(.999, (clientX - r.left) / r.width)) * LOOP;
       draw();
     };
     track.addEventListener('pointerdown', (e) => { seek(e.clientX); track.setPointerCapture(e.pointerId); });
     track.addEventListener('pointermove', (e) => { if (track.hasPointerCapture(e.pointerId)) seek(e.clientX); });
-    // Arrow keys step chapters.
+    // Arrow keys step five seconds.
+    const STEP = 5000;
     track.addEventListener('keydown', (e) => {
-      const i = CHAPTERS.findLastIndex(c => c <= t);
-      if (e.key === 'ArrowRight') t = CHAPTERS[Math.min(CHAPTERS.length - 1, i + 1)];
-      else if (e.key === 'ArrowLeft') t = CHAPTERS[Math.max(0, i - (t - CHAPTERS[i] < 800 ? 1 : 0))];
+      if (e.key === 'ArrowRight') t = Math.min(LOOP - 1, t + STEP);
+      else if (e.key === 'ArrowLeft') t = Math.max(0, t - STEP);
       else if (e.key === ' ') setPlaying(!playing);
       else return;
       e.preventDefault(); draw();
@@ -175,24 +156,17 @@ const label = 'Animation: the Scan R1 reads a vendor bag\'s label; you press A o
       linear-gradient(var(--secondary), var(--secondary)) 3px 1px / 2px 8px no-repeat,
       linear-gradient(var(--secondary), var(--secondary)) 5px 2px / 2px 6px no-repeat,
       linear-gradient(var(--secondary), var(--secondary)) 7px 4px / 2px 2px no-repeat; }
-  /* The reel: one timeline, a segment per film. Each segment is as long as its film, with a gap of
-     four art pixels between them, and its name sits above the line in the mono type the labels use. */
+  /* The reel: one timeline for the whole loop, one art pixel thick, with the playhead on it. */
   .reel { flex: 1; min-width: 0; }
-  .track { position: relative; display: flex; gap: calc(var(--px) * 4); height: 2.25rem; cursor: pointer; touch-action: none; }
-  .seg { position: relative; flex: 1 1 0; min-width: 0; height: 100%; }
-  .name { position: absolute; left: 0; top: 0; font-family: var(--font-mono); font-size: var(--text-xs); line-height: 1; white-space: nowrap; color: var(--muted); }
-  .seg.open .name { color: var(--text); }
-  .seg::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: var(--px); margin-top: calc(var(--px) / -2); background: var(--divider); }
+  .track { position: relative; height: 2.25rem; cursor: pointer; touch-action: none; }
+  .track::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: var(--px); margin-top: calc(var(--px) / -2); background: var(--divider); }
   .fill { position: absolute; left: 0; top: 50%; height: var(--px); margin-top: calc(var(--px) / -2); background: var(--accent); }
-  /* The playhead: one block, twice the line's height, on the open film's segment only. */
-  .open .fill::after { content: ''; position: absolute; right: calc(var(--px) * -1); top: calc(var(--px) * -1.5); width: calc(var(--px) * 2); height: calc(var(--px) * 4); background: var(--focus); }
+  /* The playhead: one block, twice the line's height. */
+  .fill::after { content: ''; position: absolute; right: calc(var(--px) * -1); top: calc(var(--px) * -1.5); width: calc(var(--px) * 2); height: calc(var(--px) * 4); background: var(--focus); }
   .track:focus-visible { outline-offset: 2px; }
   /* Phones: the film runs edge to edge at 2x, and the window moves with the action. */
   @media (max-width: 40rem) {
     .screen { margin-inline: calc(var(--gutter) * -1); justify-content: flex-start; overflow: hidden; }
     canvas { flex: none; }
-    /* The segments are equal here, so only the open film is named. */
-    .name { visibility: hidden; }
-    .seg.open .name { visibility: visible; }
   }
 </style>

@@ -1,123 +1,346 @@
 {
- "rack": {
-  "width": 27,
-  "height": 27,
+ "box": 44,
+ "import": {
+  "width": 44,
+  "height": 31,
   "rows": [
-   ".7777777777777777777777777.",
-   "77..777..777..777..777..777",
-   "7....7....7....7....7....77",
-   "7....7....7....7....7....77",
-   "77..777..777..777..777..777",
-   "777777777777777777777777777",
-   "77cc777..777..777..777..777",
-   "7cbbb7....7....7....7....77",
-   "7bbba7....7....7....7....77",
-   "77aa777..777..777..777..777",
-   "777777777777777777777777777",
-   "77cc777cc777cc777..777..777",
-   "7cbbb7cbbb7cbbb7....7....77",
-   "7bbba7bbba7bbba7....7....77",
-   "77aa777aa777aa777..777..777",
-   "777777777777777777777777777",
-   "77cc777cc777cc777cc777..777",
-   "7cbbb7cbbb7cbbb7cbbb7....77",
-   "7bbba7bbba7bbba7bbba7....77",
-   "77aa777aa777aa777aa777..777",
-   "777777777777777777777777777",
-   "77cc777cc777cc777cc777cc777",
-   "7cbbb7cbbb7cbbb7cbbb7cbbb77",
-   "7bbba7bbba7bbba7bbba7bbba77",
-   "77aa777aa777aa777aa777aa777",
-   "777777777777777777777777777",
-   ".7777777777777777777777777."
+   "....................................nooooon.",
+   "...........................oooooooooooooooom",
+   ".................oooooooooooooooooooooooooon",
+   ".......noooooooooooooooooooooooooooooooooonm",
+   ".oooooooooooooooooooooooooooooonnnnnnnn5nnnm",
+   "ooooooooooooooooooooonnnnnnnnnnnnnnnnnn5nnnm",
+   "noooooooooonnnnnnnnnnnnnnnnnnnPPPPPnnnn5nnnm",
+   "nonnnnnnnnnnnnnnnnnnPPPPPPPPPPPPPPPnnnn5nnnm",
+   "nnnnnnnnnnPPPPPPPPPPPIIIIIIIIPPPPPPnnnn5nnnm",
+   "nnnnPPPPPPPIIIIIIIIIIIPPPPPPPPPPIIPnnnn5nnnm",
+   "nnnnPIIIIPPIPPPPPPPPPPPIIIIIIIIIIPPnnnn5nnnm",
+   "nnnnPIIIIPPPPIIIIIIIIIIIPPPPPPPPPPPnnnn5nnnm",
+   "nnnnPIIIIIIIIIPPPPPPPPPPPIPPPPPPPPPnnnn5nnnm",
+   "nnnnPPPPPPPPPPPIIIIIIIIIIPPPPPPPPPPnnnn5nnnm",
+   "nnnnPPIIIIIIIIIIPPPPPPPPPPPPPPPPPPPnnnn5nnnm",
+   "nnnnPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPnnnn5nnnm",
+   "nnnnPPPIIIIIIIIIIPPPPPPPPPPPIIIIIIPnnnn5nnnm",
+   "nnnnPIIIPPPPPPPPPPPPPIIPIPPIIPPPPIPnnnn5nnnm",
+   "nnnnPPPPPPIPPIPIIPPIPIIPIPPIIPIPPIPnnnn5nnnm",
+   "nnnnPIIPIIIIPIPIIPPIPIIPIPPIIPIIPIPnnnn5nnnm",
+   "nnnnPIIIIIIIPIPIIPPIPIIPIPPIIPIPPIPnnnn5nnnm",
+   "nnnnPIPIIIIIPIPIIPPIPIIPIPPIIPPPPIPnnnn5nnnm",
+   "nnnnPIIIIPIIPIPIIPPIPIIPPPPIIIIIIIPnnnn5nnnm",
+   "nnnnPIPPPIIIPIPPPPPPPPPPPPPPPPPPPPPnnnn5nnnm",
+   "nnnnPIIIIIIIPPPPPPPPPPPPPnnnnnnnnnnnnnn5nnnm",
+   "nnnnPPPPPPPPPPPnnnnnnnnnnnnnnnnnnnnnnnn5nnmm",
+   "nnnnPnnnnnnnnnnnnnnnnnnnnnnnnnnnnmmmmmm.....",
+   "nnnnnnnnnnnnnnnnnnnnnnnmmmmmm...............",
+   "nnnnnnnnnnnnnmmmmmm.........................",
+   ".nnmmmmmm...................................",
+   "............................................"
+  ],
+  "tags": {},
+  "az": -10,
+  "el": 35
+ },
+ "racks": {
+  "width": 44,
+  "height": 41,
+  "rows": [
+   "........................cbbbc...............",
+   "...........ccc...cbbbc..bbbbbc..............",
+   "...cbbc...bbbbc.cbbbbbc.cbbbcb77777777......",
+   "..cbbbbb.cbbbbbbbcbbbca7bcccaa77667777......",
+   "..cbbbbcbbccccb77bccba77bbbbaa645556677.....",
+   ".7bcccca7bbbbba77bcbbbc5bbbba7655556777.....",
+   "77bbbcbb7bbcbbbbcbcbbbbchhbgg7775557777.....",
+   "775bbbbbbcccbbbbchcbbbca7777777776677777....",
+   "776hcbbbbbaccccca7bccbaa7656677645566677....",
+   "6777ccccba7bbbbaa7bbbbbb64hgg56655565477....",
+   "4777bbbbcc6bcbbbbcbcbbbbchhgg557755667777...",
+   "4776bcbbbbcgcbbbbchccbbcb7777777777777777...",
+   "4676gcbbbbc7ccccca7bcccba7765677745656677...",
+   "46777bcccca7bbbbaa7bbbbaa74gg556755655577...",
+   "46777bbbbaa6bbbbbbcbbbbaa7hg65557756557777..",
+   "46776bcbbbbcbcbbbbcghhggg77765777777777777..",
+   "46576gcbbbbc7bcbbcb77777777766677754566677..",
+   "465777bcccca7bbbbba7655667744...675..55.777.",
+   "465777bbbbaa7bbbbba74hggg.76.....77..557777.",
+   "465677bbbbbbcbbbbba77hggg.777..777777777777.",
+   "465.77gcbbbbc7hhhg77777777777666677645666777",
+   "465.777bccccb77777777755667754...676.....777",
+   ".65.677bbbbba764566675gg...76.....777....776",
+   ".65..77bbbbba75hhgg.77g....777...77777777774",
+   ".....776bbbbg77hhgg.777777777777777776655554",
+   ".....7777hhg77777777777777766555555555555554",
+   ".....4777777777776665555555PPPP....555555554",
+   ".....566665555555g5.PPPPPPIIIIP....555555554",
+   ".....56666555555....PIIIPPPPPPP....555555554",
+   ".....56666555555....PIIIPPPPIPP....555555554",
+   ".....56666555555....PIPIIIIPIIP....555555554",
+   ".....56666555555....PIIIIIIIIPP....555555554",
+   ".....56666555555....PIIIIPPPIIP....555555554",
+   ".....56666555555....PIIIPPPPPPP....555555554",
+   ".....56666555555....PPP............555555554",
+   ".....56666555555...................555555554",
+   ".....56666555555...................55555555.",
+   ".....56666555555...................555......",
+   "......6666555555............................",
+   "......6666555555............................",
+   "............................................"
   ],
   "tags": {
    "slot-1B3": [
     [
      12,
-     16
+     10
     ],
     [
      13,
-     16
-    ],
-    [
-     11,
-     17
-    ],
-    [
-     12,
-     17
-    ],
-    [
-     13,
-     17
+     10
     ],
     [
      14,
-     17
+     10
     ],
     [
-     11,
-     18
+     15,
+     10
+    ],
+    [
+     16,
+     10
+    ],
+    [
+     17,
+     10
     ],
     [
      12,
-     18
+     11
     ],
     [
      13,
-     18
+     11
     ],
     [
      14,
-     18
+     11
+    ],
+    [
+     15,
+     11
+    ],
+    [
+     16,
+     11
+    ],
+    [
+     17,
+     11
     ],
     [
      12,
-     19
+     12
     ],
     [
      13,
-     19
+     12
+    ],
+    [
+     14,
+     12
+    ],
+    [
+     15,
+     12
+    ],
+    [
+     16,
+     12
+    ],
+    [
+     17,
+     12
+    ],
+    [
+     12,
+     13
+    ],
+    [
+     13,
+     13
+    ],
+    [
+     14,
+     13
+    ],
+    [
+     15,
+     13
+    ],
+    [
+     16,
+     13
+    ],
+    [
+     17,
+     13
+    ],
+    [
+     12,
+     14
+    ],
+    [
+     13,
+     14
+    ],
+    [
+     12,
+     15
     ]
    ]
-  }
+  },
+  "az": -10,
+  "el": 35
  },
- "scanner": {
-  "width": 15,
-  "height": 27,
+ "projects": {
+  "width": 44,
+  "height": 38,
   "rows": [
-   "333333333333333",
-   "333333333333330",
-   "211111111111110",
-   "21LLLLLLLLLLL10",
-   "2LLLLLLLLLLLLL0",
-   "2LLLLLLLLLLLLL0",
-   "2LLLLLLLLLLLLL0",
-   "2LLLLLLLLLLLLL0",
-   "2LLLLLLLLLLLLL0",
-   "211111111111110",
-   "211111111111110",
-   "333333333333333",
-   "333333333333330",
-   "344444444444440",
-   "34KK4KK4KK4KK40",
-   "344444444444440",
-   "34KK4KK4KK4KK40",
-   "344444444444440",
-   "34KK4KK4KK4KK40",
-   "344444444444440",
-   "34KK4KK4KK4KK40",
-   "344444444444440",
-   "334444444444430",
-   "333333333333333",
-   "200000000000000",
-   "000000000000000",
-   "000000444000000"
+   "..............PPPPPP........................",
+   "....PPPPPPPPPPPPPPPP........................",
+   "PPPPPPPPPPPPPPaaaaPP........................",
+   "PPaPPaaaaPaaPPaaaaPP........................",
+   "PaaaPaaaaQQQQQQQQQQP........................",
+   "PPQQQQQQQQQQQQQQAPPP........................",
+   "PPQQQQIIIPIIIPAAAPPP........................",
+   "PPIIPIIIIPIIPPPPPPPP........................",
+   "PPIPPPPPPPPPPPPPPPPP........................",
+   "PPPPPPPPPPPIPPAAAAPP........................",
+   "PPIIPIIIPPIIIPAAAPPP........................",
+   "PPIIPPIPPPPPPPPPPPPP........................",
+   ".PPPPPPPPPPPPPIIIIIP........................",
+   ".PPPPPIIIPIIIPIIIIIP........................",
+   ".PIIPPIIIPPPPPPPPPPP........................",
+   ".PPPPPPPPPPPPPPPPPPP........................",
+   ".PPPPPPIIPPIIPAAAAPP........................",
+   ".PIIIPIIIPPIIPPPPPPP........................",
+   ".PIIPPPPPPPPPPPPPPPPP.......................",
+   ".PPPPPPPPPPIIPPAAAPPP.......................",
+   ".PPIIPIIPPPIIPPAAAPPP.......................",
+   ".PIIIPIIPPPPPPPPPPPPP..................r....",
+   ".PPPPPPPPPPPPPPPPPPPP.........qqqqqqqqqrr...",
+   ".PPPPPPPPPPPPPPPPPPPqqqqqqqqqqqrrrrrTTrrq...",
+   ".PPPPPPPPPPqqqqqqqqqqrrrrrrrrrrrrqqqTTqrq...",
+   ".....rrqqqqqrrrrrrrrrrrqqqqqqqqIqrrrrqqrqq..",
+   ".....qqrrrrrrrIqqqqqqqqqqqqqqqqqqrrqrqqqrq..",
+   "......qr7yqqqqrrrrrrrqqqIIqqqqqqqrqqrIIqrq..",
+   "......qr6yqqqqrrqqqqIIIIIIIqqqqqqrqqqIrrrqq.",
+   "......qqryqqqqqrqqqqIIIIIIIrqqqqqrrqqrqqqqq.",
+   ".......qr7yqqqqrqqqqqIIIIIIrrrrrrrrqqqqqqqq.",
+   ".......qr6yqqqqrrqrrrIIyqqqrrqqqIIqqqqqqrrqq",
+   ".......qqr7qqqqqrrrqrrqqqqqqqqrrrrrrrrrrrqqr",
+   "........qr5qqqqqIyqqrrrrrrrrrrrqqqqqqqqqqqqq",
+   "........qrrrrrrrrrrrrqqqqqqqqqqqqqqqqqqqq...",
+   "........qrrqqqqqqqqqqqqqqqqqqqq.............",
+   "........prqqqqqqqqqqq.......................",
+   ".........qq................................."
   ],
   "tags": {},
-  "az": 90,
-  "el": 58
+  "az": -10,
+  "el": 35
+ },
+ "stock": {
+  "width": 35,
+  "height": 44,
+  "rows": [
+   "....................3333333........",
+   "..........33333333333333333........",
+   ".333333333333333332222222210.......",
+   "3333333322222222111111111110.......",
+   "3222221111111111111111111110.......",
+   "11111111111111100000000LL110.......",
+   "1211100000000LLLLLLLLLLLL211.......",
+   "1210LLLLLLLLLLLLLLIIIIIILL11.......",
+   "5210LLLIIIIIIIIILLLLLLLLLL110......",
+   "5210LLIIILLLLLLLLLLLLLIILL210......",
+   "5211LLLLLLLLLIIIIIILLIIILL210......",
+   "5211LLIIIIIILIIIIIILLIIILL210......",
+   "5211LLIIIIIILLIIILLLLLLLLL211......",
+   "55210LLLLLLLLLLLLLLLLLLLLLL11......",
+   "55210LLLLLIIIIIILLLLLLLLLLL110.....",
+   "55210LLIIIIIILLLLLLLLLLL111110.....",
+   "55211LLLLLLLLLL111111111111110.....",
+   "552111111111111111111111122220.....",
+   "152111111111111222222223333333.....",
+   ".552122222222333333333333333330....",
+   ".55333333333333333333K44KKKK330....",
+   ".553333333344KKK444KKK44KKKk433....",
+   "..53334KKKK44KKKk44kkk444kk44330...",
+   "..51334Kkkk44kkk444444444KKKK430...",
+   "..513334444444KKK444KKK44KKKk433...",
+   "..113334KKKK44KKKk44kkk444kk4433...",
+   "...11334Kkkk44kkk444444444KKKK330..",
+   "...113334444444KKK44KKKK44KKKk430..",
+   "...113334KKKK44KKKk44kkk444kk4433..",
+   "....11334KKkk44kkk444444444KKK4330.",
+   "....113334444444KKK44KKKK44KKKk430.",
+   "....113334KKKK44KKK444kkk44kkk4433.",
+   ".....11334KKkk44kkk4444444433333330",
+   ".....113334444444333333333333333330",
+   ".....513333333333333333333333000000",
+   "......13333333333330000000000000000",
+   "......11310000000000000000000000000",
+   "......11000000000000000000000000000",
+   "......11000000000000000000000000000",
+   ".......1000000000000007770000000000",
+   ".......1000000000007777300000000044",
+   ".......1000000000000000004444444...",
+   "........00000004444444.............",
+   ".........444......................."
+  ],
+  "tags": {},
+  "az": 80,
+  "el": 35
+ },
+ "history": {
+  "width": 44,
+  "height": 33,
+  "rows": [
+   "......................................uuuuut",
+   "............................uuuuuuuuuuuuuuuu",
+   "..................uuuuuuuuuuuuuuuuuuuttttttt",
+   "........uuuuuuuuuuuuuuuuuuuttttttttttRRRRRtt",
+   "uuuuuuuuuuuuuuuuuttttttttttRRRRRRRRRRRRRRRtt",
+   "uuuuuuuutttttttttRRRRRRRRRRRRRRRRRRRRHHHHHtt",
+   "tttttttRRRRRRRRRRRRRRRRRRRRHHHHHHHHHHHHHHHtt",
+   "ttRRRRRJJJJRRRRRRHHHHsHHHHHHHHHHHHHHHHHHHHtt",
+   "ttRJJJJHHHHHHHHHHHHHHsHHHHHaaHHHHHHHHsssHHtt",
+   "ttHHHHHHHaaaaaHHHHHHHsHaaaassssssssssBBHHHtt",
+   "ttHHHUUHHHHHHHHHHNNNNsHssssHZZZZZZBBBUBHHHtt",
+   "ttHHHHHNNNNNNNNNNNNNNsHHaaHHZXXXZZBUUBBHHHtt",
+   "ttNFNNNJJNaaaaaaNNNNNsHHHHHHZZZZZZBBBBBHHHtt",
+   "ttNNFNJNNNNNNNNNNHHHHsHHHHHHZZZZZZBBBUBHHHtt",
+   "ttNFNNNHHHHHHHHHHHHHHsHHaaHHZXXXZZBUBBBHHHtt",
+   "ttHHHHHHHaaaaHHHHHHHHsHHHHHHZZZZZZBBBBBHHHtt",
+   "ttHHHWWHHHHHHHHHHHHHHsHHHHHHZZZZZZBBUUBHHHtt",
+   "ttHHHHHHHHHHHHHHHHHHHsHHaaHHZXXXZZBUBBBHHHtt",
+   "ttHHHHHHHaaaaaaHHHHHHsHHHHHHZZZZZZBBHHHHHHtt",
+   "ttHHHJJHHHHHHHHHHHHHHsHHHHHHHHHHHHHHHHHHHHtt",
+   "ttHHHHHHHHHHHHHHHHHHHsHHHHHHHHHHHHHHHHHHHHtt",
+   "ttHHHHHHHaaaHHHHHHHHHsHHHHHHHHHHHHHHHHHHHHtt",
+   "ttHHHUHHHHHHHHHHHHHHHsHHHHHHHHHHHHHHHHHHHHtt",
+   "ttHHHHAHHaaaaaHHHHHHHsHHHHHHHHHHHHHHtttttttt",
+   "ttHHHAHHHHHHHHHHHHHHHsHHHHttttttttttts......",
+   "ttHHHHHHHHHHHHHHttttttttttts................",
+   "ttHHHHtttttttttttsstttttt...u...............",
+   "tttttttt..........sttttttuuuut..............",
+   ".............uuuuuuttttuuuuuuu..............",
+   ".............uuuuuuuuuuuuuuuuu..............",
+   "..............uuuuuuuuuuuuuuuut.............",
+   "..............uuuuuuuutttttt................",
+   "..............tttt.........................."
+  ],
+  "tags": {},
+  "az": -10,
+  "el": 35
  }
 }

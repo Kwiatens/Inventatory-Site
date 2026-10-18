@@ -8,12 +8,6 @@
     "primary": "Install Inventatory",
     "secondary": "How it works"
   },
-  "film": {
-    "names": [
-      "Stock a part",
-      "Build a board"
-    ]
-  },
   "highlights": {
     "items": [
       {
@@ -21,35 +15,45 @@
         "icon": "import",
         "title": "Import an order",
         "text": "Load a DigiKey order CSV and review each line. Accept or skip it, and accepted parts are created and filled in from DigiKey.",
-        "href": "/docs/desktop/import/"
+        "href": "/docs/desktop/import/",
+        "video": "",
+        "poster": ""
       },
       {
         "id": "racks",
         "icon": "racks",
         "title": "Give every part a slot",
         "text": "Assign parts to a 5 × 5 rack grid, so a location reads R1-B3 instead of Drawer 12. Print labels for slots and parts.",
-        "href": "/docs/desktop/racks/"
+        "href": "/docs/desktop/racks/",
+        "video": "",
+        "poster": ""
       },
       {
         "id": "projects",
         "icon": "projects",
         "title": "Build a board from its BOM",
         "text": "Import a KiCad BOM to see what is in stock and what needs ordering. Pick the parts rack by rack, then deduct them from stock.",
-        "href": "/docs/desktop/projects/"
+        "href": "/docs/desktop/projects/",
+        "video": "",
+        "poster": ""
       },
       {
         "id": "stock",
         "icon": "stock",
         "title": "Search and count stock",
         "text": "Filter by part, category, parameter, location or SKU. Set a reorder threshold for each part and run a guided stocktake.",
-        "href": "/docs/desktop/stock/"
+        "href": "/docs/desktop/stock/",
+        "video": "",
+        "poster": ""
       },
       {
         "id": "history",
         "icon": "history",
         "title": "Restore and undo",
         "text": "Every change is recorded with its before and after values. Set checkpoints, and restore or reverse a change, even after a restart.",
-        "href": "/docs/desktop/history/"
+        "href": "/docs/desktop/history/",
+        "video": "",
+        "poster": ""
       }
     ]
   },
