@@ -55,28 +55,28 @@ const homepage = documents.get(base + '/')?.$;
 if (!homepage) {
   errors.push('Homepage missing from production output.');
 } else {
-  // The workflow is told by one pixel-art film with one timeline; without JavaScript its canvas
-  // label says it.
+  // The workflow is told by one pixel-art film with its chapters under it; without JavaScript its
+  // canvas label says it.
   const reel = homepage('figure[data-reel]');
   if (reel.length !== 1) errors.push('Homepage must include the film reel.');
   const canvas = reel.find('canvas#film-reel[role="img"]');
   if (canvas.length !== 1) errors.push('Homepage must include the film.');
   else if (!(canvas.attr('aria-label') ?? '').trim()) errors.push('The film must describe itself in its canvas label.');
-  if (reel.find('[data-track][role="slider"]').length !== 1) errors.push('The film must have one timeline.');
+  if (reel.find('ol[data-chapters]').length !== 1) errors.push('The film must have one chapter list.');
   if (reel.find('canvas').length !== 1) errors.push('The reel must be one film on one canvas.');
-  // Each feature row opens, by its name's button, to its own video slot.
-  const features = homepage('#highlights [data-feature]');
+  // Each feature is a tab that controls its own panel, and each panel holds a video slot.
+  const features = homepage('#app [role="tab"][data-feat]');
   if (!features.length) errors.push('Homepage must list the features.');
-  features.each((_, row) => {
-    const toggle = homepage(row).find('button[data-toggle][aria-controls]');
-    const id = toggle.attr('aria-controls');
-    if (toggle.length !== 1 || !id || homepage(row).find('[data-panel]').attr('id') !== id) errors.push('Each feature row must have one toggle that controls its panel.');
-    else if (!homepage(row).find('[data-panel] video, [data-panel] .video').length) errors.push('Each feature panel must hold a video slot.');
+  features.each((_, tab) => {
+    const id = homepage(tab).attr('aria-controls');
+    const panel = id ? homepage(`#${id}[role="tabpanel"]`) : null;
+    if (!panel || panel.length !== 1) errors.push('Each feature tab must control one panel.');
+    else if (!panel.find('video').length) errors.push('Each feature panel must hold a video slot.');
   });
   if (homepage('[data-feature-carousel], [data-feature-slide], [data-carousel-controls]').length) errors.push('Homepage must not retain the retired carousel.');
   if (homepage('.hero .eyebrow, .hero-caption').length) errors.push('Homepage hero must not contain the removed eyebrow or screenshot caption.');
   const homepageText = homepage.text();
-  if (!homepageText.includes('Free, open-source and terminal based. Purpose-built for electronics.')) errors.push('Homepage must show the approved hero summary.');
+  if (!homepageText.includes('Inventatory is a free, open-source inventory for electronics.')) errors.push('Homepage must show the approved hero summary.');
   for (const removedText of [
     'LOCAL INVENTORY / REAL WORKFLOW',
     'STOCK WORKSPACE · ACTUAL SCREENSHOT',

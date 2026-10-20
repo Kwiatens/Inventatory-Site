@@ -12,6 +12,12 @@ const CUT = intake.CUT, FADE = 300, IN = 450, PAUSE = 1000;
 export const LOOP = INTRO + CUT + finale.RUN + PAUSE;
 /** The frame to show still (reduced motion). */
 export const POSTER = INTRO + CUT + finale.POSTER;
+/** The reel's chapters, each with where it starts; the title line before the first is unnamed. */
+export const CHAPTERS: Array<[string, number]> = [
+  ['Scan', INTRO], ['Look up', INTRO + intake.MARKS.look], ['Label', INTRO + intake.MARKS.label],
+  ['Store', INTRO + intake.MARKS.store], ['Drawer 12', INTRO + intake.MARKS.ask],
+  ['Slots', INTRO + CUT + finale.MARKS.slots], ['Pick', INTRO + CUT + finale.MARKS.pick],
+];
 
 export function createReel(canvas: HTMLCanvasElement) {
   const i = createIntro(canvas), a = intake.createFilm(canvas), b = finale.createFinale(canvas, a.kit);

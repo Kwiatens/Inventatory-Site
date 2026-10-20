@@ -1,52 +1,54 @@
 ---
 /**
- * The homepage. The hero's pixel art is drawn on the lockup's grid. The film explains the
- * workflow; the highlights name each desktop feature. The Scan R1 and the racks are generated from
+ * The homepage. The hero sets the claim in the Scan R1's bitmap font over stand-in footage drawn
+ * through the films' dither. The film explains the workflow, as a player with chapters; the app
+ * section shows each desktop feature on its own clip. The Scan R1 and the racks are generated from
  * models (scripts/pixel-art), and the scanner's screens come from its firmware
  * (scripts/scan-r1-lcd).
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
-import Lockup from '../components/Lockup.astro';
 import PixelSprite from '../components/concept/PixelSprite.astro';
 import LcdPanel from '../components/concept/LcdPanel.astro';
 import Film from '../components/concept/Film.astro';
 import Keypad from '../components/concept/Keypad.astro';
 import Scanner from '../components/home/Scanner.astro';
-import Highlights from '../components/home/Highlights.astro';
+import AppFeatures from '../components/home/AppFeatures.astro';
 import PlatformInstallSelector from '../components/PlatformInstallSelector.astro';
 import art from '../data/pixel-art.json';
-import { hero } from '../data/home';
+import { hero, film } from '../data/home';
 import { url } from '../lib/url';
 ---
 <BaseLayout title="Inventory for electronics">
-  <section class="hero" aria-label="Introduction">
-    <div class="hero-bg" aria-hidden="true">
-      <span class="hero-novideo">no video</span>
+  <section id="top" class="hero" data-section="top" aria-label="Introduction">
+    <div class="footage" aria-hidden="true">
+      <video data-footage-video muted loop playsinline autoplay preload="auto" src={url('/media/scan-r1-turntable.webm')}></video>
+      <canvas data-footage></canvas>
+      <span class="footage-tag">Montage placeholder</span>
     </div>
 
-    <div class="wrap hero-inner">
-      <div class="hero-logo">
-        <Lockup tone="flat" cursor animate shadow={false} label="Inventatory" />
-      </div>
-      <h1 class="claim">{hero.title.join(' ')}</h1>
+    <div class="wrap hero-copy">
+      <h1 class="claim">{hero.title[0]}<br />{hero.title[1]}</h1>
       <p class="summary">{hero.summary}</p>
       <div class="acts">
         <a class="press" href="#homepage-download">{hero.primary}</a>
-        <a class="quiet go" href="#how">{hero.secondary}</a>
+        <a class="key watch" href="#how"><span class="tri" aria-hidden="true"></span>{hero.secondary}</a>
       </div>
     </div>
   </section>
 
-  <section id="how" class="how band" aria-label="What the system does">
+  <section id="how" class="how band" data-section="how" aria-labelledby="film-title">
     <div class="wrap">
+      <div class="lede-row">
+        <h2 id="film-title" class="px-head">{film.title[0]}<br />{film.title[1]}</h2>
+        <p>{film.summary}</p>
+      </div>
       <Film />
     </div>
   </section>
 
-  <div class="wrap">
-    <Highlights />
-  </div>
+  <AppFeatures />
 
+  <div data-section="scanner">
   <Scanner>
     <div slot="model" class="r1" data-r1>
       <PixelSprite data={art.scanner} class="r1-art" label="Inventatory Scan R1" />
@@ -56,12 +58,22 @@ import { url } from '../lib/url';
       </div>
     </div>
   </Scanner>
+  </div>
 
-  <div class="wrap"><PlatformInstallSelector id="homepage-download" /></div>
+  <div class="wrap" data-section="homepage-download"><PlatformInstallSelector id="homepage-download" /></div>
 </BaseLayout>
 
 <script>
   import { playScanR1 } from '../lib/scan-player';
+  import { pixelVideo } from '../lib/pixel-video';
+
+  // ---------- hero: the stand-in footage, through the films' dither ----------
+  const video = document.querySelector<HTMLVideoElement>('[data-footage-video]');
+  const footage = document.querySelector<HTMLCanvasElement>('[data-footage]');
+  if (video && footage) {
+    pixelVideo(video, footage);
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) video.pause();
+  }
 
   // Keys flash in the sprite's keypad (and on a face-on keypad, when there is one).
   const press = (root: Element, key: string) => {
@@ -91,89 +103,29 @@ import { url } from '../lib/url';
 </style>
 
 <style>
-  /* ---------- hero: the product video behind the claim, text on the left ---------- */
-  .hero {
-    position: relative;
-    width: 100%;
-    min-height: calc(100svh - var(--header-height));
-    display: flex;
-    align-items: center;
-    overflow: hidden;
-    box-sizing: border-box;
-    padding-block: var(--space-16);
-  }
-
-  .hero-bg {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    overflow: hidden;
-  }
-
-  .hero-novideo {
-    position: absolute;
-    right: var(--space-6);
-    bottom: var(--space-6);
-    color: var(--text-muted, var(--text));
-    font-size: 0.75rem;
-    opacity: 0.6;
-  }
-
-  .hero-inner {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    text-align: left;
-  }
-
-  .hero-logo {
-    width: min(100%, 18rem);
-    --lockup-word: var(--text);
-    --lockup-mark: var(--text);
-  }
-
+  /* ---------- hero: the claim on the left, the footage behind it on the right ---------- */
+  .hero { position: relative; min-height: min(56rem, calc(100svh - var(--header-height))); display: grid; grid-template: 1fr auto / minmax(0, 1fr); overflow: hidden; }
+  .footage { position: absolute; inset: 0 0 0 34%; }
+  .footage video { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  .footage canvas { display: block; image-rendering: pixelated; }
+  .footage-tag { position: absolute; right: var(--gutter); top: var(--space-6); color: var(--muted); font: var(--text-xs)/1 var(--font-mono); padding: var(--space-2) var(--space-3); box-shadow: inset 0 0 0 1px var(--divider); }
+  .hero-copy { position: relative; align-self: center; padding-block: var(--space-16) var(--space-12); }
+  /* The claim in the Scan R1's bitmap font at twice the grid: every glyph pixel is two art pixels. */
   .claim {
-    margin-top: var(--space-12);
-    max-width: 16ch;
-    color: var(--text);
-    font-size: clamp(2.25rem, 4.6vw, 3.75rem);
-    font-weight: 600;
-    line-height: 1.05;
-    letter-spacing: -.02em;
-    text-wrap: balance;
+    font-family: 'Inventatory Pixel Head', var(--font-body); font-weight: 400; letter-spacing: 0;
+    font-size: calc(var(--px) * 40); line-height: calc(var(--px) * 40);
+    color: var(--pixel-text); -webkit-font-smoothing: none;
+    /* The lockup's hard shadow, one art pixel per glyph pixel. */
+    text-shadow: calc(var(--px) * 2) calc(var(--px) * 2) 0 var(--drop-color);
   }
+  .summary { margin-top: var(--space-8); max-width: 34rem; color: var(--secondary); font-size: clamp(1.05rem, 1.4vw, 1.25rem); line-height: 1.55; }
+  .acts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4) var(--space-6); margin-top: var(--space-8); }
+  .press { font-size: 1rem; min-height: 3.25rem; padding-inline: var(--space-8); }
+  .key.watch { min-height: 3.25rem; padding-inline: var(--space-6); text-decoration: none; font-weight: 500; }
+  .tri { width: 8px; height: 10px; background: currentColor; clip-path: polygon(0 0, 25% 0, 25% 10%, 50% 10%, 50% 30%, 75% 30%, 75% 40%, 100% 40%, 100% 60%, 75% 60%, 75% 70%, 50% 70%, 50% 90%, 25% 90%, 25% 100%, 0 100%); }
 
-  .summary {
-    margin-top: var(--space-6);
-    max-width: 38ch;
-    color: var(--secondary);
-    font-size: clamp(1.05rem, 1.6vw, 1.2rem);
-    line-height: 1.5;
-    text-wrap: balance;
-  }
-
-  .acts {
-    display: flex;
-    align-items: center;
-    gap: var(--space-6);
-    margin-top: var(--space-8);
-  }
-
-  .quiet {
-    color: var(--secondary);
-    font-weight: 500;
-    text-decoration: none;
-  }
-
-  .quiet:hover { color: var(--text); }
-
-  /* ---------- how it works: the film, on its own ---------- */
-  /* The film sits in a surface band with dithered edges. Its bottom space is inside the band;
-     the feature list takes the rest of the rhythm (see Highlights). */
-  .how { padding-block: var(--section-y) var(--space-8); }
+  /* ---------- how it works: the film, in a surface band with dithered edges ---------- */
+  .how { padding-block: var(--section-y); }
 
   /* ---------- Scan R1 section: the device and its face ---------- */
   .r1 {
@@ -193,12 +145,16 @@ import { url } from '../lib/url';
     width: min(100%, 17rem);
   }
 
+  @media (max-width: 56rem) {
+    /* The footage goes behind the claim, dimmed. */
+    .footage { inset: 0; opacity: .35; }
+  }
+
+  @media (max-width: 40rem) {
+    .claim { font-size: calc(var(--px) * 20); line-height: calc(var(--px) * 20); text-shadow: var(--px) var(--px) 0 var(--drop-color); }
+  }
+
   @media (max-width: 44rem) {
-    /* On phones the art gets a band of its own above the text, so it never sits behind the claim. */
-    .hero { display: block; min-height: auto; padding-block: var(--space-6) var(--space-12); }
-    .hero-bg { position: relative; inset: auto; height: 15.5rem; margin-inline: calc(var(--gutter) * -1); }
-    .hero-inner { margin-top: var(--space-8); }
-    .claim { margin-top: var(--space-8); }
     .r1 {
       grid-template-columns: 1fr;
     }

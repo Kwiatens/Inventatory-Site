@@ -1,0 +1,181 @@
+---
+/**
+ * The app: its features as the app's tabs, in the order of its tabs. Each feature has one real
+ * clip, filmed at the bench and dropped in public/media/features/<id>.mp4; until a clip exists, a
+ * placeholder says what it will show. The tabs turn over on their own until one is picked, and
+ * number keys pick them while the clips are in view, as they switch tabs in the app.
+ */
+import cad from '../../data/feature-icons.json';
+import { app, highlights } from '../../data/home';
+import { CODES, hex, type SpriteData } from '../../lib/pixel';
+import { url } from '../../lib/url';
+
+const features = highlights.map((item, i) => ({ ...item, key: i + 1 }));
+
+// Feature icons: one rect per run of a colour along a row, centred in the box.
+const BOX = cad.box;
+type Icon = SpriteData & { tags: Record<string, number[][]> };
+const icons = cad as unknown as Record<string, Icon>;
+function runs(icon: Icon) {
+  const lit = new Set(Object.values(icon.tags ?? {}).flat().map(([x, y]) => x + ',' + y));
+  const fill = (ch: string, x: number, y: number) => ch === '.' ? null : lit.has(x + ',' + y) ? 'var(--accent)' : hex(CODES[ch]);
+  const ox = Math.floor((BOX - icon.width) / 2), oy = Math.floor((BOX - icon.height) / 2);
+  const out: Array<{ x: number; y: number; w: number; fill: string }> = [];
+  icon.rows.forEach((row, y) => {
+    for (let x = 0; x < row.length;) {
+      const f = fill(row[x], x, y);
+      let n = 1;
+      while (x + n < row.length && fill(row[x + n], x + n, y) === f) n++;
+      if (f) out.push({ x: ox + x, y: oy + y, w: n, fill: f });
+      x += n;
+    }
+  });
+  return out;
+}
+---
+<section id="app" class="app-sec" data-section="app" aria-labelledby="app-title">
+  <div class="wrap">
+    <div class="lede-row">
+      <h2 id="app-title" class="px-head">{app.title[0]}<br />{app.title[1]}</h2>
+      <p>{app.summary}</p>
+    </div>
+
+    <div class="feats" role="tablist" aria-label="Features">
+      {features.map((f, i) => (
+        <button type="button" class="feat" role="tab" id={`feat-${f.id}`} aria-selected={i === 0 ? 'true' : 'false'} aria-controls={`screen-${f.id}`} data-feat={f.id}>
+          <svg class="ico" viewBox={`0 0 ${BOX} ${BOX}`} aria-hidden="true" focusable="false" shape-rendering="crispEdges">
+            {runs(icons[f.icon]).map(r => <rect x={r.x} y={r.y} width={r.w} height="1" fill={r.fill} />)}
+          </svg>
+          <span class="feat-head"><kbd>{f.key}</kbd><span>{f.title}</span></span>
+        </button>
+      ))}
+    </div>
+    <div class="feat-notes">
+      {features.map((f, i) => (
+        <p class="feat-note" data-note={f.id} hidden={i !== 0}><span>{f.text}</span><a class="go" href={url(f.href)}>Read the guide</a></p>
+      ))}
+    </div>
+
+    <div class="clips frame" data-clips>
+      {features.map((f, i) => (
+        <div class="clip" id={`screen-${f.id}`} role="tabpanel" aria-labelledby={`feat-${f.id}`} data-clip={f.id} hidden={i !== 0}>
+          <video muted playsinline preload="none" data-src={url(`/media/features/${f.id}.mp4`)} aria-label={`${f.title}, filmed at the bench`}></video>
+          <div class="clip-slot" aria-hidden="true">
+            <span class="clip-tag">Video placeholder · {f.key} {f.tab}</span>
+            <p>{f.shot}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<script>
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const feats = [...document.querySelectorAll<HTMLButtonElement>('[data-feat]')];
+  const clips = new Map([...document.querySelectorAll<HTMLElement>('[data-clip]')].map(c => [c.dataset.clip!, c]));
+  const notes = [...document.querySelectorAll<HTMLElement>('[data-note]')];
+  const stage = document.querySelector<HTMLElement>('[data-clips]')!;
+  let current = '', auto = !reduced, stageSeen = false;
+  const next = () => {
+    const i = feats.findIndex(b => b.dataset.feat === current);
+    show(feats[(i + 1) % feats.length].dataset.feat!);
+  };
+  // A clip loads when first shown; until its file exists, the placeholder stays.
+  const start = (id: string) => {
+    const v = clips.get(id)!.querySelector('video')!;
+    if (!v.src) {
+      v.addEventListener('loadeddata', () => clips.get(id)!.classList.add('ready'), { once: true });
+      v.addEventListener('ended', () => { if (auto && current === id) next(); });
+      v.src = v.dataset.src!;
+    }
+    v.currentTime = 0;
+    if (stageSeen && !reduced) v.play().catch(() => {});
+  };
+  const show = (id: string) => {
+    if (id === current) return;
+    current = id;
+    feats.forEach(b => b.setAttribute('aria-selected', String(b.dataset.feat === id)));
+    clips.forEach((c, key) => { c.hidden = key !== id; if (key !== id) c.querySelector('video')!.pause(); });
+    notes.forEach(n => { n.hidden = n.dataset.note !== id; });
+    start(id);
+    // The clip cuts in through the films' dither.
+    stage.classList.remove('cut'); void stage.offsetWidth; stage.classList.add('cut');
+  };
+  const pick = (id: string) => { auto = false; show(id); };
+  feats.forEach(b => b.addEventListener('click', () => pick(b.dataset.feat!)));
+  new IntersectionObserver(([e]) => {
+    stageSeen = e.isIntersecting;
+    const v = clips.get(current)?.querySelector('video');
+    if (v) stageSeen && !reduced ? v.play().catch(() => {}) : v.pause();
+  }, { threshold: .5 }).observe(stage);
+  show(feats[0].dataset.feat!);
+  // Number keys switch features while the clips are in view.
+  addEventListener('keydown', e => {
+    if (!stageSeen || e.metaKey || e.ctrlKey || e.altKey || (e.target as Element).closest('input, textarea')) return;
+    const f = feats[Number(e.key) - 1];
+    if (f) { pick(f.dataset.feat!); f.focus({ preventScroll: true }); }
+  });
+  // Placeholders have no end to wait for, so they turn over on a timer.
+  setInterval(() => {
+    if (!auto || !stageSeen || document.hidden || clips.get(current)!.classList.contains('ready')) return;
+    next();
+  }, 6500);
+</script>
+
+<style>
+  .app-sec { padding-block: var(--section-y); }
+  /* The features are tabs: a row of five over the clip, the open one in the raised tone; under
+     them, what the open one does. The clip takes the column's full width. */
+  .feats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--px); }
+  .feat {
+    --c: transparent;
+    display: grid; grid-template-columns: calc(var(--px) * 16) minmax(0, 1fr); gap: var(--space-3); align-items: center;
+    padding: var(--space-3); border: 0; text-align: left; cursor: pointer; color: var(--muted); font: inherit;
+    background:
+      linear-gradient(var(--c), var(--c)) center / calc(100% - var(--n2) * 2) 100% no-repeat,
+      linear-gradient(var(--c), var(--c)) center / calc(100% - var(--n1) * 2) calc(100% - var(--n1) * 2) no-repeat,
+      linear-gradient(var(--c), var(--c)) center / 100% calc(100% - var(--n2) * 2) no-repeat;
+  }
+  .feat:hover { --c: var(--surface); }
+  .feat[aria-selected="true"] { --c: var(--raised); }
+  .ico { width: calc(var(--px) * 16); height: calc(var(--px) * 16); opacity: .5; transition: opacity .1s steps(1); }
+  .feat:hover .ico, .feat[aria-selected="true"] .ico { opacity: 1; }
+  .feat-head { display: flex; align-items: flex-start; gap: var(--space-2); color: var(--secondary); font-weight: 500; font-size: var(--text-sm); line-height: 1.35; }
+  .feat[aria-selected="true"] .feat-head { color: var(--text); }
+  .feat kbd { flex: none; display: inline-grid; place-items: center; width: 1.3rem; height: 1.3rem; padding: 0; border: 0; background: var(--hover); color: var(--secondary); font: 500 var(--text-xs)/1 var(--font-mono); box-shadow: 0 var(--px) 0 #080a0a; }
+  .feat[aria-selected="true"] kbd { background: var(--active); color: var(--focus); }
+  .feat-notes { display: grid; padding: var(--space-4) var(--space-3) var(--space-6); }
+  .feat-note { grid-area: 1 / 1; display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-8); color: var(--secondary); }
+  .feat-note[hidden] { display: flex; visibility: hidden; }
+  .feat-note span { max-width: 62ch; }
+  .feat-note a { flex: none; font: var(--text-sm)/1.5 var(--font-mono); text-decoration: none; }
+
+  /* One clip at a time, 16:9, in the frame the film uses. */
+  .clips.frame { --frame: var(--divider); --fill: var(--canvas); padding: var(--px); min-width: 0; }
+  .clip { position: relative; aspect-ratio: 16 / 9; background: var(--canvas); overflow: hidden; }
+  .clip video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; }
+  .clip.ready video { opacity: 1; }
+  .clip.ready .clip-slot { display: none; }
+  .clip-slot {
+    position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: var(--space-4); padding: var(--space-8); text-align: center;
+    background: var(--dither-25) 0 0 / calc(var(--px) * 4) calc(var(--px) * 4); color: var(--secondary);
+  }
+  .clip-slot p { max-width: 36rem; font-size: 1.05rem; line-height: 1.5; padding: var(--space-3) var(--space-4); background: var(--canvas); }
+  .clip-tag { color: var(--muted); font: var(--text-xs)/1 var(--font-mono); padding: var(--space-2) var(--space-3); background: var(--canvas); box-shadow: inset 0 0 0 1px var(--divider); }
+  /* A cut between clips: the film's dissolve in three steps. */
+  .clips.cut .clip:not([hidden]) { animation: dissolve .24s steps(1); }
+  @keyframes dissolve {
+    0% { -webkit-mask: var(--dither-25) 0 0 / calc(var(--px) * 4) calc(var(--px) * 4); mask: var(--dither-25) 0 0 / calc(var(--px) * 4) calc(var(--px) * 4); }
+    33% { -webkit-mask: var(--dither-50) 0 0 / calc(var(--px) * 4) calc(var(--px) * 4); mask: var(--dither-50) 0 0 / calc(var(--px) * 4) calc(var(--px) * 4); }
+    66% { -webkit-mask: var(--dither-75) 0 0 / calc(var(--px) * 4) calc(var(--px) * 4); mask: var(--dither-75) 0 0 / calc(var(--px) * 4) calc(var(--px) * 4); }
+    100% { -webkit-mask: none; mask: none; }
+  }
+
+  @media (max-width: 56rem) {
+    .feats { grid-template-columns: repeat(5, minmax(4.5rem, 1fr)); overflow-x: auto; }
+    .feat { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+    .feat-head span { display: none; }
+    .feat-note { flex-direction: column; gap: var(--space-2); }
+  }
+</style>

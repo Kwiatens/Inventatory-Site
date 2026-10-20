@@ -1,59 +1,83 @@
 {
   "hero": {
     "title": [
-      "Your inventory system",
-      "for electronics."
+      "Every part",
+      "has a place."
     ],
-    "summary": "Free, open-source and terminal based. Purpose-built for electronics.",
+    "summary": "Inventatory is a free, open-source inventory for electronics. Scan a vendor bag and it fills in the part and gives it a slot. Build a board and it walks you to every part.",
     "primary": "Install Inventatory",
-    "secondary": "How it works"
+    "secondary": "Watch it work"
+  },
+  "film": {
+    "title": [
+      "One scan.",
+      "One slot."
+    ],
+    "summary": "A part comes in, the scanner reads its bag, and Inventatory fills it in from the vendor and gives it a slot. When a board needs it, you go straight there. The whole loop, in under two minutes."
+  },
+  "app": {
+    "title": [
+      "It lives in",
+      "your terminal."
+    ],
+    "summary": "One keyboard-driven window for stock, racks, orders, boards and history. Your inventory stays on your own computer. Pick a feature to see it at work on a real bench."
   },
   "highlights": {
     "items": [
       {
-        "id": "import",
-        "icon": "import",
-        "title": "Import an order",
-        "text": "Load a DigiKey order CSV and review each line. Accept or skip it, and accepted parts are created and filled in from DigiKey.",
-        "href": "/docs/desktop/import/",
+        "id": "stock",
+        "icon": "stock",
+        "title": "Search and count stock",
+        "tab": "Stock",
+        "text": "Filter by part, category, parameter, location or SKU. Set a reorder threshold for each part and run a guided stocktake.",
+        "href": "/docs/desktop/stock/",
         "video": "",
-        "poster": ""
+        "poster": "",
+        "shot": "Search “10k” at the keyboard; cut to the bag in its slot."
       },
       {
         "id": "racks",
         "icon": "racks",
         "title": "Give every part a slot",
+        "tab": "Racks",
         "text": "Assign parts to a 5 × 5 rack grid, so a location reads R1-B3 instead of Drawer 12. Print labels for slots and parts.",
         "href": "/docs/desktop/racks/",
         "video": "",
-        "poster": ""
+        "poster": "",
+        "shot": "The rack on screen, then the real rack: the slot found, the drawer pulled."
+      },
+      {
+        "id": "import",
+        "icon": "import",
+        "title": "Import an order",
+        "tab": "Import",
+        "text": "Load a DigiKey order CSV and review each line. Accept or skip it, and accepted parts are created and filled in from DigiKey.",
+        "href": "/docs/desktop/import/",
+        "video": "",
+        "poster": "",
+        "shot": "Vendor bags scanned with the Scan R1, one after another; each lands in the app."
       },
       {
         "id": "projects",
         "icon": "projects",
         "title": "Build a board from its BOM",
+        "tab": "Projects",
         "text": "Import a KiCad BOM to see what is in stock and what needs ordering. Pick the parts rack by rack, then deduct them from stock.",
         "href": "/docs/desktop/projects/",
         "video": "",
-        "poster": ""
-      },
-      {
-        "id": "stock",
-        "icon": "stock",
-        "title": "Search and count stock",
-        "text": "Filter by part, category, parameter, location or SKU. Set a reorder threshold for each part and run a guided stocktake.",
-        "href": "/docs/desktop/stock/",
-        "video": "",
-        "poster": ""
+        "poster": "",
+        "shot": "A board’s parts list; hands walk from slot to slot picking each part."
       },
       {
         "id": "history",
         "icon": "history",
         "title": "Restore and undo",
+        "tab": "History",
         "text": "Every change is recorded with its before and after values. Set checkpoints, and restore or reverse a change, even after a restart.",
         "href": "/docs/desktop/history/",
         "video": "",
-        "poster": ""
+        "poster": "",
+        "shot": "A wrong pick, one key, undone; the count comes back."
       }
     ]
   },
@@ -82,10 +106,22 @@
       "cta": "Get the CAD files",
       "href": "",
       "contents": [
-        { "item": "Scanner enclosure", "note": ".STEP" },
-        { "item": "Charging dock", "note": ".STEP" },
-        { "item": "Print-ready files", "note": ".3MF" },
-        { "item": "Assembly instructions", "note": ".PDF / .MP4" }
+        {
+          "item": "Scanner enclosure",
+          "note": ".STEP"
+        },
+        {
+          "item": "Charging dock",
+          "note": ".STEP"
+        },
+        {
+          "item": "Print-ready files",
+          "note": ".3MF"
+        },
+        {
+          "item": "Assembly instructions",
+          "note": ".PDF / .MP4"
+        }
       ]
     }
   }

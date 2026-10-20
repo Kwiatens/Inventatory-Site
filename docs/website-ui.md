@@ -18,31 +18,34 @@ that way.
 
 Top to bottom:
 
-1. **Header**: a sticky bar, `--header-height` tall, on the surface colour. Its lower edge dissolves
-   into the page in the films' dither.
-   The brand mark sits left. Navigation sits right: Documentation, Download, GitHub. The current
-   page's link has a 1px accent underline.
-2. **Hero**: left-aligned, in the column. The logo lockup, then the H1 claim, then one summary
-   sentence, then the primary button (`.press`) and a secondary text link to `#how`. The product
-   turntable video plays on the pixel grid. On desktop (44rem and up) it sits behind the text, shifted
-   20% to the right so the scanner starts clear of the claim. On phones (44rem and below) it is a band
-   of its own, 15.5rem tall and full bleed, above the text.
+1. **Header** (`components/SiteHeader.astro`): the app's tab bar. A sticky bar, `--header-height`
+   tall, on the canvas colour, with one divider line under it. The brand mark sits left. The home
+   page's sections sit in the middle as tabs: Overview, How it works, The app, Scan R1, Install. On
+   the home page the tab of the section in view is the current one (bold, `--focus`, on the divider);
+   on other pages the tabs lead back to the home page. Docs, GitHub and the app's clock sit right.
+   Below 64rem the tabs and the clock are hidden.
+2. **Hero** (`#top`): left-aligned, in the column. The H1 claim in the Scan R1's bitmap font
+   (`Inventatory Pixel Head`) at twice the grid, with the lockup's hard shadow; then the summary,
+   the primary button (`.press`) and a `.key` button with a pixel play mark to `#how`. Stand-in
+   footage (the Scan R1 turntable) plays through the films' dither (`lib/pixel-video.ts`) on the
+   right two thirds, tagged `Montage placeholder`. Below 56rem it goes behind the claim, dimmed.
 3. **The film** (`#how`, `components/concept/Film.astro`): in a `.band`, a surface-tone section whose
-   top and bottom edges dissolve into the page in dither. No caption above it. The reel opens on an
-   intro (`lib/film/intro.ts`): the cursor, the lockup's prompt mark, types "See what the system can
-   do", holds it, backspaces it away, and the film dithers in out of the blank. It is one canvas with
-   one timeline: a plain line for the whole loop with the playhead on it, no chapters and no names.
-   Click or drag to scrub; the arrow keys step five seconds. On phones (40rem and below) the film is drawn at 2x and a
-   window follows the action: it eases towards the middle of the lit pixels and never moves past the
-   film's edges.
-4. **Highlights** (`components/home/Highlights.astro`): one row per desktop feature, laid out as a
-   table. The pixel icon, then the name in one shared column, then the description with its
-   `Read the guide` link. Rows are separated by dotted rules. This is a list, not a card grid. The
-   name is a button with a pixel plus; a click anywhere on the row but its link opens it, and the
-   open row shows a 16:9 slot for a video of the feature on the real thing (`video` and `poster` in
-   `home.json`). Until a row has a video, its slot is a frame with a pixel play mark and
-   `Video coming soon`. Closing a row pauses its video. On phones the name sits beside the icon,
-   the description goes below it, and the video takes the full width.
+   top and bottom edges dissolve into the page in dither. A `.lede-row` heading above it: the pixel
+   heading left, its summary right. The reel opens on an intro (`lib/film/intro.ts`): the cursor, the
+   lockup's prompt mark, types "See what the system can do", holds it, backspaces it away, and the
+   film dithers in out of the blank. It is one canvas in a `.frame`. Under it: a play key, the
+   chapters (`CHAPTERS` in `lib/film/reel.ts`), each as long as its part of the loop with its own
+   progress line, and the time. A click on a chapter jumps to it. On phones (40rem and below) the
+   chapters keep only their numbers, the film is drawn at 2x and a window follows the action: it
+   eases towards the middle of the lit pixels and never moves past the film's edges.
+4. **The app** (`#app`, `components/home/AppFeatures.astro`): a `.lede-row` heading, then the
+   desktop features as the app's tabs, in the order of its tabs, each with its pixel icon and number
+   key. Under the tabs, the open feature's description and its `Read the guide` link; under that,
+   one 16:9 clip in a `.frame`. Clips are files in `public/media/features/<id>.mp4`; until one
+   exists, a dithered placeholder says what it will show (`shot` in `home.json`). The tabs turn
+   over on their own until one is picked; number keys pick one while the clips are in view. A cut
+   between clips is the film's three-step dither dissolve. Below 56rem the tabs show only their icons
+   and keys.
    The icons are one set: each is the real object the feature works with, rendered from a model by
    `scripts/pixel-art/icons.py` with the film's rack camera, and fitted to the same 44 × 44 grid.
 5. **Scan R1** (`components/home/Scanner.astro`): the pixel heading and summary, the device sprite with
@@ -126,11 +129,11 @@ and any animation of layout. Everything respects `prefers-reduced-motion`.
 ## Content and data
 
 - Homepage copy lives in `src/content/pages/home.json`. Edit it there, not in the components.
-  - `hero`: the claim, summary and buttons.
-  - `highlights.items`: one entry per row, with `id`, `icon`, `title`, `text`, `href`, `video` and
-    `poster`. The icon names must match the keys in `src/data/feature-icons.json`. `video` and
-    `poster` are site paths (for example `/media/feature-racks.webm`); leave `video` empty until
-    the recording exists.
+  - `hero`: the claim (two lines), summary and buttons.
+  - `film` and `app`: each section heading's two lines and its summary.
+  - `highlights.items`: one entry per feature, in the order of the app's tabs, with `id`, `icon`,
+    `title`, `tab` (the app's tab name), `text`, `href` and `shot` (what its clip will show). The
+    icon names must match the keys in `src/data/feature-icons.json`.
   - `scanner`: the Scan R1 copy, its open-source links, and the CAD bundle. Set
     `scanner.bundle.href` to enable the purchase button.
 - The hero summary is pinned by `scripts/verify-build.mjs`. Change the two together.
@@ -142,20 +145,20 @@ and any animation of layout. Everything respects `prefers-reduced-motion`.
   layout changes, update `labelBig` and `rackCard` in `src/lib/film/props.ts`. When the rack model
   changes (`scripts/pixel-art/rack.py`), run `scripts/pixel-art/build.sh`; without the FreeCAD file
   it rebuilds only the racks and keeps the scanner's sprites, then run `icons.sh` for the icons.
-- `src/data/site.ts` holds the navigation and the Scan R1 media. The header and the docs header
-  both read `nav`.
+- `src/data/site.ts` holds the docs header's navigation (`nav`) and the Scan R1 media. The site
+  header's tabs are the home page's sections, listed in `SiteHeader.astro`.
 
 ## Components
 
 | File | Role |
 | --- | --- |
 | `src/layouts/BaseLayout.astro` | Document shell: metadata, header, footer, anchor scrolling |
-| `src/components/SiteHeader.astro` | Sticky header and navigation |
+| `src/components/SiteHeader.astro` | Sticky header: the app's tab bar |
 | `src/components/SiteFooter.astro` | Footer |
 | `src/components/BrandMark.astro` | Header brand mark |
 | `src/components/Lockup.astro` | The pixel wordmark |
-| `src/components/concept/Film.astro` | The workflow film and its timeline |
-| `src/components/home/Highlights.astro` | Feature rows with pixel icons, each opening to a video slot |
+| `src/components/concept/Film.astro` | The workflow film and its chapters |
+| `src/components/home/AppFeatures.astro` | The app's features as tabs, each with its clip |
 | `src/components/home/Scanner.astro` | Scan R1 section |
 | `src/components/PlatformInstallSelector.astro` | OS tabs and install commands |
 | `src/components/Mascot.astro` | The project mascot: the mark's › with a block cursor, rest and sleep poses, one-shot blink, hop, nod, shake and type |
@@ -174,7 +177,7 @@ Then look at the result:
 
 - Screenshot the homepage at 1440 × 900 and 390 × 844, scrolling through it.
 - No horizontal scroll: `document.documentElement.scrollWidth` equals `clientWidth`.
-- On a phone the navigation is visible in the header and clickable.
+- On a phone the header's Docs and GitHub links are visible and clickable.
 - The install command wraps inside its block.
 - Text contrast meets the minimum above.
 

@@ -46,7 +46,7 @@
   --measure: 66ch;
   --border: 1px;
   --focus-width: 2px;
-  --header-height: 3.5rem;
+  --header-height: 2.5rem;
   /* The vertical rhythm of every homepage section, top and bottom. */
   --section-y: var(--space-20);
 }

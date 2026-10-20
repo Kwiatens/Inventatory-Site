@@ -73,6 +73,8 @@ const HOME3 = [LAST.carry[1] + 250, LAST.carry[1] + 700], KIT_END = HOME3[1] + 2
 const SIGN_HELD = 5600, SIGN_OUT = 600, END = KIT_END + SIGN_HELD + SIGN_OUT;
 /** Where the finale's picture ends (the reel's pause follows it). */
 export const RUN = END;
+/** Chapter marks on the finale's clock: the drawer hunt, the slots, the pick. */
+export const MARKS = { drawer: PAN1[0], slots: ERASE[0], pick: P3 };
 /** The frame to show still (reduced motion): the kit. */
 export const POSTER = KIT_END - 300;
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));

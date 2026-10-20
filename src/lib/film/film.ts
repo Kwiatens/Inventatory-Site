@@ -57,6 +57,9 @@ export const QUESTION = 'But why is this useful?';
 export const CUT = later(SIGN + DESK_LEN + BENCH_EXTRA);
 /** The frame to show still (reduced motion): the finished lockup. */
 export const POSTER = later(SIGN_END + BENCH_EXTRA) - 900;
+/** Where each beat starts on the film's clock, for chapter marks: the PC fills the part in, the
+ *  label is made, the tube goes into its slot, the question is asked. */
+export const MARKS = { look: SCAN_END, label: later(OPEN[0]), store: later(WALK + BENCH_EXTRA), ask: later(SIGN + BENCH_EXTRA) };
 // ---------- timing helpers ----------
 const clamp = (v: number, a = 0, b = 1) => Math.max(a, Math.min(b, v));
 const seg = (t: number, a: number, b: number) => clamp((t - a) / (b - a));

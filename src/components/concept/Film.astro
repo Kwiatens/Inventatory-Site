@@ -1,57 +1,55 @@
 ---
 /**
  * Concept: the pixel-art film (lib/film/reel) as one player. One scan puts a part away; then a
- * board's BOM shows what the exact slot is for (see reel.ts). Under the picture: one plain timeline
- * for the whole loop (click or drag to scrub, arrow keys step five seconds). Plays while on screen;
- * with reduced motion it shows a poster frame until played.
+ * board's BOM shows what the exact slot is for (see reel.ts). Under the picture: the loop's chapters,
+ * each as long as its part of the loop with its own progress line; a click jumps to one. Plays
+ * while on screen; with reduced motion it shows a poster frame until played.
  */
 const label = 'Animation: the Scan R1 reads a vendor bag\'s label; you press A once; Inventatory on the PC fills in the part from the vendor and reserves slot R1-B3; parts go into a tube, its label prints and wraps the tube, and the tube drops into the rack. The cursor asks: But why is this useful? A circuit board\'s parts list prints out. The usual answer, Drawer 12 for every part, points into one drawer of identical bags; the cursor searches them, shakes its head and gives up. Inventatory gives every part its own slot in rack 1; the cursor goes straight to each one and nods. The six tubes are lifted out one by one, the 10K from R1-B3 first, and stand in a row as each line of the list is ticked. The cursor becomes the Inventatory logo.';
 ---
 <figure class="film" data-reel>
-  <div class="screen" data-screen>
+  <div class="screen frame" data-screen>
     <canvas id="film-reel" role="img" aria-label={label} width="384" height="166"></canvas>
   </div>
-  <figcaption class="under" data-fit>
-    <div class="bar">
-      <button type="button" class="play key" data-play aria-label="Pause"><span data-icon></span></button>
-      <div class="reel">
-        <div class="track" data-track role="slider" tabindex="0" aria-label="Position in the animation" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-          <div class="fill" data-fill></div>
-        </div>
-      </div>
-    </div>
+  <figcaption class="transport" data-fit>
+    <button type="button" class="key play" data-play aria-label="Pause"><span data-icon></span></button>
+    <ol class="chapters" data-chapters aria-label="Chapters"></ol>
+    <span class="time" data-time>0:00</span>
   </figcaption>
 </figure>
 
 <script>
-  import { createReel, W, H, LOOP, POSTER } from '../../lib/film/reel';
+  import { createReel, W, H, LOOP, POSTER, CHAPTERS } from '../../lib/film/reel';
+
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const fmt = (ms: number) => `${Math.floor(ms / 60000)}:${pad(Math.floor(ms / 1000) % 60)}`;
 
   for (const root of document.querySelectorAll<HTMLElement>('[data-reel]')) {
     const canvas = root.querySelector<HTMLCanvasElement>('canvas')!;
     const film = createReel(canvas);
     const screen = root.querySelector<HTMLElement>('[data-screen]')!;
-    const track = root.querySelector<HTMLElement>('[data-track]')!;
-    const fill = root.querySelector<HTMLElement>('[data-fill]')!;
     const play = root.querySelector<HTMLButtonElement>('[data-play]')!;
+    const list = root.querySelector<HTMLOListElement>('[data-chapters]')!;
+    const time = root.querySelector<HTMLElement>('[data-time]')!;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-    // Whole-number scale when there is room, so every art pixel is the same size; the bar
-    // takes the film's width. On phones the film is drawn at 2x, and a window follows the action
-    // (see follow): the whole film is too wide to show at that size.
+    // Whole-number scale when there is room, so every art pixel is the same size. On phones the
+    // film is drawn at 2x, and a window follows the action (see follow): the whole film is too
+    // wide to show at that size.
     const phone = window.matchMedia('(max-width: 40rem)');
     let avail = 0, target = 0, focus = W / 2;
     const fit = () => {
-      avail = screen.clientWidth;
       if (phone.matches) {
+        avail = screen.clientWidth;
         canvas.style.width = W * 2 + 'px'; canvas.style.height = H * 2 + 'px';
-        root.style.setProperty('--film-w', avail + 'px');
         return;
       }
+      const inset = parseFloat(getComputedStyle(screen).paddingLeft) * 2;
+      avail = screen.clientWidth - inset;
       const dpr = devicePixelRatio || 1;
       const k = Math.floor(avail * dpr / W);
       const css = k >= 2 ? (k * W) / dpr : avail;
       canvas.style.width = css + 'px'; canvas.style.height = css * H / W + 'px';
-      root.style.setProperty('--film-w', css + 'px');
     };
     new ResizeObserver(fit).observe(screen);
     phone.addEventListener('change', fit);
@@ -75,11 +73,25 @@ const label = 'Animation: the Scan R1 reads a vendor bag\'s label; you press A o
     };
 
     let t = reduced.matches ? POSTER : 0, playing = !reduced.matches, visible = false, last = performance.now();
+    // Chapters: each as long as its part of the loop; a click starts it.
+    const marks = [...CHAPTERS.map(([, at]) => at), LOOP];
+    const parts = CHAPTERS.map(([name, at], i) => {
+      const li = document.createElement('li');
+      li.style.flexGrow = String(marks[i + 1] - at);
+      li.innerHTML = `<button type="button"><span class="n">${pad(i + 1)}</span>${name}</button><i class="fill"></i>`;
+      li.querySelector('button')!.addEventListener('click', () => { t = at + 1; draw(); });
+      list.append(li);
+      return li;
+    });
     const draw = () => {
       film.render(t);
       follow();
-      fill.style.width = t / LOOP * 100 + '%';
-      track.setAttribute('aria-valuenow', String(Math.round(t / LOOP * 100)));
+      parts.forEach((li, i) => {
+        const a = marks[i], b = marks[i + 1];
+        li.style.setProperty('--p', String(Math.max(0, Math.min(1, (t - a) / (b - a)))));
+        li.classList.toggle('now', t >= a && t < b);
+      });
+      time.textContent = `${fmt(t)} / ${fmt(LOOP)}`;
     };
     const setPlaying = (on: boolean) => {
       playing = on;
@@ -87,43 +99,11 @@ const label = 'Animation: the Scan R1 reads a vendor bag\'s label; you press A o
       play.dataset.state = on ? 'playing' : 'paused';
     };
     play.addEventListener('click', () => setPlaying(!playing));
-    // The pointer picks the moment under it.
-    const seek = (clientX: number) => {
-      const r = track.getBoundingClientRect();
-      t = Math.max(0, Math.min(.999, (clientX - r.left) / r.width)) * LOOP;
-      draw();
-    };
-    track.addEventListener('pointerdown', (e) => { seek(e.clientX); track.setPointerCapture(e.pointerId); });
-    track.addEventListener('pointermove', (e) => { if (track.hasPointerCapture(e.pointerId)) seek(e.clientX); });
-    // Arrow keys step five seconds.
-    const STEP = 5000;
-    track.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowRight') t = Math.min(LOOP - 1, t + STEP);
-      else if (e.key === 'ArrowLeft') t = Math.max(0, t - STEP);
-      else if (e.key === ' ') setPlaying(!playing);
-      else return;
-      e.preventDefault(); draw();
-    });
 
-    // 0.5s persistence check: pause when out of view, resume when scrolled back in view
-    let visibilityTimer: ReturnType<typeof setTimeout> | null = null;
-    new IntersectionObserver(([e]) => {
-      if (visibilityTimer) clearTimeout(visibilityTimer);
-      const inView = e.isIntersecting;
-      visibilityTimer = setTimeout(() => {
-        if (visible !== inView) {
-          visible = inView;
-          last = performance.now();
-        }
-      }, 500);
-    }, { threshold: .25 }).observe(screen);
+    new IntersectionObserver(([e]) => { visible = e.isIntersecting; last = performance.now(); }, { threshold: .3 }).observe(screen);
 
     const tick = (now: number) => {
-      if (playing && visible && !document.hidden) {
-        t += Math.min(100, now - last);
-        if (t >= LOOP) t -= LOOP;
-        draw();
-      }
+      if (playing && visible && !document.hidden) { t = (t + Math.min(100, now - last)) % LOOP; draw(); }
       if (phone.matches) screen.scrollLeft += Math.max(-1.5, Math.min(1.5, (target - screen.scrollLeft) * .03));
       last = now;
       requestAnimationFrame(tick);
@@ -137,36 +117,39 @@ const label = 'Animation: the Scan R1 reads a vendor bag\'s label; you press A o
 
 <style>
   .film { margin: 0; }
-  .film [data-fit] { width: var(--film-w, 100%); max-width: 100%; margin-inline: auto; }
-  .screen { display: flex; justify-content: center; }
+  /* The screen reaches two art pixels past the column each side, so the film inside it gets the
+     column's full width (three times its own) and the frame sits just outside the picture. */
+  .screen.frame { --frame: var(--divider); --fill: var(--canvas); display: flex; justify-content: center; margin-inline: calc(var(--px) * -2); padding: calc(var(--px) * 2); }
   canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
-  canvas[hidden] { display: none; }
-  /* Under the picture: the controls on the film's own grid, one art pixel (--px) thick, no
-     rounding. */
-  .under { margin-top: var(--space-4); }
-  .bar { display: flex; align-items: center; gap: var(--space-4); }
-  /* Play/pause is a key off the Scan R1's keypad. */
-  .play { flex: none; width: 2.25rem; min-height: 2.25rem; padding: 0; }
+  /* Under the picture: play/pause, a key off the Scan R1's keypad, then the chapters and the time. */
+  .transport { display: flex; align-items: center; gap: var(--space-4); margin-top: var(--space-4); }
+  .key.play { flex: none; width: 2.5rem; min-height: 2.5rem; padding: 0; }
   /* Pixel icons: two bars to pause, a stepped triangle to play. */
   .play [data-icon] { width: 10px; height: 10px; background:
-      linear-gradient(var(--secondary), var(--secondary)) 1px 0 / 3px 10px no-repeat,
-      linear-gradient(var(--secondary), var(--secondary)) 6px 0 / 3px 10px no-repeat; }
+      linear-gradient(currentColor, currentColor) 1px 0 / 3px 10px no-repeat,
+      linear-gradient(currentColor, currentColor) 6px 0 / 3px 10px no-repeat; }
   .play[data-state="paused"] [data-icon] { background:
-      linear-gradient(var(--secondary), var(--secondary)) 1px 0 / 2px 10px no-repeat,
-      linear-gradient(var(--secondary), var(--secondary)) 3px 1px / 2px 8px no-repeat,
-      linear-gradient(var(--secondary), var(--secondary)) 5px 2px / 2px 6px no-repeat,
-      linear-gradient(var(--secondary), var(--secondary)) 7px 4px / 2px 2px no-repeat; }
-  /* The reel: one timeline for the whole loop, one art pixel thick, with the playhead on it. */
-  .reel { flex: 1; min-width: 0; }
-  .track { position: relative; height: 2.25rem; cursor: pointer; touch-action: none; }
-  .track::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: var(--px); margin-top: calc(var(--px) / -2); background: var(--divider); }
-  .fill { position: absolute; left: 0; top: 50%; height: var(--px); margin-top: calc(var(--px) / -2); background: var(--accent); }
-  /* The playhead: one block, twice the line's height. */
-  .fill::after { content: ''; position: absolute; right: calc(var(--px) * -1); top: calc(var(--px) * -1.5); width: calc(var(--px) * 2); height: calc(var(--px) * 4); background: var(--focus); }
-  .track:focus-visible { outline-offset: 2px; }
-  /* Phones: the film runs edge to edge at 2x, and the window moves with the action. */
+      linear-gradient(currentColor, currentColor) 1px 0 / 2px 10px no-repeat,
+      linear-gradient(currentColor, currentColor) 3px 1px / 2px 8px no-repeat,
+      linear-gradient(currentColor, currentColor) 5px 2px / 2px 6px no-repeat,
+      linear-gradient(currentColor, currentColor) 7px 4px / 2px 2px no-repeat; }
+  /* Chapters: each its own progress on a pixel line. */
+  .chapters { flex: 1; min-width: 0; display: flex; gap: var(--px); margin: 0; padding: 0; list-style: none; }
+  .chapters :global(li) { position: relative; flex-basis: 0; min-width: 0; margin: 0; padding-top: var(--space-3); }
+  .chapters :global(li)::before, .chapters :global(.fill) { content: ''; position: absolute; left: 0; top: 0; height: var(--px); }
+  .chapters :global(li)::before { right: 0; background: var(--divider); }
+  .chapters :global(.fill) { width: calc(var(--p, 0) * 100%); background: var(--accent); }
+  .chapters :global(button) { display: flex; gap: var(--space-2); width: 100%; padding: 0; border: 0; background: none; color: var(--muted); font: var(--text-xs)/1.3 var(--font-mono); text-align: left; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .chapters :global(.n) { color: var(--divider); }
+  .chapters :global(li.now button), .chapters :global(button:hover) { color: var(--text); }
+  .chapters :global(li.now .n) { color: var(--accent); }
+  .time { flex: none; color: var(--muted); font: var(--text-xs)/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+  /* Phones: the film runs edge to edge at 2x, the window moves with the action, and the chapters
+     keep only their lines (still a tap target each). */
   @media (max-width: 40rem) {
-    .screen { margin-inline: calc(var(--gutter) * -1); justify-content: flex-start; overflow: hidden; }
+    .screen.frame { margin-inline: calc(var(--gutter) * -1); padding: 0; justify-content: flex-start; overflow: hidden; }
     canvas { flex: none; }
+    .chapters :global(button) { font-size: 0; gap: 0; min-height: 1.5rem; }
+    .chapters :global(.n) { display: none; }
   }
 </style>
