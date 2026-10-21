@@ -5,7 +5,7 @@ description: "Configure the data folder, printer, DigiKey, background operation,
 
 ## Save or cancel settings
 
-Open **6 Settings**. Settings are grouped under System, Devices, and Integrations. Changes to data location, printer, Quick Labels, Scan R1 configuration, and DigiKey settings are staged until **Save**. **Cancel** restores the saved values.
+Open **6 Settings**. Settings are grouped under System, Devices, and Integrations. Changes to data location, printer, Quick Labels, Scanner R1 configuration, and DigiKey settings are staged until **Save**. **Cancel** restores the saved values.
 
 Printer and DigiKey tests use the staged values, so test a draft before saving it.
 
@@ -23,7 +23,7 @@ An unconfigured DigiKey section shows **Begin Setup**. Enter the Client ID and C
 
 ## Background operation
 
-Under **General / Data → Background & startup**, choose whether Inventatory stays available for Scan R1 after the terminal closes. The default is Off.
+Under **General / Data → Background & startup**, choose whether Inventatory stays available for Scanner R1 after the terminal closes. The default is Off.
 
 When enabled, Inventatory starts for the signed-in Windows user and continues the R1 service in the notification area. The tray menu offers **Open Inventatory** and **Quit Inventatory**. Disabling the setting removes its Windows startup entry. It does not run before sign-in.
 
@@ -37,6 +37,6 @@ Cancel is available during download. After installer handoff the application clo
 
 **Auto-check for updates** controls the daily background check and is staged until Save.
 
-## Scan R1
+## Scanner R1
 
 Use **Devices → Inventatory Scan → Begin Setup** for a new device. After provisioning, the panel shows pairing controls and device status. A service-port change takes effect on the next launch. Read [scanner setup](../../scanner/setup/) before changing network access.

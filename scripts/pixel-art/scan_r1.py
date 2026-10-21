@@ -1,4 +1,4 @@
-"""Scan R1 from its FreeCAD model: shell and bottom from the file, LCD glass and the 4x4
+"""Scanner R1 from its FreeCAD model: shell and bottom from the file, LCD glass and the 4x4
 keypad placed in the model's display window and keypad opening. The printed shell is blue-grey;
 the bottom plate and the raised grip pads on both flanks (|y| > 37 mm) are black."""
 import numpy as np

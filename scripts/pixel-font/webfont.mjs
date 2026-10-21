@@ -1,5 +1,5 @@
 // Builds the site's pixel webfonts from the U8g2 bitmaps in src/data/pixel-fonts.json (the same
-// glyphs the films and the Scan R1 draw), so headings are real, selectable text on the art grid.
+// glyphs the films and the Scanner R1 draw), so headings are real, selectable text on the art grid.
 // One font pixel = 100 units and the em is the font's full height, so `font-size: calc(var(--px)
 // * height)` puts every glyph pixel on a page pixel.
 // Usage: node scripts/pixel-font/webfont.mjs

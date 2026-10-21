@@ -1,4 +1,4 @@
-/* Headings in the Scan R1's own bitmap fonts (U8g2 helvB12 / helvB08, built by
+/* Headings in the Scanner R1's own bitmap fonts (U8g2 helvB12 / helvB08, built by
    scripts/pixel-font/webfont.mjs). The em is the font's height in its pixels, so a size of
    --px x height lands every glyph pixel on the page grid. */
 @font-face { font-family: 'Inventatory Pixel Head'; src: url('../assets/fonts/pixel-head.otf') format('opentype'); font-display: block; }
@@ -93,7 +93,7 @@
     linear-gradient(var(--frame), var(--frame)) center / 100% calc(100% - var(--n2) * 2) no-repeat;
 }
 
-/* A key off the Scan R1's keypad: a dark notched cap standing on its shadow. Pressed, or
+/* A key off the Scanner R1's keypad: a dark notched cap standing on its shadow. Pressed, or
    selected (.on / a checked radio before it), it sinks into the shadow and its legend lights. */
 .key {
   --c: var(--raised);

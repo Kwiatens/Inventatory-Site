@@ -65,16 +65,16 @@ export const features = [
     label: 'History',
     href: '/docs/desktop/history/',
     text: 'Inspect inventory changes, create named checkpoints, reverse changes, and make validated backups of the workspace.',
-    details: ['Review before-and-after fields for parts and racks.', 'Restore a snapshot without removing earlier history.', 'Validate backup contents before activation and re-pair Scan R1 after restore.'],
+    details: ['Review before-and-after fields for parts and racks.', 'Restore a snapshot without removing earlier history.', 'Validate backup contents before activation and re-pair Scanner R1 after restore.'],
     media: { kind: 'illustration', src: '/media/feature-history.svg', alt: 'Illustration of inventory change points and a recoverable checkpoint.', position: 'center', width: 720, height: 450, video: '' },
   },
   {
     title: 'Scanner and printing',
-    label: 'Scan R1',
+    label: 'Scanner R1',
     href: '/docs/scanner/',
     text: 'Connect a paired handheld scanner to the desktop device service. Use the PC printer for component and quick labels.',
     details: ['Physically verified Bluetooth LE pairing, then local-network synchronization.', 'Authenticated device traffic with replay protection.', 'Optional background service keeps the paired PC available after the terminal closes.'],
-    media: { kind: 'model', src: '/media/scan-r1-poster.png', alt: 'Three-quarter view of a digital Scan R1 enclosure model rendered from the supplied STEP file.', position: 'center', width: 1600, height: 900, video: '/media/scan-r1-turntable.webm' },
+    media: { kind: 'model', src: '/media/scan-r1-poster.png', alt: 'Three-quarter view of a digital Scanner R1 enclosure model rendered from the supplied STEP file.', position: 'center', width: 1600, height: 900, video: '/media/scan-r1-turntable.webm' },
   },
 ];
-export const homepageFeatureOrder = ['Stock', 'Racks', 'Projects', 'Import', 'Scan R1', 'History'];
+export const homepageFeatureOrder = ['Stock', 'Racks', 'Projects', 'Import', 'Scanner R1', 'History'];

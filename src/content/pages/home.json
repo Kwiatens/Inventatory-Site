@@ -9,10 +9,7 @@
     "secondary": "Watch it work"
   },
   "film": {
-    "title": [
-      "One scan.",
-      "One slot."
-    ],
+    "title": "Here's how it works",
     "summary": "A part comes in, the scanner reads its bag, and Inventatory fills it in from the vendor and gives it a slot. When a board needs it, you go straight there. The whole loop, in under two minutes."
   },
   "app": {
@@ -55,7 +52,7 @@
         "href": "/docs/desktop/import/",
         "video": "",
         "poster": "",
-        "shot": "Vendor bags scanned with the Scan R1, one after another; each lands in the app."
+        "shot": "Vendor bags scanned with the Scanner R1, one after another; each lands in the app."
       },
       {
         "id": "projects",
@@ -82,46 +79,52 @@
     ]
   },
   "scanner": {
-    "title": "Inventatory Scan R1",
-    "summary": "A handheld scanner for Inventatory. It reads vendor labels, updates your stock and prints labels for new parts.",
+    "title": "Inventatory Scanner R1",
+    "summary": "The handheld scanner for your parts bench. Scan the vendor bag, confirm the count, done.",
+    "choose": "How do you want to build it?",
+    "gallery": [
+      { "id": "showcase", "label": "Showcase", "video": "/media/scan-r1-turntable.webm", "tag": "Placeholder footage" },
+      { "id": "device", "label": "The scanner", "image": "", "alt": "The assembled Scanner R1", "pending": "Photo of the assembled scanner" },
+      { "id": "dock", "label": "In its dock", "image": "", "alt": "The Scanner R1 in its charging dock", "pending": "Photo of the scanner in its charging dock" },
+      { "id": "parts", "label": "The printed parts", "image": "", "alt": "Every printed part of the official enclosure, laid out", "pending": "Photo of every printed part, laid out" }
+    ],
     "open": {
       "title": "Build it yourself",
-      "text": "The firmware, schematics and build docs are open source. Design your own enclosure, print it in any material, or use one the community shares.",
-      "links": [
-        {
-          "label": "Firmware on GitHub",
-          "href": "https://github.com/Kwiatens/Inventatory-Firmware"
-        },
-        {
-          "label": "Scanner documentation",
-          "href": "/docs/scanner/"
-        }
-      ]
+      "tag": "Open source",
+      "text": "Everything you need to build one. Print any enclosure, or design your own.",
+      "includes": [
+        { "item": "Firmware" },
+        { "item": "Schematics and wiring" },
+        { "item": "Build and setup docs" }
+      ],
+      "cta": "Start building",
+      "href": "/docs/scanner/setup/",
+      "more": { "label": "Firmware and schematics on GitHub", "href": "https://github.com/Kwiatens/Inventatory-Firmware" }
     },
     "bundle": {
       "title": "Official CAD files",
-      "text": "The enclosure and charging dock, designed and tested for printing.",
-      "pricing": "N/A",
-      "delivery": "Digital download",
+      "tag": "Pay what you want",
+      "text": "The enclosure and dock I designed and tested. Buying them is how you support the project.",
+      "includes": [
+        { "item": "Enclosure and charging dock" },
+        { "item": "Print-ready plates" },
+        { "item": "Assembly guide" }
+      ],
       "cta": "Get the CAD files",
       "href": "",
-      "contents": [
-        {
-          "item": "Scanner enclosure",
-          "note": ".STEP"
-        },
-        {
-          "item": "Charging dock",
-          "note": ".STEP"
-        },
-        {
-          "item": "Print-ready files",
-          "note": ".3MF"
-        },
-        {
-          "item": "Assembly instructions",
-          "note": ".PDF / .MP4"
-        }
+      "soon": "Store opens soon",
+      "note": "Pay what you want · digital download"
+    }
+  },
+  "install": {
+    "title": "Install Inventatory",
+    "lead": "One command installs the latest stable release. Pick your system, copy it, paste it into a terminal.",
+    "sources": {
+      "label": "All of it is open source.",
+      "links": [
+        { "label": "Desktop app", "href": "https://github.com/Kwiatens/Inventatory-Software" },
+        { "label": "Scanner R1 firmware", "href": "https://github.com/Kwiatens/Inventatory-Firmware" },
+        { "label": "Documentation", "href": "/docs/" }
       ]
     }
   }

@@ -1,160 +1,222 @@
 ---
-/** Scan R1: the model, its description, and the two routes to owning one: everything is open
- *  source and free to build; the official CAD files are the way to support the project (pay
- *  what you want). */
+/** Scanner R1, as a shop page: the media gallery on the left; on the right the name, the two ways
+ *  to get one at equal weight (everything open source and free to build; the official CAD files,
+ *  pay what you want, to support the project) and the one button for the chosen way. The band
+ *  is the accent's dark tone, so the section reads as a step into the shop. */
+import PixelSprite from '../concept/PixelSprite.astro';
+import art from '../../data/pixel-art.json';
 import { scanner } from '../../data/home';
-import { features } from '../../data/site';
 import { url } from '../../lib/url';
 
-const model = features.find(item => item.label === 'Scan R1');
-if (!model) throw new Error('Missing Scan R1 feature data.');
-const external = (href: string) => /^https?:/.test(href);
+const { gallery, open, bundle } = scanner;
+const routes = [{ id: 'open', ...open }, { id: 'bundle', ...bundle }];
+const chosen = 'bundle';
 ---
-<section id="scanner" class="scanner" aria-labelledby="scanner-heading">
-  <div class="wrap">
-    <div class="stage">
-      <div class="stage-copy">
-        <h2 id="scanner-heading" class="px-head">{scanner.title}</h2>
-        <p class="summary">{scanner.summary}</p>
+<section id="scanner" class="scanner band" data-section="scanner" aria-labelledby="scanner-heading">
+  <div class="wrap shop">
+    <div class="gallery">
+      <div class="stage" data-stage>
+        {gallery.map((view, i) => <figure class:list={['view', { pending: !view.video && !view.image }]} data-view={view.id} hidden={i > 0}>
+          {view.video
+            ? <><video data-loop muted loop playsinline preload="metadata" src={url(view.video) + '#t=2.4'} aria-hidden="true"></video>{view.tag && <figcaption class="tag">{view.tag}</figcaption>}</>
+            : view.image
+              ? <img src={url(view.image)} alt={view.alt} loading="lazy" decoding="async" />
+              : <figcaption class="meta">{view.pending}</figcaption>}
+        </figure>)}
       </div>
-
-      <slot name="model">
-        <div class="model" data-scanner-model>
-          <img class="still" src={url(model.media.src)} alt={model.media.alt} width={model.media.width} height={model.media.height} loading="lazy" decoding="async" />
-          <video data-scanner-video muted loop playsinline preload="none" poster={url(model.media.src)} aria-hidden="true">
-            <source src={url(model.media.video)} type="video/webm" />
-          </video>
-        </div>
-      </slot>
+      <ul class="thumbs" aria-label="Scanner R1 pictures">
+        {gallery.map((view, i) => <li>
+          <button type="button" class="thumb" aria-pressed={i === 0 ? 'true' : 'false'} data-show={view.id}>
+            <span class="thumb-art" aria-hidden="true">
+              {view.video ? <video muted playsinline preload="metadata" src={url(view.video) + '#t=2.4'}></video>
+                : view.image && <img src={url(view.image)} alt="" loading="lazy" decoding="async" />}
+            </span>
+            <span class="thumb-label">{view.label}</span>
+          </button>
+        </li>)}
+      </ul>
     </div>
 
-    <div class="routes">
-      <article class="route open frame" aria-labelledby="route-open">
-        <header>
-          <h3 id="route-open" class="px-sub">{scanner.open.title}</h3>
-        </header>
-        <p>{scanner.open.text}</p>
-        <ul class="foot links">
-          {scanner.open.links.map(link => <li>
-            <a class={external(link.href) ? 'out' : 'go'} href={external(link.href) ? link.href : url(link.href)}>{link.label}</a>
-          </li>)}
-        </ul>
-      </article>
+    <div class="panel">
+      <header class="title">
+        <h2 id="scanner-heading" class="name">{scanner.title}</h2>
+        <!-- The scanner's own pixel portrait, its screen running the firmware's frames. -->
+        <div class="mini" data-r1 aria-hidden="true"><PixelSprite data={art.scannerSmall} /></div>
+        <p class="summary">{scanner.summary}</p>
+      </header>
 
-      <article class="route bundle frame" aria-labelledby="route-bundle">
-        <header>
-          <h3 id="route-bundle" class="px-sub">{scanner.bundle.title}</h3>
-        </header>
-        <p>{scanner.bundle.text}</p>
-        <table class="manifest">
-          <caption class="sr-only">Bundle contents</caption>
-          <thead><tr><th scope="col">Item</th><th scope="col">Format</th></tr></thead>
-          <tbody>{scanner.bundle.contents.map(row => <tr><td>{row.item}</td><td>{row.note}</td></tr>)}</tbody>
-        </table>
-        <div class="foot buy">
-          <div class="price-block">
-            <span class="price px-sub">{scanner.bundle.pricing}</span>
-            <span class="delivery">{scanner.bundle.delivery}</span>
-          </div>
-          {scanner.bundle.href
-            ? <a class="press" href={scanner.bundle.href}>{scanner.bundle.cta}</a>
-            : <span class="soon frame">Coming soon</span>}
-        </div>
-      </article>
+      <fieldset class="choose">
+        <legend>{scanner.choose}</legend>
+        {routes.map(route => <>
+          <input type="radio" name="scanner-route" id={`route-${route.id}`} value={route.id} checked={route.id === chosen} />
+          <label class="option" for={`route-${route.id}`}>
+            <span class="option-head"><span class="option-name">{route.title}</span><span class="option-tag">{route.tag}</span></span>
+            <span class="option-text">{route.text}</span>
+            <ul class="includes">{route.includes.map(row => <li>{row.item}</li>)}</ul>
+          </label>
+        </>)}
+      </fieldset>
+
+      <div class="cta" data-for="open">
+        <a class="press" href={url(open.href)}>{open.cta}</a>
+        <p class="meta"><a class="out" href={open.more.href}>{open.more.label}</a></p>
+      </div>
+      <div class="cta" data-for="bundle">
+        {bundle.href
+          ? <a class="press" href={bundle.href}>{bundle.cta}</a>
+          : <span class="press soon">{bundle.soon}</span>}
+        <p class="meta">{bundle.note}</p>
+      </div>
     </div>
   </div>
 </section>
 
 <script>
-  const model = document.querySelector<HTMLElement>('[data-scanner-model]');
-  const video = model?.querySelector<HTMLVideoElement>('[data-scanner-video]');
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
-  if (model && video) {
-    let visible = false;
+  import { playScanR1 } from '../../lib/scan-player';
+
+  const mini = document.querySelector<HTMLElement>('#scanner [data-r1]');
+  // Its keys light in step with the firmware's key presses.
+  const press = (key: string) => {
+    const caps = mini!.querySelectorAll(`.faces [data-tag="key-${CSS.escape(key)}"]`);
+    caps.forEach(el => el.classList.add('pressed'));
+    setTimeout(() => caps.forEach(el => el.classList.remove('pressed')), 260);
+  };
+  if (mini) playScanR1(mini, {
+    scenes: ['boot', 'pick', 'receive-1'],
+    still: ['pick', 4200],
+    onEvent: (_, event) => { if (event.startsWith('key:')) press(event.slice(4)); },
+  });
+
+  // Gallery: a thumb shows its view. The loop plays only while it is shown, on screen and the
+  // viewer allows motion; otherwise it rests on its poster frame.
+  const stage = document.querySelector<HTMLElement>('#scanner [data-stage]');
+  const loop = stage?.querySelector<HTMLVideoElement>('[data-loop]');
+  if (stage) {
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+    let onScreen = false, timer: ReturnType<typeof setTimeout> | undefined;
     const update = () => {
-      if (!visible || reduced.matches || document.hidden) { video.pause(); return; }
-      video.play().then(() => { model.dataset.playing = 'true'; }).catch(() => {});
+      if (!loop) return;
+      const shown = !loop.closest<HTMLElement>('[data-view]')!.hidden;
+      if (shown && onScreen && !reduced.matches && !document.hidden) loop.play().catch(() => {}); else loop.pause();
     };
-    new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; update(); }, { rootMargin: '200px' }).observe(model);
+    document.querySelectorAll<HTMLButtonElement>('#scanner [data-show]').forEach(button => button.addEventListener('click', () => {
+      document.querySelectorAll('#scanner [data-show]').forEach(b => b.setAttribute('aria-pressed', String(b === button)));
+      stage.querySelectorAll<HTMLElement>('[data-view]').forEach(view => { view.hidden = view.dataset.view !== button.dataset.show; });
+      update();
+    }));
+    new IntersectionObserver(([entry]) => {
+      clearTimeout(timer);
+      timer = setTimeout(() => { onScreen = entry.isIntersecting; update(); }, 500);
+    }, { rootMargin: '100px' }).observe(stage);
     document.addEventListener('visibilitychange', update);
     reduced.addEventListener('change', update);
   }
 </script>
 
 <style>
-  .scanner { position: relative; padding-top: var(--section-y); overflow: hidden; }
+  /* The band's tone is the accent's dark: .band and every .frame inside take --surface. */
+  .scanner { --surface: var(--active-soft); padding-block: var(--section-y); margin-top: var(--section-y); }
+  .shop { display: grid; grid-template-columns: minmax(0, 1fr) 27rem; gap: var(--space-12) var(--space-16); align-items: stretch; }
 
-  .stage { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: var(--space-12); align-items: center; }
-  h2, h3 { margin: 0; }
-  .summary { max-width: 38ch; margin-top: var(--space-6); font-size: var(--text-lead); line-height: 1.6; }
-
-  .model { position: relative; display: grid; aspect-ratio: 1200 / 820; }
-  .model > img, .model > video { grid-area: 1 / 1; position: relative; z-index: 1; width: 100%; height: 100%; object-fit: contain; }
-  .model > video { opacity: 0; mix-blend-mode: lighten; }
-  .model[data-playing="true"] > video { opacity: 1; }
-  .model[data-playing="true"] > .still { opacity: 0; }
-
-  /* ---------- the two routes: same skeleton, so their footers share one line ---------- */
-  /* The two routes are the same height, so their footers and frames line up. */
-  .routes { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-top: var(--space-16); }
-  .route { position: relative; display: flex; flex-direction: column; padding: var(--space-8); }
-  .route header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); min-height: 2rem; margin-bottom: var(--space-4); }
-  .route > p { max-width: 44ch; font-size: var(--text-base); line-height: 1.65; }
-  /* Rules on the grid: one art pixel thick, dotted like the films' leaders. */
-  .foot, .manifest td, .manifest th { --rule: var(--divider); background: linear-gradient(90deg, var(--rule) 50%, transparent 0) 0 0 / calc(var(--px) * 4) var(--px) repeat-x; }
-  .manifest td, .manifest th { background-position: 0 100%; }
-  .foot {
-    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--space-4) var(--space-6);
-    /* Tall enough for the pricing block (a pixel subheading over a small line), so both
-       footers start on the same line. */
-    min-height: calc(max(3.625rem, var(--px) * 13 + var(--space-2) + var(--text-xs) * 1.4) + var(--space-6));
-    margin: auto 0 0; padding: var(--space-6) 0 0;
+  /* ---------- gallery: the media on the page's own dark, a lit window into the product ---------- */
+  /* The stage takes the panel's height, so gallery and panel end on one line. */
+  .gallery { display: grid; grid-template-rows: minmax(0, 1fr) auto; min-width: 0; }
+  .stage { position: relative; display: grid; min-height: 24rem; background: var(--canvas); overflow: hidden; }
+  .view { grid-area: 1 / 1; display: grid; place-items: center; margin: 0; }
+  .view[hidden] { display: none; }
+  .view :is(video, img) { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  .view img { object-fit: cover; }
+  /* No picture yet: the films' 25 % dither on the grid, with a line saying what goes here. */
+  .pending, .thumb-art:empty { position: relative; isolation: isolate; }
+  .pending::before, .thumb-art:empty::before {
+    content: ''; position: absolute; inset: 0; z-index: -1; background: var(--hover);
+    -webkit-mask: var(--dither-25) 0 0 / calc(var(--px) * 4) calc(var(--px) * 4) repeat;
+    mask: var(--dither-25) 0 0 / calc(var(--px) * 4) calc(var(--px) * 4) repeat;
   }
-  /* Keep at least this much air above the footer when a card is the taller one. */
-  .route > :is(p, .manifest):has(+ .foot) { margin-bottom: var(--space-8); }
+  .pending .meta { padding: var(--space-2) var(--space-3); background: var(--canvas); }
+  .tag { position: absolute; right: var(--space-4); bottom: var(--space-4); color: var(--muted); font: var(--text-xs)/1 var(--font-mono); }
 
-  /* Open route: the repository itself. */
-  .open { --fill: var(--surface); }
-  .links { justify-content: flex-start; gap: var(--space-2) var(--space-8); list-style: none; font: var(--text-sm)/1.5 var(--font-mono); }
-  .links li { margin: 0; }
-  .links a { text-decoration: none; }
+  .thumbs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--space-3); margin: var(--space-3) 0 0; padding: 0; list-style: none; }
+  .thumbs li { margin: 0; }
+  .thumb { display: grid; gap: var(--space-2); width: 100%; padding: 0; border: 0; background: none; color: var(--secondary); font: var(--text-xs)/1.3 var(--font-mono); text-align: left; cursor: pointer; }
+  /* Frames drawn inside the box (outline with a negative offset), so a thicker one never shifts the row. */
+  .thumb-art { position: relative; display: block; aspect-ratio: 16 / 10; overflow: hidden; background: var(--canvas); outline: var(--px) solid var(--active); outline-offset: calc(var(--px) * -1); }
+  .thumb-art :is(video, img) { position: absolute; inset: 0; z-index: -1; width: 100%; height: 100%; object-fit: cover; }
+  .thumb-art { isolation: isolate; }
+  .thumb:hover { color: var(--text); }
+  .thumb:hover .thumb-art { outline-color: var(--link); }
+  .thumb[aria-pressed="true"] { color: var(--text); }
+  .thumb[aria-pressed="true"] .thumb-art { outline: calc(var(--px) * 2) solid var(--accent); outline-offset: calc(var(--px) * -2); }
 
-  /* Bundle route: the way to support the project. Set apart by a lit outline, a tinted inside,
-     the pricing line and the one filled button in the section, rather than by volume. */
-  .bundle { --frame: var(--accent); --fill: var(--active-soft); }
-  .bundle > p { color: var(--secondary); }
-  .bundle :is(.foot, td, th) { --rule: var(--active); }
+  /* ---------- panel: name, one line, the two ways to get one, the one button ---------- */
+  .panel { display: grid; align-content: start; gap: var(--space-8); }
+  .title { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 var(--space-6); align-items: start; }
+  .name { margin: 0; color: var(--text); font: 600 clamp(2rem, 3.2vw, 2.625rem)/1.05 var(--font-body); letter-spacing: -.025em; text-wrap: balance; }
+  .summary { grid-column: 1 / -1; max-width: 32rem; margin-top: var(--space-4); color: var(--secondary); font-size: 1.0625rem; line-height: 1.55; text-wrap: pretty; }
+  /* Two screen pixels per art pixel (45 with the shadow), so every block stays sharp. */
+  .mini { width: 90px; margin-top: var(--space-2); }
 
-  /* Contents: one line per file, the item and its format. */
-  .manifest { width: 100%; margin-top: var(--space-6); border-collapse: collapse; font-size: var(--text-sm); line-height: 1.4; }
-  .manifest th { padding: 0 0 var(--space-2); color: var(--muted); font: 400 var(--text-xs)/1.5 var(--font-mono); text-align: left; }
-  .manifest td { height: 2.5rem; padding: 0; color: var(--text); vertical-align: middle; white-space: nowrap; }
-  .manifest tr:last-child td { background: none; }
-  .manifest :is(th, td):last-child { width: 1%; padding-left: var(--space-6); text-align: right; }
-  .manifest td:last-child { color: var(--link); font: var(--text-xs)/1.4 var(--font-mono); letter-spacing: .04em; }
+  .choose { display: grid; gap: var(--space-3); min-width: 0; margin: 0; padding: 0; border: 0; }
+  .choose legend { margin-bottom: var(--space-3); padding: 0; color: var(--text); font-weight: 600; }
+  .choose input { position: absolute; opacity: 0; pointer-events: none; }
+  /* An option is a .frame drawn by hand: chosen, its outline doubles to two grid pixels. --w is
+     the outline's width. */
+  .option {
+    --frame: var(--active); --fill: var(--active-soft); --w: var(--px);
+    display: grid; gap: var(--space-2); padding: var(--space-6); cursor: pointer;
+    background:
+      linear-gradient(var(--fill), var(--fill)) center / calc(100% - var(--n1) * 2 - var(--w) * 2) calc(100% - var(--w) * 2) no-repeat,
+      linear-gradient(var(--fill), var(--fill)) center / calc(100% - var(--w) * 2) calc(100% - var(--n1) * 2 - var(--w) * 2) no-repeat,
+      linear-gradient(var(--frame), var(--frame)) center / calc(100% - var(--n2) * 2) 100% no-repeat,
+      linear-gradient(var(--frame), var(--frame)) center / calc(100% - var(--n1) * 2) calc(100% - var(--n1) * 2) no-repeat,
+      linear-gradient(var(--frame), var(--frame)) center / 100% calc(100% - var(--n2) * 2) no-repeat;
+    transition: background .1s steps(1);
+  }
+  .option:hover { --frame: var(--link); }
+  :checked + .option { --frame: var(--accent); --fill: var(--active); --w: calc(var(--px) * 2); }
+  :focus-visible + .option { outline: var(--focus-width) solid var(--focus); outline-offset: var(--space-1); }
+  .option-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--space-4); }
+  .option-name { color: var(--text); font-size: 1.125rem; font-weight: 600; }
+  .option-tag { color: var(--link); font: var(--text-xs)/1.4 var(--font-mono); white-space: nowrap; }
+  :checked + .option .option-tag { color: var(--focus); }
+  .option-text { color: var(--secondary); font-size: var(--text-sm); line-height: 1.55; }
+  .includes { display: grid; margin: var(--space-2) 0 0; padding: 0; list-style: none; font-size: var(--text-sm); }
+  .includes li { display: flex; align-items: baseline; gap: var(--space-3); margin: 0; padding: var(--space-2) 0; color: var(--text); background: linear-gradient(90deg, var(--frame) 50%, transparent 0) 0 0 / calc(var(--px) * 4) var(--px) repeat-x; }
+  /* A lit pixel block for each thing included, centred on the line's lower-case letters. */
+  .includes li::before { content: ''; flex: none; align-self: center; width: calc(var(--px) * 3); height: calc(var(--px) * 3); background: var(--accent); }
 
-  .price-block { display: flex; flex-direction: column; gap: var(--space-2); }
-  .delivery { color: var(--muted); font: var(--text-xs)/1.4 var(--font-mono); }
-  /* Until there is a destination, a status tag stands where the button will go: a frame with a
-     quiet label, not a key to press. The one filled button appears when the link exists. */
-  .soon { --frame: var(--divider); --fill: var(--surface); display: inline-flex; align-items: center; min-height: 2.75rem; padding: 0 var(--space-4); color: var(--muted); font: var(--text-sm)/1 var(--font-mono); white-space: nowrap; }
+  /* One button, for whichever way is chosen. */
+  .cta { display: grid; gap: var(--space-3); }
+  .cta .press { justify-content: center; width: 100%; min-height: 3.25rem; font-size: 1.0625rem; }
+  /* Until the store exists, the button stands in its place, unlit and not pressable. */
+  .press.soon { --c: var(--active); color: var(--secondary); cursor: default; }
+  .press.soon:active { transform: none; }
+  .press.soon:active::after { transform: translate(var(--drop), var(--drop)); }
+  .cta .meta { margin: 0; text-align: center; }
+  .cta .meta a { text-decoration: none; }
+  .panel:has(#route-bundle:checked) [data-for="open"], .panel:has(#route-open:checked) [data-for="bundle"] { display: none; }
 
-  @media (max-width: 56rem) {
-    .stage, .routes { grid-template-columns: 1fr; }
-    .model { order: -1; }
+  @media (max-width: 64rem) {
+    .shop { grid-template-columns: minmax(0, 1fr); }
+    .stage { min-height: 0; aspect-ratio: 4 / 3; }
+  }
+  /* Tablets: the two ways side by side, the button under the chosen one. */
+  @media (min-width: 40.01rem) and (max-width: 64rem) {
+    .panel { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: var(--space-3); }
+    .title { grid-column: 1 / -1; }
+    /* The name is one line here; the portrait stands beside it and the line under it. */
+    .mini { grid-row: span 2; }
+    .summary { grid-column: 1; }
+    .choose { grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .choose legend { float: left; grid-column: 1 / -1; }
+    .option { align-content: start; }
+    [data-for="open"] { grid-column: 1; }
+    [data-for="bundle"] { grid-column: 2; }
   }
   @media (max-width: 40rem) {
-    .route { padding: var(--space-6) var(--space-4); }
-    /* Phones: the formats speak for themselves, so the header row is kept for screen
-       readers only and the item gets the width it needs to stay on one line. */
-    .manifest { font-size: var(--text-xs); }
-    .manifest thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-    .manifest :is(th, td):last-child { padding-left: var(--space-2); }
-    .manifest td:last-child { font-size: .6875rem; letter-spacing: 0; }
+    .thumbs { gap: var(--space-2); }
+    /* Phones: the pictures speak; the names stay for screen readers. */
+    .thumb-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .option { padding: var(--space-4); }
   }
-  /* Below a 375px screen the longest item no longer fits; let it wrap rather than clip. */
-  @media (max-width: 23.4rem) {
-    .manifest td { white-space: normal; padding-block: var(--space-2); }
-  }
-  @media (prefers-reduced-motion: reduce) { .model > video { display: none; } }
 </style>

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerates src/data/pixel-fonts.json from U8g2's bitmap fonts (the Scan R1 firmware's copy).
+# Regenerates src/data/pixel-fonts.json from U8g2's bitmap fonts (the Scanner R1 firmware's copy).
 # Usage: scripts/pixel-font/build.sh [path/to/Inventatory-Firmware]
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"

@@ -1,21 +1,18 @@
 ---
 /**
- * The homepage. The hero sets the claim in the Scan R1's bitmap font over stand-in footage drawn
+ * The homepage. The hero leads with the wordmark, over stand-in footage drawn
  * through the films' dither. The film explains the workflow, as a player with chapters; the app
- * section shows each desktop feature on its own clip. The Scan R1 and the racks are generated from
+ * section shows each desktop feature on its own clip. The Scanner R1 and the racks are generated from
  * models (scripts/pixel-art), and the scanner's screens come from its firmware
  * (scripts/scan-r1-lcd).
  */
 import BaseLayout from '../layouts/BaseLayout.astro';
-import PixelSprite from '../components/concept/PixelSprite.astro';
-import LcdPanel from '../components/concept/LcdPanel.astro';
 import Film from '../components/concept/Film.astro';
-import Keypad from '../components/concept/Keypad.astro';
 import Scanner from '../components/home/Scanner.astro';
+import Lockup from '../components/Lockup.astro';
 import AppFeatures from '../components/home/AppFeatures.astro';
 import PlatformInstallSelector from '../components/PlatformInstallSelector.astro';
-import art from '../data/pixel-art.json';
-import { hero, film } from '../data/home';
+import { hero, film, install } from '../data/home';
 import { url } from '../lib/url';
 ---
 <BaseLayout title="Inventory for electronics">
@@ -23,23 +20,23 @@ import { url } from '../lib/url';
     <div class="footage" aria-hidden="true">
       <video data-footage-video muted loop playsinline autoplay preload="auto" src={url('/media/scan-r1-turntable.webm')}></video>
       <canvas data-footage></canvas>
-      <span class="footage-tag">Montage placeholder</span>
+      <span class="footage-tag">Placeholder footage</span>
     </div>
 
     <div class="wrap hero-copy">
-      <h1 class="claim">{hero.title[0]}<br />{hero.title[1]}</h1>
+      <h1 class="logo"><Lockup tone="flat" shadow={false} label="Inventatory" /></h1>
       <p class="summary">{hero.summary}</p>
       <div class="acts">
         <a class="press" href="#homepage-download">{hero.primary}</a>
-        <a class="key watch" href="#how"><span class="tri" aria-hidden="true"></span>{hero.secondary}</a>
+        <a class="go watch" href="#how">{hero.secondary}</a>
       </div>
     </div>
   </section>
 
   <section id="how" class="how band" data-section="how" aria-labelledby="film-title">
     <div class="wrap">
-      <div class="lede-row">
-        <h2 id="film-title" class="px-head">{film.title[0]}<br />{film.title[1]}</h2>
+      <div class="how-head">
+        <h2 id="film-title" class="px-head">{film.title}</h2>
         <p>{film.summary}</p>
       </div>
       <Film />
@@ -48,23 +45,12 @@ import { url } from '../lib/url';
 
   <AppFeatures />
 
-  <div data-section="scanner">
-  <Scanner>
-    <div slot="model" class="r1" data-r1>
-      <PixelSprite data={art.scanner} class="r1-art" label="Inventatory Scan R1" />
-      <div class="r1-face">
-        <LcdPanel label="Scan R1 display, as rendered by its firmware" />
-        <Keypad />
-      </div>
-    </div>
-  </Scanner>
-  </div>
+  <Scanner />
 
-  <div class="wrap" data-section="homepage-download"><PlatformInstallSelector id="homepage-download" /></div>
+  <div class="wrap" data-section="homepage-download"><PlatformInstallSelector id="homepage-download" title={install.title} lead={install.lead} sources={install.sources} /></div>
 </BaseLayout>
 
 <script>
-  import { playScanR1 } from '../lib/scan-player';
   import { pixelVideo } from '../lib/pixel-video';
 
   // ---------- hero: the stand-in footage, through the films' dither ----------
@@ -74,23 +60,6 @@ import { url } from '../lib/url';
     pixelVideo(video, footage);
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) video.pause();
   }
-
-  // Keys flash in the sprite's keypad (and on a face-on keypad, when there is one).
-  const press = (root: Element, key: string) => {
-    const caps = root.querySelectorAll(`.faces [data-tag="key-${CSS.escape(key)}"]`);
-    const face = root.querySelector(`[data-key="${CSS.escape(key)}"]`);
-    caps.forEach(el => el.classList.add('pressed')); face?.classList.add('pressed');
-    setTimeout(() => { caps.forEach(el => el.classList.remove('pressed')); face?.classList.remove('pressed'); }, 260);
-  };
-
-  // ---------- Scan R1 section: the device and its face, in the bench's pick flow ----------
-  const r1 = document.querySelector<HTMLElement>('[data-r1]');
-  if (r1) playScanR1(r1, {
-    scenes: ['boot', 'pick', 'pick'],
-    still: ['pick', 4200],
-    onEvent: (_, event) => { if (event.startsWith('key:')) press(r1, event.slice(4)); },
-  });
-
 </script>
 
 <style is:global>
@@ -108,41 +77,28 @@ import { url } from '../lib/url';
   .footage { position: absolute; inset: 0 0 0 34%; }
   .footage video { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
   .footage canvas { display: block; image-rendering: pixelated; }
-  .footage-tag { position: absolute; right: var(--gutter); top: var(--space-6); color: var(--muted); font: var(--text-xs)/1 var(--font-mono); padding: var(--space-2) var(--space-3); box-shadow: inset 0 0 0 1px var(--divider); }
-  .hero-copy { position: relative; align-self: center; padding-block: var(--space-16) var(--space-12); }
-  /* The claim in the Scan R1's bitmap font at twice the grid: every glyph pixel is two art pixels. */
-  .claim {
-    font-family: 'Inventatory Pixel Head', var(--font-body); font-weight: 400; letter-spacing: 0;
-    font-size: calc(var(--px) * 40); line-height: calc(var(--px) * 40);
-    color: var(--pixel-text); -webkit-font-smoothing: none;
-    /* The lockup's hard shadow, one art pixel per glyph pixel. */
-    text-shadow: calc(var(--px) * 2) calc(var(--px) * 2) 0 var(--drop-color);
-  }
-  .summary { margin-top: var(--space-8); max-width: 34rem; color: var(--secondary); font-size: clamp(1.05rem, 1.4vw, 1.25rem); line-height: 1.55; }
-  .acts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4) var(--space-6); margin-top: var(--space-8); }
-  .press { font-size: 1rem; min-height: 3.25rem; padding-inline: var(--space-8); }
-  .key.watch { min-height: 3.25rem; padding-inline: var(--space-6); text-decoration: none; font-weight: 500; }
-  .tri { width: 8px; height: 10px; background: currentColor; clip-path: polygon(0 0, 25% 0, 25% 10%, 50% 10%, 50% 30%, 75% 30%, 75% 40%, 100% 40%, 100% 60%, 75% 60%, 75% 70%, 50% 70%, 50% 90%, 25% 90%, 25% 100%, 0 100%); }
+  .footage-tag { position: absolute; right: var(--gutter); bottom: var(--space-6); color: var(--muted); font: var(--text-xs)/1 var(--font-mono); }
+  /* Top-aligned on a whole grid step, not centred: centring lands the mark on half pixels. */
+  .hero-copy { position: relative; align-self: center; padding-block: var(--space-12) calc(var(--space-12) + 6svh); }
+  /* Six cells of two grid pixels: the chevron sits half a cell lower, so the cell must be even. */
+  /* The wordmark leads, in graphite. It is 99 by 10 pixels: set at a whole number of screen
+     pixels per pixel (two grid pixels each) so every block stays sharp. */
+  .logo { width: calc(var(--px) * 198); margin: 0 0 var(--space-6); --lockup-word: var(--graphite); --lockup-mark: var(--graphite); }
+  .logo :global(svg) { display: block; width: 100%; height: auto; }
+  .summary { margin-top: var(--space-6); max-width: 33rem; text-wrap: pretty; color: var(--secondary); font-size: clamp(1.05rem, 1.4vw, 1.1875rem); line-height: 1.6; }
+  .acts { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-4) var(--space-8); margin-top: var(--space-8); }
+  .watch { color: var(--secondary); text-decoration: none; font-weight: 500; }
+  .watch:hover { color: var(--text); }
 
   /* ---------- how it works: the film, in a surface band with dithered edges ---------- */
   .how { padding-block: var(--section-y); }
+  /* One centred title in the pixel font, the only one on the page, with the mascot sitting on
+     the corner of the s, its legs over the end. */
+  .how-head { display: grid; justify-items: center; gap: var(--space-6); margin-bottom: var(--space-12); padding-top: calc(var(--px) * 12); text-align: center; }
+  .how-head p { max-width: 36rem; color: var(--secondary); font-size: 1.125rem; line-height: 1.6; text-wrap: pretty; }
 
-  /* ---------- Scan R1 section: the device and its face ---------- */
-  .r1 {
-    display: grid;
-    grid-template-columns: 1.2fr 1fr;
-    gap: var(--space-8);
-    align-items: center;
-  }
-
-  .r1-face {
-    display: grid;
-    gap: var(--space-6);
-    justify-items: center;
-  }
-
-  .r1-face > :global(*) {
-    width: min(100%, 17rem);
+  @media (max-width: 40rem) {
+    .logo { width: 297px; }
   }
 
   @media (max-width: 56rem) {
@@ -150,13 +106,4 @@ import { url } from '../lib/url';
     .footage { inset: 0; opacity: .35; }
   }
 
-  @media (max-width: 40rem) {
-    .claim { font-size: calc(var(--px) * 20); line-height: calc(var(--px) * 20); text-shadow: var(--px) var(--px) 0 var(--drop-color); }
-  }
-
-  @media (max-width: 44rem) {
-    .r1 {
-      grid-template-columns: 1fr;
-    }
-  }
 </style>

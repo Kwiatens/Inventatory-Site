@@ -90,9 +90,10 @@ const chevron: Array<[number, number]> = [[0, 350], [100, 450], [200, 550], [100
   .mascot[data-play="hop"] .body { animation: mascot-hop 240ms steps(1, end) 1 both; }
   .mascot[data-play="nod"] .chevron { animation: mascot-nod 240ms steps(1, end) 1 both; }
   .mascot[data-play="blink"] .cursor { animation: mascot-blink 720ms steps(1, end) 1 both; }
-  /* Typing: one cell every 90 ms, then the cursor. */
-  .mascot[data-play="type"] .glyph { animation: mascot-show .01s steps(1, end) both; animation-delay: calc(var(--i) * 90ms); }
-  .mascot[data-play="type"] .cursor { animation: mascot-show .01s steps(1, end) 450ms both; }
+  /* Typing: one cell every 90 ms, then the cursor. Each cell jumps on as its step starts: with
+     steps(1, end) Chrome can leave a cell at its first frame (the 90 + 10 ms one stayed hidden). */
+  .mascot[data-play="type"] .glyph { animation: mascot-show .01s steps(1, start) both; animation-delay: calc(var(--i) * 90ms); }
+  .mascot[data-play="type"] .cursor { animation: mascot-show .01s steps(1, start) 450ms both; }
 
   @media (prefers-reduced-motion: reduce) {
     .mascot[data-play] .body,

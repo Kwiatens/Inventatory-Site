@@ -1,4 +1,4 @@
-// Host stand-in for the parts of Arduino.h the Scan R1 display code uses.
+// Host stand-in for the parts of Arduino.h the Scanner R1 display code uses.
 #pragma once
 #include <cstdint>
 #include <cstdio>

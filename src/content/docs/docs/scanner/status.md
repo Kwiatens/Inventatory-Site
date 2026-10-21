@@ -1,11 +1,11 @@
 ---
 title: "Hardware and firmware status"
-description: "What is verified about Scan R1, and which public resources are still unresolved."
+description: "What is verified about Scanner R1, and which public resources are still unresolved."
 ---
 
 ## Verified desktop support
 
-The inspected Windows application contains Scan R1 setup, physically verified Bluetooth LE provisioning, local-network discovery, an authenticated device synchronization service, inventory-event handling, component lookup, quick-label integration, and visible device status.
+The inspected Windows application contains Scanner R1 setup, physically verified Bluetooth LE provisioning, local-network discovery, an authenticated device synchronization service, inventory-event handling, component lookup, quick-label integration, and visible device status.
 
 ## Public distribution is unresolved
 
@@ -24,7 +24,7 @@ There is no purchase, firmware-download, or assembly link on this site until an 
 
 ## Naming
 
-Older repository prose uses **Inventascan**. These guides use **Inventatory Scan R1**, matching the current desktop setup and transport documentation.
+Older repository prose uses **Inventascan**. These guides use **Inventatory Scanner R1**, matching the current desktop setup and transport documentation.
 
 ## Using the desktop today
 

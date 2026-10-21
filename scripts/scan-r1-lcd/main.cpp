@@ -1,4 +1,4 @@
-// Renders Scan R1 LCD frames for the website with the scanner's own display code.
+// Renders Scanner R1 LCD frames for the website with the scanner's own display code.
 //
 // The firmware's DisplayController and DisplayRenderer are compiled unmodified against the
 // real u8g2 library and the real ST7565 ERC12864 setup; only SPI, GPIO and the clock are

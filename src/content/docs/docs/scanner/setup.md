@@ -1,11 +1,11 @@
 ---
 title: "Connection and setup"
-description: "Pair a compatible Scan R1 with the Windows desktop application."
+description: "Pair a compatible Scanner R1 with the Windows desktop application."
 ---
 
 ## Prerequisites
 
-- A compatible Inventatory Scan R1, powered on and nearby.
+- A compatible Inventatory Scanner R1, powered on and nearby.
 - Bluetooth available for initial pairing.
 - The Windows Inventatory application and your home Wi-Fi credentials.
 - A trusted private local network that allows the device to reach the PC.

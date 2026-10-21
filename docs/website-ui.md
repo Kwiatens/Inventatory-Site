@@ -20,14 +20,14 @@ Top to bottom:
 
 1. **Header** (`components/SiteHeader.astro`): the app's tab bar. A sticky bar, `--header-height`
    tall, on the canvas colour, with one divider line under it. The brand mark sits left. The home
-   page's sections sit in the middle as tabs: Overview, How it works, The app, Scan R1, Install. On
+   page's sections sit in the middle as tabs: Overview, How it works, The app, Scanner R1, Install. On
    the home page the tab of the section in view is the current one (bold, `--focus`, on the divider);
    on other pages the tabs lead back to the home page. Docs, GitHub and the app's clock sit right.
    Below 64rem the tabs and the clock are hidden.
-2. **Hero** (`#top`): left-aligned, in the column. The H1 claim in the Scan R1's bitmap font
+2. **Hero** (`#top`): left-aligned, in the column. The H1 claim in the Scanner R1's bitmap font
    (`Inventatory Pixel Head`) at twice the grid, with the lockup's hard shadow; then the summary,
    the primary button (`.press`) and a `.key` button with a pixel play mark to `#how`. Stand-in
-   footage (the Scan R1 turntable) plays through the films' dither (`lib/pixel-video.ts`) on the
+   footage (the Scanner R1 turntable) plays through the films' dither (`lib/pixel-video.ts`) on the
    right two thirds, tagged `Montage placeholder`. Below 56rem it goes behind the claim, dimmed.
 3. **The film** (`#how`, `components/concept/Film.astro`): in a `.band`, a surface-tone section whose
    top and bottom edges dissolve into the page in dither. A `.lede-row` heading above it: the pixel
@@ -48,7 +48,7 @@ Top to bottom:
    and keys.
    The icons are one set: each is the real object the feature works with, rendered from a model by
    `scripts/pixel-art/icons.py` with the film's rack camera, and fitted to the same 44 × 44 grid.
-5. **Scan R1** (`components/home/Scanner.astro`): the pixel heading and summary, the device sprite with
+5. **Scanner R1** (`components/home/Scanner.astro`): the pixel heading and summary, the device sprite with
    its LCD and keypad, then two framed panels: `Build it yourself` and `Official CAD files`. The CAD
    panel is set apart with an accent outline and a tinted inside. While `scanner.bundle.href` is empty, a
    `Coming soon` status tag (a frame with a quiet label, not a button) stands where the purchase
@@ -108,7 +108,7 @@ Do not:
 - No centred hero, and no "Welcome to" copy.
 - No new fonts. Body text is Space Grotesk (`--font-body`) and mono labels are IBM Plex Mono
   (`--font-mono`). The pixel heading faces (`.px-head` for section headings, `.px-sub` for panel
-  headings) are the Scan R1's own bitmap fonts. They appear on the homepage only in the Scan R1 and
+  headings) are the Scanner R1's own bitmap fonts. They appear on the homepage only in the Scanner R1 and
   install sections, in pure white (`--pixel-text`) with no shadow.
 
 ## Motion
@@ -120,7 +120,7 @@ Allowed:
   to the page state, not a second reveal. Reduced motion shows the still mark.
 - The mascot's other behaviours (blink, hop, nod, type, sleep) are built but not on a page yet. Each one
   runs once and stops; nothing loops, not even the cursor's blink.
-- The hero video, the film, and the Scan R1 demo, each on its own timeline.
+- The hero video, the film, and the Scanner R1 demo, each on its own timeline.
 - Short colour transitions of 120 ms or less.
 
 Not allowed: looping decorative motion (bobbing arrows, pulsing badges, floating shapes), scroll-jacking,
@@ -134,7 +134,7 @@ and any animation of layout. Everything respects `prefers-reduced-motion`.
   - `highlights.items`: one entry per feature, in the order of the app's tabs, with `id`, `icon`,
     `title`, `tab` (the app's tab name), `text`, `href` and `shot` (what its clip will show). The
     icon names must match the keys in `src/data/feature-icons.json`.
-  - `scanner`: the Scan R1 copy, its open-source links, and the CAD bundle. Set
+  - `scanner`: the Scanner R1 copy, its open-source links, and the CAD bundle. Set
     `scanner.bundle.href` to enable the purchase button.
 - The hero summary is pinned by `scripts/verify-build.mjs`. Change the two together.
 - The film's props follow the real things. The tube label is the app's part label
@@ -145,7 +145,7 @@ and any animation of layout. Everything respects `prefers-reduced-motion`.
   layout changes, update `labelBig` and `rackCard` in `src/lib/film/props.ts`. When the rack model
   changes (`scripts/pixel-art/rack.py`), run `scripts/pixel-art/build.sh`; without the FreeCAD file
   it rebuilds only the racks and keeps the scanner's sprites, then run `icons.sh` for the icons.
-- `src/data/site.ts` holds the docs header's navigation (`nav`) and the Scan R1 media. The site
+- `src/data/site.ts` holds the docs header's navigation (`nav`) and the Scanner R1 media. The site
   header's tabs are the home page's sections, listed in `SiteHeader.astro`.
 
 ## Components
@@ -159,7 +159,7 @@ and any animation of layout. Everything respects `prefers-reduced-motion`.
 | `src/components/Lockup.astro` | The pixel wordmark |
 | `src/components/concept/Film.astro` | The workflow film and its chapters |
 | `src/components/home/AppFeatures.astro` | The app's features as tabs, each with its clip |
-| `src/components/home/Scanner.astro` | Scan R1 section |
+| `src/components/home/Scanner.astro` | Scanner R1 section |
 | `src/components/PlatformInstallSelector.astro` | OS tabs and install commands |
 | `src/components/Mascot.astro` | The project mascot: the mark's › with a block cursor, rest and sleep poses, one-shot blink, hop, nod, shake and type |
 | `src/styles/tokens.css` | Colours, type scale, spacing, layout tokens |

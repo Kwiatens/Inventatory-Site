@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerates src/data/feature-icons.json: rack R1 and the Scan R1 at icon size, from CAD.
+# Regenerates src/data/feature-icons.json: rack R1 and the Scanner R1 at icon size, from CAD.
 # Usage: scripts/pixel-art/icons.sh path/to/InventaScan.FCStd (as build.sh)
 set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"

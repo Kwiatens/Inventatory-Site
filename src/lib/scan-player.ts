@@ -1,4 +1,4 @@
-// Concept: plays Scan R1 scenes recorded from the firmware (src/data/scan-r1-lcd.json) into
+// Concept: plays Scanner R1 scenes recorded from the firmware (src/data/scan-r1-lcd.json) into
 // every display inside a root element: dot-matrix panels, and the LCD pixels of sprites.
 // Events recorded with the scene (a scan, a key press, a stored part) are handed back so
 // the page can move the rest of the picture in step.

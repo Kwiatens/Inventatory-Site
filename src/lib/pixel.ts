@@ -24,7 +24,7 @@ const FIXED: Record<Exclude<Tone, 'ramp'>, Rgb> = {
   paper2: [0xca, 0xd0, 0xca],
 };
 const SHADOWLESS: Tone[] = ['ink', 'slot'];
-/** The Scan R1's ST7565 panel: grey-green glass, near-black pixels. */
+/** The Scanner R1's ST7565 panel: grey-green glass, near-black pixels. */
 export const LCD_BG: Rgb = [0xa9, 0xb6, 0xa4];
 export const LCD_INK: Rgb = [0x1f, 0x27, 0x23];
 export const mix = (a: Rgb, b: Rgb, t: number): Rgb => a.map((v, i) => Math.round(v + (b[i] - v) * t)) as Rgb;
@@ -111,7 +111,7 @@ export function dataMatrix(size: number, seed: number) {
 
 /** Palette for the codes written by scripts/pixel-art/pixelize.py, darkest band first. */
 export const CODES: Record<string, Rgb> = {
-  '0': [0x2a, 0x35, 0x40], '1': [0x3d, 0x4c, 0x5a], '2': [0x5a, 0x6c, 0x7c], '3': [0x84, 0x96, 0xa6], // Scan R1 shell, blue-grey
+  '0': [0x2a, 0x35, 0x40], '1': [0x3d, 0x4c, 0x5a], '2': [0x5a, 0x6c, 0x7c], '3': [0x84, 0x96, 0xa6], // Scanner R1 shell, blue-grey
   '4': [0x12, 0x17, 0x16], '5': [0x1d, 0x24, 0x22], '6': [0x27, 0x31, 0x2f], '7': [0x38, 0x45, 0x43], // black PLA
   a: [0x8c, 0x96, 0x90], b: [0xca, 0xd0, 0xca], c: [0xf1, 0xee, 0xe5],                                 // caps
   g: [0x1d, 0x24, 0x22], h: [0x38, 0x45, 0x43],                                                        // clear tube

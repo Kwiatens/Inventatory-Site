@@ -1,6 +1,6 @@
 ---
 title: "Using a paired scanner"
-description: "Use the documented Scan R1 menu and quick-label integration."
+description: "Use the documented Scanner R1 menu and quick-label integration."
 ---
 
 ## Confirm the PC is available

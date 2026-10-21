@@ -11,7 +11,7 @@ Inventatory is an open-source terminal inventory application for Windows and x86
 2. [Create your first inventory](getting-started/first-inventory/).
 3. [Learn navigation and controls](getting-started/basic-usage/).
 
-You can use the application without a scanner. DigiKey metadata enrichment, printers, and Scan R1 are separate setup choices.
+You can use the application without a scanner. DigiKey metadata enrichment, printers, and Scanner R1 are separate setup choices.
 
 ## Find the right guide
 
@@ -24,7 +24,7 @@ You can use the application without a scanner. DigiKey metadata enrichment, prin
 | Inspect or reverse inventory changes | [History](desktop/history/) |
 | Protect and recover the workspace | [Backups](desktop/backups/) |
 | Set up printing and integrations | [Settings](desktop/settings/) |
-| Understand the handheld companion | [Scan R1](scanner/) |
+| Understand the handheld companion | [Scanner R1](scanner/) |
 
 ## Documentation scope
 

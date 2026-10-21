@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerates src/data/pixel-art.json: the Scan R1 from its FreeCAD file, and the racks.
+# Regenerates src/data/pixel-art.json: the Scanner R1 from its FreeCAD file, and the racks.
 # Usage: scripts/pixel-art/build.sh [path/to/InventaScan.FCStd]
 # Without the FreeCAD file only the racks are rebuilt; the scanner's sprites are kept.
 # Needs FreeCAD 1.x (its bundled Python has numpy); uses the Flatpak build when there is no
