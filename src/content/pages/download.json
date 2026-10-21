@@ -14,7 +14,7 @@
     },
     {
       "heading": "Scanner resources",
-      "text": "A public Scan R1 firmware release and assembly package have not been verified. Use the scanner documentation to understand the existing desktop integration and its setup requirements.",
+      "text": "A public Scanner R1 firmware release and assembly package have not been verified. Use the scanner documentation to understand the existing desktop integration and its setup requirements.",
       "link": {
         "label": "Hardware and firmware status →",
         "href": "/docs/scanner/status/"

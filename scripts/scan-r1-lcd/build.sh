@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerates src/data/scan-r1-lcd.json from the Scan R1 firmware's own display code.
+# Regenerates src/data/scan-r1-lcd.json from the Scanner R1 firmware's own display code.
 # Usage: scripts/scan-r1-lcd/build.sh [path/to/Inventatory-Firmware]
 # The firmware checkout needs its PlatformIO libraries installed (pio run once), for U8g2.
 set -euo pipefail

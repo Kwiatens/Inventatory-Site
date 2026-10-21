@@ -1,6 +1,6 @@
 """Builds src/data/pixel-art.json. Run with FreeCAD's Python, e.g.
   flatpak run --command=FreeCADCmd org.freecad.FreeCAD scripts/pixel-art/build.py
-with PIXEL_ART_FCSTD (the Scan R1 FreeCAD file) and PIXEL_ART_OUT set. Without
+with PIXEL_ART_FCSTD (the Scanner R1 FreeCAD file) and PIXEL_ART_OUT set. Without
 PIXEL_ART_FCSTD only the racks are rebuilt, and the scanner's sprites already in
 PIXEL_ART_OUT are kept."""
 import json, math, os, sys

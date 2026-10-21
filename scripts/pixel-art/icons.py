@@ -1,10 +1,10 @@
 """Builds src/data/feature-icons.json: the homepage's feature icons, one real object per feature,
 all from models through the one renderer (pixelize.py): the vendor bag (import), rack R1 (racks),
-the comparator board and its BOM (projects), the Scan R1 (stock) and the PC showing the app's
+the comparator board and its BOM (projects), the Scanner R1 (stock) and the PC showing the app's
 History page (history). They share one camera, the film's rack camera (in front, a little to the
 left and above), and each is fitted to the same BOX x BOX pixels, so they read as one set. Printed
 things (labels, the BOM, the screens) are textures: code maps stretched over a face.
-Run with FreeCAD's Python (see icons.sh), with PIXEL_ART_FCSTD (the Scan R1 FreeCAD file) and
+Run with FreeCAD's Python (see icons.sh), with PIXEL_ART_FCSTD (the Scanner R1 FreeCAD file) and
 PIXEL_ART_OUT set."""
 import json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -157,7 +157,7 @@ for (x, y) in ((12, 5), (12, 25), (40, 7), (40, 24), (49, 15)):
 scene.add(box(B[0] + 49, B[0] + 52.5, B[1] + 25, B[1] + 28.5, 1.6, 3.4), "lit")
 out["projects"] = fit(scene, textures={pid_bom: tex_bom, pid_pcb: tex_pcb})
 
-# ---------- stock: the Scan R1, its screen to the viewer, showing a part's stock ----------
+# ---------- stock: the Scanner R1, its screen to the viewer, showing a part's stock ----------
 # Its screen (128 x 64 dots) as the marks of the firmware's stock view: the part, the count
 # large, the slot.
 LCD = [

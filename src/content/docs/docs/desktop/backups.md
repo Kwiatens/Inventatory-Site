@@ -14,15 +14,15 @@ The bundle includes the SQLite inventory database, projects and inventory histor
 1. Select the intended bundle through **Restore backup**.
 2. Review and confirm the restore action.
 3. Inventatory validates the files and database before activation and creates an automatic pre-restore backup.
-4. After success, check your inventory and re-pair Scan R1 if used.
+4. After success, check your inventory and re-pair Scanner R1 if used.
 
 If validation or activation fails, the active workspace remains unchanged. Read the error and keep the original backup for investigation; do not manually copy some of its files over the active database.
 
 ## Credentials and scanner pairing
 
-DigiKey secrets remain in Windows Credential Manager and are not exported. Scan R1 secrets and paired-device configuration are excluded from backups.
+DigiKey secrets remain in Windows Credential Manager and are not exported. Scanner R1 secrets and paired-device configuration are excluded from backups.
 
-After a successful restore, the Scan R1 secret is rotated, replay state is cleared, and the paired-device identity is removed. **Pair the scanner again.** DigiKey credentials stay local to the PC; a different PC may require credential setup.
+After a successful restore, the Scanner R1 secret is rotated, replay state is cleared, and the paired-device identity is removed. **Pair the scanner again.** DigiKey credentials stay local to the PC; a different PC may require credential setup.
 
 ## Change the data folder
 

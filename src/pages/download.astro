@@ -8,11 +8,7 @@ const resolveHref = (href: string) => href.startsWith('http') ? href : url(href)
 ---
 <BaseLayout title={content.metaTitle} description={content.metaDescription}>
   <div class="wrap">
-    <header class="page-intro">
-      <h1>{content.heading}</h1>
-      <p class="lead">{content.lead}</p>
-    </header>
-    <PlatformInstallSelector id="download-platforms" />
+    <PlatformInstallSelector id="download-platforms" level={1} title={content.heading} lead={content.lead} />
     <div class="download-notes section">
       {content.notes.map(note => (
         <section>

@@ -5,7 +5,7 @@
  * each as long as its part of the loop with its own progress line; a click jumps to one. Plays
  * while on screen; with reduced motion it shows a poster frame until played.
  */
-const label = 'Animation: the Scan R1 reads a vendor bag\'s label; you press A once; Inventatory on the PC fills in the part from the vendor and reserves slot R1-B3; parts go into a tube, its label prints and wraps the tube, and the tube drops into the rack. The cursor asks: But why is this useful? A circuit board\'s parts list prints out. The usual answer, Drawer 12 for every part, points into one drawer of identical bags; the cursor searches them, shakes its head and gives up. Inventatory gives every part its own slot in rack 1; the cursor goes straight to each one and nods. The six tubes are lifted out one by one, the 10K from R1-B3 first, and stand in a row as each line of the list is ticked. The cursor becomes the Inventatory logo.';
+const label = 'Animation: the Scanner R1 reads a vendor bag\'s label; you press A once; Inventatory on the PC fills in the part from the vendor and reserves slot R1-B3; parts go into a tube, its label prints and wraps the tube, and the tube drops into the rack. The cursor asks: But why is this useful? A circuit board\'s parts list prints out. The usual answer, Drawer 12 for every part, points into one drawer of identical bags; the cursor searches them, shakes its head and gives up. Inventatory gives every part its own slot in rack 1; the cursor goes straight to each one and nods. The six tubes are lifted out one by one, the 10K from R1-B3 first, and stand in a row as each line of the list is ticked. The cursor becomes the Inventatory logo.';
 ---
 <figure class="film" data-reel>
   <div class="screen frame" data-screen>
@@ -121,7 +121,7 @@ const label = 'Animation: the Scan R1 reads a vendor bag\'s label; you press A o
      column's full width (three times its own) and the frame sits just outside the picture. */
   .screen.frame { --frame: var(--divider); --fill: var(--canvas); display: flex; justify-content: center; margin-inline: calc(var(--px) * -2); padding: calc(var(--px) * 2); }
   canvas { display: block; image-rendering: pixelated; image-rendering: crisp-edges; }
-  /* Under the picture: play/pause, a key off the Scan R1's keypad, then the chapters and the time. */
+  /* Under the picture: play/pause, a key off the Scanner R1's keypad, then the chapters and the time. */
   .transport { display: flex; align-items: center; gap: var(--space-4); margin-top: var(--space-4); }
   .key.play { flex: none; width: 2.5rem; min-height: 2.5rem; padding: 0; }
   /* Pixel icons: two bars to pause, a stepped triangle to play. */

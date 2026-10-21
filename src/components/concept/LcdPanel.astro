@@ -1,11 +1,11 @@
 ---
 /**
- * Concept: the Scan R1's 128 x 64 LCD at a readable size. Frames come from the firmware's
+ * Concept: the Scanner R1's 128 x 64 LCD at a readable size. Frames come from the firmware's
  * own display code (scripts/scan-r1-lcd); a player draws them into this canvas, each LCD
  * pixel as a dot with a hairline gap like the real glass.
  */
 interface Props { class?: string; label?: string }
-const { class: className, label = 'Scan R1 display' } = Astro.props;
+const { class: className, label = 'Scanner R1 display' } = Astro.props;
 ---
 <div class:list={['lcd-panel', className]}>
   <canvas width="512" height="256" data-lcd-panel role="img" aria-label={label}></canvas>

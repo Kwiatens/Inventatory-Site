@@ -97,7 +97,7 @@ const linear = (p: Pose, v: V3): Pt => {
   return [dot(v, r) * s, -dot(v, u) * s];
 };
 
-// Scan R1 (FreeCAD model, mm): the scan window in the nose, and the hover pose's footprint.
+// Scanner R1 (FreeCAD model, mm): the scan window in the nose, and the hover pose's footprint.
 const BAG_DEPTH = 1.6;                                           // mm per back layer
 const NOSE = -67, WINDOW = { y: 10.8, z0: -3.8, z1: 8.4 }, WINDOW_Z = 2.3;
 const FOOT = { x: 65, y: 37, z: -13 };

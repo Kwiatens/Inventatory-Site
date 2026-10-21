@@ -1,9 +1,9 @@
 ---
-title: "Inventatory Scan R1"
+title: "Inventatory Scanner R1"
 description: "Understand the role of the handheld scanner and its integration with the desktop application."
 ---
 
-Scan R1 is the dedicated handheld companion to Inventatory. Its desktop integration connects device events, component lookup, inventory operations, and label requests to the PC's inventory and printer.
+Scanner R1 is the dedicated handheld companion to Inventatory. Its desktop integration connects device events, component lookup, inventory operations, and label requests to the PC's inventory and printer.
 
 The scanner complements the desktop application. The PC retains the inventory database and runs the authenticated device service; ordinary stock management does not require a scanner.
 

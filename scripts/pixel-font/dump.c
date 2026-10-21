@@ -1,4 +1,4 @@
-/* Dumps U8g2 bitmap fonts (the ones the Scan R1 uses, plus small mono faces) to JSON so the
+/* Dumps U8g2 bitmap fonts (the ones the Scanner R1 uses, plus small mono faces) to JSON so the
  * website can draw pixel text with the same glyphs. Each glyph is drawn by u8g2 itself into a
  * stub full-buffer display and read back pixel by pixel.
  * Output: { name: { top, height, glyphs: { code: [advance, left, width, "rows as 0/1"] } } } */

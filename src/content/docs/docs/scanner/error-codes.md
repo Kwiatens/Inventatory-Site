@@ -1,6 +1,6 @@
 ---
 title: "Error codes"
-description: "What each Scan R1 error code means, where it appears on the scanner and what to check."
+description: "What each Scanner R1 error code means, where it appears on the scanner and what to check."
 ---
 
 Every problem the scanner reports has an error code: three letters, a dash and two digits. Find the code on the screen and look it up here. The numbers run in order within each area, with no gaps.

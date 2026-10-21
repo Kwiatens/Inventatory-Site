@@ -14,7 +14,7 @@ export default defineConfig({
   integrations: [starlight({
     title: 'inventatory',
     disable404Route: true,
-    description: 'Local electronic component inventory. Desktop application and Scan R1 documentation.',
+    description: 'Local electronic component inventory. Desktop application and Scanner R1 documentation.',
     favicon: '/favicon.svg',
     credits: false,
     customCss: ['./src/styles/docs.css'],
@@ -40,7 +40,7 @@ export default defineConfig({
         { label: 'Settings and printing', slug: 'docs/desktop/settings' },
       ]},
       { label: 'Handheld scanner', items: [
-        { label: 'Scan R1 overview', slug: 'docs/scanner' },
+        { label: 'Scanner R1 overview', slug: 'docs/scanner' },
         { label: 'Connection and setup', slug: 'docs/scanner/setup' },
         { label: 'Using a paired scanner', slug: 'docs/scanner/usage' },
         { label: 'Error codes', slug: 'docs/scanner/error-codes' },

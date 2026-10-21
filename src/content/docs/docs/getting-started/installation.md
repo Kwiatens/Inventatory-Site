@@ -28,7 +28,7 @@ The application README uses GitHub's `releases/latest` URL, which selects a stab
 1. Continue from the welcome screen.
 2. Accept the inventory data folder or choose another one. Windows defaults to **Documents\Inventatory**; Linux uses the XDG data directory, normally **~/.local/share/Inventatory**.
 3. Choose whether to enable background operation. You can skip it and change this later in Settings.
-4. If you have a compatible Scan R1, start its setup. Otherwise choose **Skip**.
+4. If you have a compatible Scanner R1, start its setup. Otherwise choose **Skip**.
 5. Finish setup to open Stock.
 
 Continue with [your first inventory](../first-inventory/).

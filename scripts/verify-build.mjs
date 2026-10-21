@@ -81,7 +81,7 @@ if (!homepage) {
     'LOCAL INVENTORY / REAL WORKFLOW',
     'STOCK WORKSPACE · ACTUAL SCREENSHOT',
     'Track parts, storage and projects from one local workspace.',
-    'Electronic component inventory · Windows desktop + Scan R1',
+    'Electronic component inventory · Windows desktop + Scanner R1',
     'Public beta · Windows x64 · GPL-3.0-only',
     'From incoming parts to your next board',
     'A connected workflow',
@@ -89,10 +89,10 @@ if (!homepage) {
     if (homepageText.includes(removedText)) errors.push('Homepage must not contain removed copy: ' + removedText);
   }
   if (homepage('section[aria-labelledby="features-heading"]').length) errors.push('Homepage must not include the connected workflow section.');
-  if (homepage('.scanner-copy > .eyebrow').text().trim() === 'Scan R1') errors.push('Scanner section must not include its eyebrow label.');
+  if (homepage('.scanner-copy > .eyebrow').text().trim() === 'Scanner R1') errors.push('Scanner section must not include its eyebrow label.');
   verifyInstallSelector(homepage, '#homepage-download', 'Homepage');
-  // The Scan R1 section shows the device as pixel art, its screen played from the firmware.
-  if (homepage('#scanner [data-r1]').length !== 1) errors.push('Homepage must show the Scan R1 model in its section.');
+  // The Scanner R1 section shows the device as pixel art, its screen played from the firmware.
+  if (homepage('#scanner [data-r1]').length !== 1) errors.push('Homepage must show the Scanner R1 model in its section.');
   const scripts = homepage('script');
   scripts.each((_, element) => {
     const src = homepage(element).attr('src');

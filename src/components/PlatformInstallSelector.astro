@@ -2,11 +2,20 @@
 import { release, site } from '../data/site';
 import { url } from '../lib/url';
 
+interface Link { label: string; href: string }
 interface Props {
   id: string;
+  /** 1 when the section is the page itself (/download/), 2 inside the homepage. */
+  level?: 1 | 2;
+  title?: string;
+  lead?: string;
+  /** The row of source links that closes the homepage. */
+  sources?: { label: string; links: Link[] };
 }
 
-const { id } = Astro.props;
+const { id, level = 2, title = 'Install Inventatory', lead = 'Choose your system for the latest stable release.', sources } = Astro.props;
+const Heading = level === 1 ? 'h1' : 'h2';
+const resolveHref = (href: string) => href.startsWith('http') ? href : url(href);
 const releaseBase = site.releases + '/latest/download';
 const windowsCommand = 'curl.exe -fL "' + releaseBase + '/Install-Inventatory.ps1" -o "%TEMP%\\Install-Inventatory.ps1" && powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%TEMP%\\Install-Inventatory.ps1" && del /q "%TEMP%\\Install-Inventatory.ps1"';
 const linuxCommand = [
@@ -29,101 +38,92 @@ const checkIcon = pixels(['.......a', '......aa', 'a....aa.', 'aa..aa..', '.aaaa
 const linuxIcon = pixels([
   '...kkk...', '..kkkkk..', '..kwkwk..', '..kyyyk..', '.kkwwwkk.', '.kwwwwwk.', 'kkwwwwwkk', 'kkwwwwwkk', '.kwwwwwk.', 'yyykkkyyy',
 ]);
+
+const platforms = [
+  {
+    value: 'windows', name: 'Windows', arch: 'x64', icon: windowsIcon, iconBox: '0 0 7 7',
+    lead: 'Open Command Prompt, paste the command, then follow the installer and first-run setup.',
+    shell: 'Command Prompt', prompt: '>', command: windowsCommand,
+  },
+  {
+    value: 'linux', name: 'Linux', arch: 'x86-64', icon: linuxIcon, iconBox: '0 0 9 10',
+    lead: 'Paste the command into a terminal. The verified installer puts Inventatory in ~/.local/bin/inventatory.',
+    shell: 'Terminal', prompt: '$', command: linuxCopy,
+  },
+];
 ---
 <section id={id} class="install-section" aria-labelledby={id + '-title'}>
-  <div class="install-heading">
-    <div>
-      <h2 id={id + '-title'} class="head">Install Inventatory</h2>
-      <p class="install-lead">Choose your system for the latest stable release.</p>
+  <div class="install-split">
+    <div class="install-pitch">
+      <Heading id={id + '-title'} class="head">{title}</Heading>
+      <p class="install-lead">{lead}</p>
+      <ul class="install-links">
+        <li><a class="out" href={release.url}>Release notes</a></li>
+        <li><a class="out" href={site.releases}>All releases</a></li>
+      </ul>
     </div>
-    <a class="release-link out" href={release.url}>Release notes</a>
+
+    <fieldset class="platform-selector frame">
+      <legend class="sr-only">Choose your operating system</legend>
+      <div class="platform-tabs">
+        {platforms.map((p, i) => <>
+          <input class="platform-radio" type="radio" name={id + '-platform'} id={id + '-' + p.value} value={p.value} checked={i === 0} />
+          <label class="platform-tab" for={id + '-' + p.value}>
+            <svg class="os" viewBox={p.iconBox} aria-hidden="true" shape-rendering="crispEdges">{p.icon.map(px => <rect x={px.x} y={px.y} width="1" height="1" fill={ICON_COLORS[px.c]} />)}</svg>
+            <span>{p.name}</span><small>{p.arch}</small>
+          </label>
+        </>)}
+      </div>
+
+      <!-- Both panels share one grid cell, so the box is the same size whichever is open. The
+           command stays on one line (scroll it, or just copy it). -->
+      <div class="platform-panels">
+        {platforms.map(p => (
+          <section class="platform-panel" data-platform-panel={p.value} aria-labelledby={id + '-' + p.value + '-title'}>
+            <h3 id={id + '-' + p.value + '-title'} class="sr-only">{p.name} · {p.arch}</h3>
+            <p class="platform-lead">{p.lead}</p>
+            <div class="terminal frame">
+              <div class="terminal-bar"><span class="terminal-title">{p.shell}</span></div>
+              <div class="terminal-line">
+                <div class="terminal-code" tabindex="0" aria-label="Install command">
+                  <span class="terminal-prompt" aria-hidden="true">{p.prompt}</span>
+                  <pre><code>{p.command}</code></pre>
+                </div>
+              </div>
+            </div>
+            <div class="platform-actions">
+              <button type="button" class="copy-button press" data-copy={p.command}>
+                <span class="copy-face">
+                <span class="copy-shown">
+                <span class="copy-icon-wrap" aria-hidden="true">
+                  <svg class="copy-icon" viewBox="0 0 8 8" shape-rendering="crispEdges">{copyIcon.map(px => <rect x={px.x} y={px.y} width="1" height="1" fill="currentColor" />)}</svg>
+                  <svg class="check-icon" viewBox="0 0 8 6" shape-rendering="crispEdges">{checkIcon.map(px => <rect x={px.x} y={px.y} width="1" height="1" fill="currentColor" />)}</svg>
+                </span>
+                <span class="copy-text" aria-live="polite">Copy command</span>
+                </span>
+                <span class="copy-size" aria-hidden="true">Copy command</span>
+                </span>
+              </button>
+              {p.value === 'windows'
+                ? <p class="platform-note">The installer checks the release package before it installs anything.</p>
+                : <p class="platform-note">Missing runtime libraries? <a class="go" href={url('/docs/getting-started/installation/#requirements')}>See the requirements</a></p>}
+            </div>
+          </section>
+        ))}
+      </div>
+    </fieldset>
   </div>
 
-  <fieldset class="platform-selector frame">
-    <legend class="sr-only">Choose your operating system</legend>
-    <div class="platform-tabs" role="tablist">
-      <input class="platform-radio" type="radio" name={id + '-platform'} id={id + '-windows'} value="windows" checked />
-      <label class="platform-tab" for={id + '-windows'}>
-        <svg class="os" viewBox="0 0 7 7" aria-hidden="true" shape-rendering="crispEdges">{windowsIcon.map(p => <rect x={p.x} y={p.y} width="1" height="1" fill={ICON_COLORS[p.c]} />)}</svg>
-        <span>Windows</span><small>x64</small>
-      </label>
-      <input class="platform-radio" type="radio" name={id + '-platform'} id={id + '-linux'} value="linux" />
-      <label class="platform-tab" for={id + '-linux'}>
-        <svg class="os" viewBox="0 0 9 10" aria-hidden="true" shape-rendering="crispEdges">{linuxIcon.map(p => <rect x={p.x} y={p.y} width="1" height="1" fill={ICON_COLORS[p.c]} />)}</svg>
-        <span>Linux</span><small>x86-64</small>
-      </label>
+  {sources && (
+    <div class="sources">
+      <p>{sources.label}</p>
+      <ul>
+        {sources.links.map(link => (
+          <li><a class={link.href.startsWith('http') ? 'out' : 'go'} href={resolveHref(link.href)}>{link.label}</a></li>
+        ))}
+      </ul>
     </div>
-
-    <!-- Both panels share one grid cell, so the box is the same size whichever is open. The
-         command stays on one line (scroll it, or just copy it). -->
-    <div class="platform-panels">
-      <section class="platform-panel" data-platform-panel="windows" aria-labelledby={id + '-windows-title'}>
-        <h3 id={id + '-windows-title'} class="sr-only">Windows · x64</h3>
-        <p class="platform-lead">Open Command Prompt, paste the command, then follow the installer and first-run setup.</p>
-        <div class="terminal frame">
-          <div class="terminal-bar">
-            <span class="terminal-title">Command Prompt</span>
-            <div class="terminal-tools">
-              <button
-                type="button"
-                class="copy-button key"
-                aria-label="Copy install command"
-                title="Copy command"
-                data-copy={windowsCommand}
-              >
-                <span class="copy-icon-wrap" aria-hidden="true">
-                  <svg class="copy-icon" viewBox="0 0 8 8" shape-rendering="crispEdges">{copyIcon.map(p => <rect x={p.x} y={p.y} width="1" height="1" fill="currentColor" />)}</svg>
-                  <svg class="check-icon" viewBox="0 0 8 6" shape-rendering="crispEdges">{checkIcon.map(p => <rect x={p.x} y={p.y} width="1" height="1" fill="currentColor" />)}</svg>
-                </span>
-                <span class="copy-label">Copy</span>
-              </button>
-            </div>
-          </div>
-          <div class="terminal-line">
-            <div class="terminal-code" tabindex="0" aria-label="Install command">
-              <span class="terminal-prompt" aria-hidden="true">&gt;</span>
-              <pre><code>{windowsCommand}</code></pre>
-            </div>
-          </div>
-        </div>
-        <p class="platform-note">The installer checks the release package before it installs anything.</p>
-      </section>
-
-      <section class="platform-panel" data-platform-panel="linux" aria-labelledby={id + '-linux-title'}>
-        <h3 id={id + '-linux-title'} class="sr-only">Linux · x86-64</h3>
-        <p class="platform-lead">Paste the command into a terminal. The verified installer puts Inventatory in <code>~/.local/bin/inventatory</code>.</p>
-        <div class="terminal frame">
-          <div class="terminal-bar">
-            <span class="terminal-title">Terminal</span>
-            <div class="terminal-tools">
-              <button
-                type="button"
-                class="copy-button key"
-                aria-label="Copy install command"
-                title="Copy command"
-                data-copy={linuxCopy}
-              >
-                <span class="copy-icon-wrap" aria-hidden="true">
-                  <svg class="copy-icon" viewBox="0 0 8 8" shape-rendering="crispEdges">{copyIcon.map(p => <rect x={p.x} y={p.y} width="1" height="1" fill="currentColor" />)}</svg>
-                  <svg class="check-icon" viewBox="0 0 8 6" shape-rendering="crispEdges">{checkIcon.map(p => <rect x={p.x} y={p.y} width="1" height="1" fill="currentColor" />)}</svg>
-                </span>
-                <span class="copy-label">Copy</span>
-              </button>
-            </div>
-          </div>
-          <div class="terminal-line">
-            <div class="terminal-code" tabindex="0" aria-label="Install command">
-              <span class="terminal-prompt" aria-hidden="true">$</span>
-              <pre><code>{linuxCopy}</code></pre>
-            </div>
-          </div>
-        </div>
-        <p class="platform-note">Missing runtime libraries? <a class="go" href={url('/docs/getting-started/installation/#requirements')}>See the requirements</a></p>
-      </section>
-    </div>
-    <div class="platform-foot"><a class="out" href={site.releases}>See all releases</a></div>
-  </fieldset>
-
+  )}
 </section>
 
 <script>
@@ -131,7 +131,7 @@ const linuxIcon = pixels([
     const button = (e.target as Element).closest<HTMLButtonElement>('.copy-button');
     if (!button) return;
 
-    const text = button.getAttribute('data-copy') || button.closest('.terminal, .platform-panel')?.querySelector('code')?.textContent?.trim() || '';
+    const text = button.getAttribute('data-copy') || '';
     if (!text) return;
 
     try {
@@ -150,16 +150,16 @@ const linuxIcon = pixels([
         textArea.remove();
       }
 
+      const label = button.querySelector<HTMLElement>('.copy-text');
+      if (!label) return;
+      button.dataset.label ??= label.textContent || '';
       button.classList.add('copied');
-      const label = button.querySelector<HTMLElement>('.copy-label');
-      if (label) label.textContent = 'Copied!';
-      button.setAttribute('aria-label', 'Copied to clipboard');
-
-      setTimeout(() => {
+      label.textContent = 'Copied';
+      clearTimeout(Number(button.dataset.timer));
+      button.dataset.timer = String(setTimeout(() => {
         button.classList.remove('copied');
-        if (label) label.textContent = 'Copy';
-        button.setAttribute('aria-label', 'Copy install command');
-      }, 2000);
+        label.textContent = button.dataset.label || '';
+      }, 2000));
     } catch (err) {
       console.error('Failed to copy install command', err);
     }
@@ -169,19 +169,24 @@ const linuxIcon = pixels([
 <style>
   /* The bottom space keeps the footer's dithered band clear of the install box. */
   .install-section { padding-block: var(--section-y) var(--space-20); }
-  .install-heading { display: flex; align-items: end; justify-content: space-between; gap: var(--space-8); margin-bottom: var(--space-8); }
-  .install-heading h2 { margin: 0 0 var(--space-3); }
-  .install-lead { margin: 0; color: var(--secondary); }
-  .release-link { flex: 0 0 auto; font: var(--text-sm)/1.5 var(--font-mono); text-decoration: none; }
-  .platform-selector { --fill: var(--surface); min-width: 0; margin: 0; padding: 0; border: 0; }
 
-  /* 50/50 split tab header with pixelart border and notched corners */
+  /* The pitch on the left, the install panel on the right, as in the Scanner R1 shop above. */
+  .install-split { display: grid; grid-template-columns: minmax(0, 22rem) minmax(0, 1fr); gap: var(--space-16); align-items: center; }
+  .install-pitch .head { margin: 0 0 var(--space-4); }
+  .install-lead { margin: 0; color: var(--secondary); line-height: 1.6; }
+  .install-links { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-6); margin: var(--space-8) 0 0; padding: 0; list-style: none; font: var(--text-sm)/1.5 var(--font-mono); }
+  .install-links li, .sources li { margin: 0; }
+  .install-links a { text-decoration: none; }
+
+  /* A dark panel; the cyan is kept for the open tab and the Copy button. */
+  .platform-selector { --frame: var(--divider); --fill: var(--surface); min-width: 0; margin: 0; padding: 0; border: 0; }
+
+  /* 50/50 split tab header, notched to the panel's corners */
   .platform-tabs {
     position: relative;
     display: grid;
     grid-template-columns: 1fr 1fr;
     margin: var(--px) var(--px) 0;
-    background: var(--surface);
     clip-path: polygon(
       calc(var(--px) * 2) 0,
       calc(100% - var(--px) * 2) 0,
@@ -216,7 +221,7 @@ const linuxIcon = pixels([
     align-items: center;
     justify-content: center;
     gap: var(--space-2);
-    min-height: 3.25rem;
+    min-height: 3.5rem;
     padding: var(--space-3) var(--space-4);
     color: var(--muted);
     font: 500 var(--text-sm)/1.4 var(--font-mono);
@@ -233,13 +238,12 @@ const linuxIcon = pixels([
     background: linear-gradient(180deg, var(--divider) 50%, transparent 0) 0 0 / var(--px) calc(var(--px) * 4) repeat-y;
     pointer-events: none;
   }
-  .platform-tab:hover {
-    color: var(--text);
-    background: var(--hover);
-  }
-  .platform-radio:checked + .platform-tab {
-    color: var(--text);
-    background: var(--active-soft);
+  .platform-tab:hover { color: var(--text); background: var(--hover); }
+  .platform-radio:checked + .platform-tab { color: var(--text); background: var(--active-soft); }
+  /* The open tab stands on a lit bar, two grid pixels high, over the dotted rule. */
+  .platform-radio:checked + .platform-tab::before {
+    content: ''; position: absolute; inset: auto 0 0; z-index: 1;
+    height: calc(var(--px) * 2); background: var(--accent);
   }
   .platform-radio:focus-visible + .platform-tab {
     outline: var(--focus-width) solid var(--focus);
@@ -248,10 +252,10 @@ const linuxIcon = pixels([
   .os { width: calc(var(--px) * 7); height: auto; }
   .platform-tab:last-of-type .os { width: calc(var(--px) * 9); }
   .platform-tab small { color: var(--muted); font-size: var(--text-xs); }
-  .platform-radio:checked + .platform-tab small { color: var(--secondary); }
+  .platform-radio:checked + .platform-tab small { color: var(--focus); }
 
   /* The panels stack in one cell: the box takes the taller one's height and keeps it. */
-  .platform-panels { display: grid; gap: var(--space-8); padding: var(--space-6); }
+  .platform-panels { display: grid; padding: var(--space-6) var(--space-6) var(--space-8); }
   .platform-panel {
     display: flex;
     flex-direction: column;
@@ -259,7 +263,6 @@ const linuxIcon = pixels([
     min-width: 0;
   }
   .platform-lead { margin: 0; color: var(--secondary); font-size: var(--text-sm); line-height: 1.6; }
-  .platform-lead code { color: var(--text); font-size: var(--text-xs); }
 
   /* Dedicated terminal window */
   .terminal {
@@ -269,19 +272,16 @@ const linuxIcon = pixels([
     flex-direction: column;
     min-width: 0;
   }
+  /* Inside the frame's outline, so its notched corners show. */
   .terminal-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--space-2) var(--space-3) var(--space-2) var(--space-4);
-    border-bottom: var(--border) solid var(--divider);
-    background: var(--raised);
+    margin: var(--px) var(--px) 0;
+    padding: var(--space-2) var(--space-4);
+    background: linear-gradient(90deg, var(--divider) 50%, transparent 0) 0 100% / calc(var(--px) * 4) var(--px) repeat-x;
   }
   .terminal-title {
     color: var(--muted);
-    font: 500 var(--text-xs)/1 var(--font-mono);
+    font: 500 var(--text-xs)/1.5 var(--font-mono);
   }
-  .terminal-tools { display: flex; align-items: center; gap: var(--space-3); }
   /* One line; wider commands scroll sideways under a one-pixel bar. */
   .terminal-code {
     display: flex;
@@ -290,54 +290,65 @@ const linuxIcon = pixels([
     padding: var(--space-4);
     min-width: 0;
     overflow-x: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--divider) transparent;
   }
-  /* The line dissolves at the right edge in the film's dither: there is more of it. */
+  /* A plain bar without the arrow buttons Chrome draws for the standard scrollbar properties. */
+  /* Tall enough to grab with a mouse: four grid pixels, lit while held. */
+  .terminal-code::-webkit-scrollbar { height: calc(var(--px) * 4); }
+  .terminal-code::-webkit-scrollbar-track { background: var(--surface); }
+  .terminal-code::-webkit-scrollbar-thumb { background: var(--divider); }
+  .terminal-code::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+  .terminal-code::-webkit-scrollbar-thumb:active { background: var(--accent); }
+  .terminal-code::-webkit-scrollbar-button { display: none; }
+  @supports not selector(::-webkit-scrollbar) {
+    .terminal-code { scrollbar-width: auto; scrollbar-color: var(--divider) var(--surface); }
+  }
   /* Inside the frame's outline, so nothing scrolls over it. */
-  .terminal-line { position: relative; margin: 0 var(--px) var(--px); }
-  .terminal-line::after {
-    --t: calc(var(--px) * 4);
-    content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: calc(var(--t) * 4);
-    background: var(--canvas); pointer-events: none;
-    -webkit-mask: var(--dither-25) 0 0 / var(--t) var(--t) repeat-y, var(--dither-50) var(--t) 0 / var(--t) var(--t) repeat-y,
-      var(--dither-75) calc(var(--t) * 2) 0 / var(--t) var(--t) repeat-y, linear-gradient(#000 0 0) 100% 0 / var(--t) 100% no-repeat;
-    mask: var(--dither-25) 0 0 / var(--t) var(--t) repeat-y, var(--dither-50) var(--t) 0 / var(--t) var(--t) repeat-y,
-      var(--dither-75) calc(var(--t) * 2) 0 / var(--t) var(--t) repeat-y, linear-gradient(#000 0 0) 100% 0 / var(--t) 100% no-repeat;
-  }
+  .terminal-line { margin: 0 var(--px) var(--px); }
   .terminal-code:focus-visible { outline: var(--focus-width) solid var(--focus); outline-offset: -2px; }
   .terminal-prompt {
     flex: 0 0 auto;
     color: var(--accent);
-    font: 700 var(--text-xs)/1.7 var(--font-mono);
+    font: 700 var(--text-sm)/1.7 var(--font-mono);
     user-select: none;
   }
-  /* Its own width, plus room to scroll the end out from under the dither. */
+  /* Its own width, plus room after the end when scrolled. */
   .terminal-code pre {
     flex: none;
     margin: 0;
-    padding: 0 calc(var(--px) * 16) 0 0;
+    padding: 0 calc(var(--px) * 6) 0 0;
     color: var(--focus);
-    font: var(--text-xs)/1.7 var(--font-mono);
+    font: var(--text-sm)/1.7 var(--font-mono);
     white-space: pre;
   }
   .terminal-code pre code { color: inherit; white-space: inherit; }
 
-  .copy-button { min-height: 1.75rem; padding: 0 var(--space-3); gap: var(--space-1); font: 500 var(--text-xs)/1 var(--font-mono); }
+  /* Copying is what this section is for, so Copy is its one filled button. */
+  .platform-actions { display: flex; align-items: center; gap: var(--space-4) var(--space-6); margin-top: var(--space-2); }
+  .copy-button { flex: none; gap: var(--space-2); border: 0; background: none; font: inherit; font-weight: 600; cursor: pointer; }
   .copy-icon-wrap { display: inline-flex; align-items: center; justify-content: center; }
-  .copy-icon-wrap svg { width: 14px; height: auto; }
-  .copy-button .check-icon { display: none; }
-  .copy-button.copied { color: var(--success); transform: translateY(calc(var(--px) * 2)); filter: none; }
-  .platform-note { margin: 0; color: var(--muted); font-size: var(--text-xs); line-height: 1.6; }
+  .copy-icon-wrap svg { width: 16px; height: auto; }
+  .copy-button .check-icon, .copy-button.copied .copy-icon { display: none; }
+  .copy-button.copied .check-icon { display: block; }
+  .copy-button.copied { --c: var(--success); }
+  /* Both faces share one cell, so "Copied" keeps the button at its first width. */
+  .copy-face { display: grid; }
+  .copy-shown, .copy-size { grid-area: 1 / 1; display: flex; align-items: center; justify-content: center; gap: var(--space-2); }
+  /* The widest face, icon space included, sets the width. */
+  .copy-size { visibility: hidden; }
+  .copy-size::before { content: ''; width: 16px; }
+  /* Held at the right edge, so it stays put whatever the button says. */
+  .platform-note { margin: 0 0 0 auto; text-align: right; color: var(--muted); font-size: var(--text-xs); line-height: 1.6; }
   .platform-note a { text-decoration: none; }
 
-  /* Dotted rule on the grid */
-  .platform-foot {
-    display: flex; justify-content: flex-end; margin-inline: var(--space-6); padding: var(--space-4) 0 var(--space-6);
+  /* The page's last word before the footer: where all the source lives. */
+  .sources {
+    display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--space-3) var(--space-8);
+    margin-top: var(--space-16); padding-top: var(--space-6);
     background: linear-gradient(90deg, var(--divider) 50%, transparent 0) 0 0 / calc(var(--px) * 4) var(--px) repeat-x;
-    font: var(--text-xs)/1.5 var(--font-mono);
   }
-  .platform-foot a { white-space: nowrap; text-decoration: none; }
+  .sources p { margin: 0; color: var(--secondary); }
+  .sources ul { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-8); margin: 0; padding: 0; list-style: none; font: var(--text-sm)/1.5 var(--font-mono); }
+  .sources a { text-decoration: none; white-space: nowrap; }
 
   @supports selector(.platform-selector:has(input:checked)) {
     .platform-panel { grid-area: 1 / 1; }
@@ -345,13 +356,20 @@ const linuxIcon = pixels([
     .platform-selector:has(.platform-radio[value="linux"]:checked) [data-platform-panel="windows"] { visibility: hidden; }
   }
 
-  @media (max-width: 48rem) {
-    .install-heading { align-items: start; flex-direction: column; gap: var(--space-4); }
+  @media (max-width: 64rem) {
+    .install-split { grid-template-columns: minmax(0, 1fr); gap: var(--space-8); }
+    .install-pitch { max-width: var(--measure); }
+    .install-links { margin-top: var(--space-6); }
+  }
+  @media (max-width: 40rem) {
+    .platform-actions { flex-direction: column; align-items: stretch; }
+    .copy-button { justify-content: center; }
+    .platform-note { margin: 0; text-align: left; }
+    .sources { margin-top: var(--space-12); }
   }
   @media (max-width: 30rem) {
     .platform-tab { padding-inline: var(--space-2); font-size: var(--text-xs); }
     .platform-tab small { display: none; }
-    .platform-panels { padding: var(--space-4); }
-    .platform-foot { margin-inline: var(--space-4); }
+    .platform-panels { padding: var(--space-4) var(--space-4) var(--space-6); }
   }
 </style>

@@ -10,5 +10,6 @@ export const film = content.film;
 export const app = content.app;
 export const highlights = content.highlights.items;
 export const scanner = content.scanner;
+export const install = content.install;
 
 export { site, release };
