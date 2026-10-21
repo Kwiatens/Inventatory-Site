@@ -9,10 +9,7 @@
     "secondary": "Watch it work"
   },
   "film": {
-    "title": [
-      "One scan.",
-      "One slot."
-    ],
+    "title": "Here's how it works",
     "summary": "A part comes in, the scanner reads its bag, and Inventatory fills it in from the vendor and gives it a slot. When a board needs it, you go straight there. The whole loop, in under two minutes."
   },
   "app": {

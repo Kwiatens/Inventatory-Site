@@ -27,8 +27,12 @@ kbd { background: var(--raised); padding: var(--space-1) var(--space-2); border:
 .section-heading { display: grid; grid-template-columns: 1fr 1.4fr; gap: var(--space-12); margin-bottom: var(--space-8); align-items: start; }
 .section-heading p { max-width: var(--measure); }
 .section-heading h2 + a { display: inline-block; margin-top: var(--space-4); }
-/* The home page's section heading: the pixel heading left, what it means right, on one baseline. */
-.lede-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-8) var(--space-16); align-items: end; margin-bottom: var(--space-12); }
+/* Headings are set, not drawn: the pixels belong to what the product draws (films, LCD, keys,
+   the mark). Tight and warm-white, so the art around them carries the character. */
+.head { font: 550 clamp(1.75rem, 3vw, 2.5rem)/1.1 var(--font-body); letter-spacing: -.02em; color: var(--text); text-wrap: balance; }
+.subhead { font: 600 1.25rem/1.25 var(--font-body); letter-spacing: -.01em; color: var(--text); }
+/* The home page's section heading: the heading left, what it means right, on one top line. */
+.lede-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--space-6) var(--space-16); align-items: start; margin-bottom: var(--space-12); }
 .lede-row p { max-width: 36rem; color: var(--secondary); font-size: 1.125rem; line-height: 1.6; }
 .lead { font-size: var(--text-lead); max-width: var(--measure); }
 .actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-6); margin-top: var(--space-6); }

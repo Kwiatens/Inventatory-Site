@@ -14,7 +14,7 @@ const external = (href: string) => /^https?:/.test(href);
   <div class="wrap">
     <div class="stage">
       <div class="stage-copy">
-        <h2 id="scanner-heading" class="px-head">{scanner.title}</h2>
+        <h2 id="scanner-heading" class="head">{scanner.title}</h2>
         <p class="summary">{scanner.summary}</p>
       </div>
 
@@ -31,7 +31,7 @@ const external = (href: string) => /^https?:/.test(href);
     <div class="routes">
       <article class="route open frame" aria-labelledby="route-open">
         <header>
-          <h3 id="route-open" class="px-sub">{scanner.open.title}</h3>
+          <h3 id="route-open" class="subhead">{scanner.open.title}</h3>
         </header>
         <p>{scanner.open.text}</p>
         <ul class="foot links">
@@ -43,7 +43,7 @@ const external = (href: string) => /^https?:/.test(href);
 
       <article class="route bundle frame" aria-labelledby="route-bundle">
         <header>
-          <h3 id="route-bundle" class="px-sub">{scanner.bundle.title}</h3>
+          <h3 id="route-bundle" class="subhead">{scanner.bundle.title}</h3>
         </header>
         <p>{scanner.bundle.text}</p>
         <table class="manifest">
@@ -53,7 +53,7 @@ const external = (href: string) => /^https?:/.test(href);
         </table>
         <div class="foot buy">
           <div class="price-block">
-            <span class="price px-sub">{scanner.bundle.pricing}</span>
+            <span class="price subhead">{scanner.bundle.pricing}</span>
             <span class="delivery">{scanner.bundle.delivery}</span>
           </div>
           {scanner.bundle.href

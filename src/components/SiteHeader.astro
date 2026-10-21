@@ -1,8 +1,8 @@
 ---
 /**
  * Shared primary navigation, as the app's tab bar: the mark on the left, the home page's sections
- * as tabs in the middle, the way out and the app's clock on the right. On the home page the tab of
- * the section in view is the current one; elsewhere the tabs lead back to the home page.
+ * as tabs in the middle, the docs and the way out on the right. On the home page the tab of the
+ * section in view is the current one; elsewhere the tabs lead back to the home page.
  */
 import { site } from '../data/site';
 import { url } from '../lib/url';
@@ -20,20 +20,10 @@ const tabs = [
   <div class="header-end">
     <a href={url('/docs/')}>Docs</a>
     <a class="out" href={site.repository}>GitHub</a>
-    <span class="clock" data-clock aria-hidden="true"></span>
   </div>
 </header>
 
 <script>
-  // The clock, as in the app's bar.
-  const clock = document.querySelector<HTMLElement>('[data-clock]');
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const tickClock = () => {
-    const d = new Date();
-    clock!.textContent = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-  };
-  if (clock) { tickClock(); setInterval(tickClock, 1000); }
-
   // The tab bar follows the section in view (only the home page marks its sections).
   const tabs = new Map([...document.querySelectorAll<HTMLAnchorElement>('[data-tab]')].map(a => [a.dataset.tab!, a]));
   const seen = new Map<string, number>();
@@ -53,7 +43,7 @@ const tabs = [
     position: sticky; top: 0; z-index: 30; height: var(--header-height);
     display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: var(--space-6);
     padding-inline: var(--gutter); background: var(--canvas);
-    font: var(--text-sm)/1 var(--font-mono);
+    font: 500 var(--text-sm)/1 var(--font-body);
     /* The app's rule under its bar: one line, the divider colour. */
     box-shadow: 0 1px 0 var(--divider);
   }
@@ -61,14 +51,14 @@ const tabs = [
   .header-brand { justify-self: start; --h: 1rem; --lockup-word: var(--graphite); --lockup-mark: var(--graphite); }
   .header-brand:is(:hover, :focus-visible) { --lockup-mark: var(--accent); }
   .tabs { display: flex; }
-  .tabs a, .header-end a { color: var(--secondary); text-decoration: none; padding: .55rem .6rem; white-space: pre; }
+  .tabs { gap: var(--space-2); height: 100%; }
+  .tabs a, .header-end a { display: flex; align-items: center; height: 100%; color: var(--muted); text-decoration: none; padding-inline: .6rem; white-space: pre; }
   .tabs a:hover, .header-end a:hover { color: var(--text); }
-  /* The current section is the app's current tab: bold, light, on the divider. */
-  .tabs a[aria-current] { color: var(--focus); background: var(--divider); font-weight: 600; }
-  .header-end { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-2); }
-  .clock { color: var(--muted); margin-left: var(--space-3); font-variant-numeric: tabular-nums; }
+  /* The current section: its name lit, one grid pixel of accent on the bar's rule. */
+  .tabs a[aria-current] { color: var(--text); box-shadow: inset 0 calc(var(--px) * -1) 0 var(--accent); }
+  .header-end { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-2); height: 100%; }
   @media (max-width: 64rem) {
     .site-header { grid-template-columns: auto 1fr; }
-    .tabs, .clock { display: none; }
+    .tabs { display: none; }
   }
 </style>
